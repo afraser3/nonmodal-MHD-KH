@@ -1,7 +1,8 @@
 """
 Copying this from an old script I had lying around from grad school.
 I did very little testing of the viscous/resistive system, so it needs to be checked.
-It could definitely also use cleaning up
+(I have verified that it returns a reasonable eigenvalue for the current set of parameters.)
+It could definitely also use cleaning up.
 """
 # from eigentools import Eigenproblem
 from dedalus import public as de
