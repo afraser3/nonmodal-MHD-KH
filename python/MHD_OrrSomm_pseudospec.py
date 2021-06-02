@@ -9,12 +9,14 @@ from dedalus import public as de
 import numpy as np
 from matplotlib import pyplot as plt
 
-Reynolds = 500.0
-mReynolds = 500.0
+Reynolds = 10.0
+mReynolds = 1.0
+Pm = mReynolds/Reynolds
+
 Nz = 512
 Lz = 10.0*np.pi
-kx = 0.4
-MA = 10.0
+kx = 0.01
+MA = 0.99
 
 
 def energy_norm(X1, X2):
@@ -119,12 +121,13 @@ plt.plot(np.real(EP.evalues_high), np.imag(EP.evalues_high), '+', label=r'evalue
 if len(EP.evalues) > 0:
     plt.plot(np.real(EP.evalues), np.imag(EP.evalues), '.', label=r'evalues')
 plt.contour(EP.ps_real, EP.ps_imag, np.log10(EP.pseudospectrum), levels=np.arange(-8, 0))
-plt.colorbar()
+plt.colorbar(label=r'$\log_{10} (\epsilon)$')
 plt.legend()
 plt.ylim((-0.5, 0.5))
 plt.xlim((-0.5, 0.5))
 plt.axhline(0, color='k', alpha=0.2)
 plt.xlabel('real (oscillating) frequency')
 plt.ylabel('growth rate')
-# plt.show()
-plt.savefig('MHD_KH_pseudospectra.pdf')
+plt.title(r'(kx, MA, Re, Pm) = ({}, {}, {}, {})'.format(kx, MA, Reynolds, Pm))
+plt.savefig('MHD_KH_pseudospectra_kx{}_MA{}_Re{}_Pm{}_Nz{}.pdf'.format(kx, MA, Reynolds, Pm, Nz))
+plt.show()
