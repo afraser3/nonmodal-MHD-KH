@@ -37,33 +37,6 @@ def energy_norm(X1, X2):
     return field['g'][0]
 
 
-def compute_energies(solver):  # Took this from somewhere on Keaton Burns' GitHub
-    # Construct energy operator
-    Lz = solver.problem.parameters['Lz']
-    kx = solver.problem.parameters['kx']
-    Lx = 2.0 * np.pi / kx
-    MA2 = solver.problem.parameters['MA2']
-    phi = solver.state['phi']
-    psi = solver.state['psi']
-
-    phi_z_op = de.operators.differentiate(phi, 'z')
-    psi_z_op = de.operators.differentiate(psi, 'z')
-
-    E_op = (Lx / 2.0) * de.operators.integrate(
-        np.abs(kx ** 2 * phi * phi) + np.abs(phi_z_op * phi_z_op) + (1.0 / MA2) * (
-                    np.abs(kx ** 2 * psi * psi) + np.abs(psi_z_op * psi_z_op)), 'z')
-    # Evaluate energy for each mode
-    N = len(solver.eigenvalues)
-    energies = np.zeros(N)
-    for i in range(N):
-        solver.set_state(i)
-        energies[i] = np.abs(E_op.evaluate()['c'][0])
-    return energies
-
-
-# def KHevp(Nz, Lz, kx, MA, Reynolds=np.inf, mReynolds=np.inf, bounds=0, splitdomain=False, plotmodes=False,
-          # solvedense=False, nev=1, doleft=False, findstable=False, test=False, energy_norm=True, basefolder=''):
-
 if Reynolds == np.inf:
     inviscid = True
 else:
