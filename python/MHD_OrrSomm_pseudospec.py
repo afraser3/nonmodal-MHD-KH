@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 
 Reynolds = 500.0
 mReynolds = 500.0
-Nz = 128  # when this was 64, EP discarded the physical unstable mode (relative error of 0.079%)
+Nz = 512
 Lz = 10.0*np.pi
 kx = 0.4
 MA = 10.0
@@ -126,4 +126,5 @@ plt.xlim((-0.5, 0.5))
 plt.axhline(0, color='k', alpha=0.2)
 plt.xlabel('real (oscillating) frequency')
 plt.ylabel('growth rate')
-plt.show()
+# plt.show()
+plt.savefig('MHD_KH_pseudospectra.pdf')
