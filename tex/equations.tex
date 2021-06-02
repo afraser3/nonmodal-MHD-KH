@@ -1,0 +1,53 @@
+\documentclass[aps,pop,preprint]{revtex4}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\newcommand{\Rm}{\mathrm{Rm}}
+\renewcommand{\Re}{\mathrm{Re}}
+
+\begin{document}
+	% \title{Model equations}
+	% \begin{abstract}
+	% 
+	% \end{abstract}
+	% \maketitle
+	
+	\section{Model Derivation}
+	\label{sec:derivation}
+	We start from the MHD equations for an incompressible, unstratified plasma with finite viscosity and resistivity:
+	\begin{equation}
+	\rho_0 \left( \frac{\partial}{\partial t} + \mathbf{v} \cdot \nabla \right) \mathbf{v} = -\nabla p + \frac{1}{c} \mathbf{J} \times \mathbf{B} + \rho_0 \nu \nabla^2 \mathbf{v}
+	\end{equation}
+	\begin{equation}
+	\frac{\partial}{\partial t} \mathbf{B} = \nabla \times (\mathbf{v} \times \mathbf{B}) + \eta \nabla^2 \mathbf{B}
+	\end{equation}
+	\begin{equation}
+	\nabla \cdot \mathbf{v} = 0
+	\end{equation}
+	\begin{equation}
+	\nabla \cdot \mathbf{B} = 0.
+	\end{equation}
+	We're assuming we have an initial flow of the form $\mathbf{V} = U_0 \tanh (z/d) \hat{\mathbf{x}}$ and an initial field $\mathbf{B} = B_0 \hat{\mathbf{x}}$. 
+	As our non-dimensionalization, use $d$, $U_0$, and $B_0$. 
+	Then the first two equations can be written as  % this intermediate step is from memory/written hastily, so I may have left something out, double-check later
+	\begin{equation}
+	\left( \frac{\partial}{\partial t} + \mathbf{v} \cdot \nabla \right) \mathbf{v} = -\nabla p + \frac{1}{M_A^2} \mathbf{J} \times \mathbf{B} + \frac{1}{\Re} \nabla^2 \mathbf{v}
+	\end{equation}
+	and
+	\begin{equation}
+	\frac{\partial}{\partial t} \mathbf{B} = \nabla \times (\mathbf{v} \times \mathbf{B}) + \frac{1}{\Re} \nabla^2 \mathbf{B},
+	\end{equation}
+	where now everything is nondimensionalized, $p$ is really $p/\rho_0$, and $M_A \equiv U_0/v_A \propto U_0/B_0$ ($v_A$ is the Alfv\'{e}n velocity). 
+	So a weak magnetic field means a high $M_A$, and the threshold for stabilizing KH in ideal MHD ($\nu = 0$, $\eta = 0$) is in the neighborhood of $M_A \approx 1$.
+	
+	\subsection{2D case} \label{derivation:subsec:2d}
+	In the 2D case we may define our streamfunction $\phi$ and flux function $\psi$ such that $\mathbf{v} = \hat{\mathbf{y}} \times \nabla \phi$ and $\mathbf{B} = \hat{\mathbf{y}} \times \nabla \psi$. 
+	Then the equations become:
+\begin{equation}
+\frac{\partial}{\partial t} \nabla^2 \phi + \left\{\nabla^2 \phi, \phi \right\} = \frac{1}{M_A^2}\left\{\nabla^2 \psi, \psi \right\} + \frac{1}{\mathrm{Re}}\nabla^4 \phi
+\end{equation}
+\begin{equation}
+\frac{\partial}{\partial t} \psi = \left\{ \phi, \psi \right\} + \frac{1}{\mathrm{Rm}}\nabla^2 \psi
+\end{equation}
+(where $\left\{f, g\right\} \equiv \partial_x f \partial_z g - \partial_z g \partial_x f$).
+\end{document}
