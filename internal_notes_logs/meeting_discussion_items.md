@@ -1,8 +1,8 @@
-## June 3rd, 2021
-### Progress
+# June 3rd, 2021
+## Progress
 - Calculated my first pseudospectrum! The functioning script is in nonmodal-MHD-KH/python/MHD_OrrSomm_pseudospec.py
   
-### Questions/issues/discussion
+## Questions/issues/discussion
 - Dissipative or dissipationless spectra?
 - Do you usually calculate pseudospectra at all unstable wavenumbers? Most-unstable wavenumber?
 - Do we need to ditch spurious modes before calculating pseudospectrum? That tearing instability paper did this in a 
@@ -20,3 +20,13 @@
   - Possibly present alongside weird modes that appear at strong magnetic fields + low Rm 
     (I've found this in sinusoidal shear flow, haven't looked in tanh layer yet)
 - I usually add figure files (*.pdf, etc) to .gitignore. What's the strategy when working with Overleaf+github?
+
+## Post-meeting recap
+- Crank up the Reynolds number. In stratified case, things get more interesting at Re ~ 10^3 - 10^4 and non-modal 
+  growth increases
+- More parameter explorations before moving on to 3D or optimal perturbations
+- Jeff looking into MacTaggart paper, projecting out spurious subspaces idea
+- Nothing wrong with dissipationless case
+- APS DPP sounds fine
+- Talked about available computing resources
+- Minor differences between sparse/dense solves expected
