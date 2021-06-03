@@ -9,17 +9,17 @@ from dedalus import public as de
 import numpy as np
 from matplotlib import pyplot as plt
 
-Reynolds = 50.0
+Reynolds = 500.0
 mReynolds = 50.0
-kx = 0.4
+kx = 0.2
 MA = 1.2
 
 Pm = mReynolds/Reynolds
 Nz = 512
 Lz = 10.0*np.pi
 
-freq_axis_bounds = [-1.0, 1.0]
-growth_axis_bounds = [-1.0, 0.2]
+freq_axis_bounds = [-1.0 * kx / 0.4, 1.0 * kx / 0.4]  # the reasonable/helpful bounds seem to scale roughly with kx
+growth_axis_bounds = [-1.0 * kx / 0.4, 0.2]
 
 
 def energy_norm(X1, X2):

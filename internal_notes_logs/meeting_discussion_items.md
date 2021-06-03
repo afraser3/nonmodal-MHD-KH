@@ -3,22 +3,23 @@
 - Calculated my first pseudospectrum! The functioning script is in nonmodal-MHD-KH/python/MHD_OrrSomm_pseudospec.py
   
 ## Questions/issues/discussion
-- Dissipative or dissipationless spectra?
+(Strikethrough things we resolved)
+- ~~Dissipative or dissipationless spectra?~~
 - Do you usually calculate pseudospectra at all unstable wavenumbers? Most-unstable wavenumber?
-- Do we need to ditch spurious modes before calculating pseudospectrum? That tearing instability paper did this in a 
-  neat way: basically projected out the spurious subspaces from the operator before calculating pseudospectrum
-- What's next?
-  - Come up with a relevant metric characterizing pseudospectra, then do parameter scans?
-  - 3D perturbations?
-  - Linear optimal perturbations?
+- ~~Do we need to ditch spurious modes before calculating pseudospectrum? That tearing instability paper did this in a 
+  neat way: basically projected out the spurious subspaces from the operator before calculating pseudospectrum~~
+- ~~What's next?~~
+  - ~~Come up with a relevant metric characterizing pseudospectra, then~~ do parameter scans
+  - ~~3D perturbations?~~
+  - ~~Linear optimal perturbations?~~
 - Can we talk about how Eigentools calculates pseudospectra under the hood?
-  - Noticed calc_ps calls EP.solve(sparse=True). If I first call EP.solve(sparse=False), check the % difference between 
+  - ~~Noticed calc_ps calls EP.solve(sparse=True). If I first call EP.solve(sparse=False), check the % difference between 
     evalues_low and _high for the unstable mode, then check it again after calling calc_ps, the % difference goes up,
-    causing the mode to go from not-rejected to rejected.
-- Consider presenting at APS DPP?
-  - Abstract deadline July 15
-  - Possibly present alongside weird modes that appear at strong magnetic fields + low Rm 
-    (I've found this in sinusoidal shear flow, haven't looked in tanh layer yet)
+    causing the mode to go from not-rejected to rejected.~~
+- ~~Consider presenting at APS DPP?~~
+  - ~~Abstract deadline July 15~~
+  - ~~Possibly present alongside weird modes that appear at strong magnetic fields + low Rm 
+    (I've found this in sinusoidal shear flow, haven't looked in tanh layer yet)~~
 - I usually add figure files (*.pdf, etc) to .gitignore. What's the strategy when working with Overleaf+github?
 
 ## Post-meeting recap
@@ -27,6 +28,6 @@
 - More parameter explorations before moving on to 3D or optimal perturbations
 - Jeff looking into MacTaggart paper, projecting out spurious subspaces idea
 - Nothing wrong with dissipationless case
-- APS DPP sounds fine
+- APS DPP sounds fine, provided understanding that it's ok to present works in progress there
 - Talked about available computing resources
 - Minor differences between sparse/dense solves expected
