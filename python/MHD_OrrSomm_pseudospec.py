@@ -10,13 +10,16 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 Reynolds = 50.0
-mReynolds = 0.5
-kx = 0.005
-MA = 0.75
+mReynolds = 50.0
+kx = 0.4
+MA = 1.2
 
 Pm = mReynolds/Reynolds
 Nz = 512
 Lz = 10.0*np.pi
+
+freq_axis_bounds = [-1.0, 1.0]
+growth_axis_bounds = [-1.0, 0.2]
 
 
 def energy_norm(X1, X2):
@@ -112,19 +115,19 @@ EP = Eigenproblem(problem, grow_func=lambda x: x.imag, freq_func=lambda x: x.rea
 k = 100
 
 psize = 100
-real_points = np.linspace(-0.5, 0.5, psize)
-imag_points = np.linspace(-0.5, 0.5, psize)
+real_points = np.linspace(freq_axis_bounds[0], freq_axis_bounds[1], psize)
+imag_points = np.linspace(growth_axis_bounds[0], growth_axis_bounds[1], psize)
 EP.calc_ps(k, (real_points, imag_points), inner_product=energy_norm)
 
-plt.plot(np.real(EP.evalues_low), np.imag(EP.evalues_low), 'x', label=r'evalues_low')
-plt.plot(np.real(EP.evalues_high), np.imag(EP.evalues_high), '+', label=r'evalues_high')
-if len(EP.evalues) > 0:
-    plt.plot(np.real(EP.evalues), np.imag(EP.evalues), '.', label=r'evalues')
+# plt.plot(np.real(EP.evalues_low), np.imag(EP.evalues_low), 'x', label=r'evalues_low')
+# plt.plot(np.real(EP.evalues_high), np.imag(EP.evalues_high), '+', label=r'evalues_high')
+# if len(EP.evalues) > 0:
+plt.plot(np.real(EP.evalues), np.imag(EP.evalues), '.', c='k')
+# plt.legend()
 plt.contour(EP.ps_real, EP.ps_imag, np.log10(EP.pseudospectrum), levels=np.arange(-8, 0))
 plt.colorbar(label=r'$\log_{10} (\epsilon)$')
-plt.legend()
-plt.ylim((-0.5, 0.5))
-plt.xlim((-0.5, 0.5))
+plt.ylim((growth_axis_bounds[0], growth_axis_bounds[1]))
+plt.xlim((freq_axis_bounds[0], freq_axis_bounds[1]))
 plt.axhline(0, color='k', alpha=0.2)
 plt.xlabel('real (oscillating) frequency')
 plt.ylabel('growth rate')
