@@ -1,0 +1,116 @@
+\documentclass[aps,pop,preprint]{revtex4}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+%\graphicspath{{figures/}} % Location of the graphics files
+\usepackage[usenames, dvipsnames]{color}
+
+\newcommand{\NT}{\mathrm{Nu}_T}
+\newcommand{\NC}{\mathrm{Nu}_C}
+\newcommand{\gamtot}{\gamma_{\mathrm{tot}}}
+\newcommand{\gamturb}{\gamma_{\mathrm{turb}}}
+\newcommand{\lf}{\hat{l}_f}
+\newcommand{\lamf}{\hat{\lambda}_f}
+\newcommand{\wf}{\hat{w}_f}
+\newcommand{\PR}{\mathrm{Pr}}
+
+\begin{document}
+	%\author{Us, et al.}
+	%\author{}
+	%\author{M.J.~Pueschel$^2$}
+	%\author{P.W.~Terry$^1$}
+	%\author{E.G.~Zweibel$^1$}
+	%\affiliation{$^1$University of Wisconsin-Madison, Madison, Wisconsin 53706, U.S.A.\\
+	%$^2$Institute for Fusion Studies, University of Texas at Austin, Austin, Texas 78712, U.S.A.}
+	\title{Notes for KH instability of a sinusoidal shear flow in non-ideal MHD}
+	\begin{abstract}
+	These notes were originally written in Fall 2020 to accompany code for doing a parasitic mode analysis for 2D KH modes growing on top of elevator modes of the fingering instability in MHD with finite resistivity and viscosity [Fraser \& Garaud, in prep]. 
+	Note that the coordinate system makes sense for the DDC context, but not as much for most KH literature.
+	Note that I draw heavy inspiration from (and informally cite) these two papers by Pessah: https://ui.adsabs.harvard.edu/abs/2009ApJ...698L..72P/abstract and https://ui.adsabs.harvard.edu/abs/2010ApJ...716.1012P/abstract
+	\end{abstract}
+	\maketitle
+	
+	\section{Model Derivation, Normalization}
+	\label{sec:derivation}
+	Non-dimensionalize all length and timescales in terms of the wavenumber and flow velocity of the sinusoidal shear flow, so that we can take as our equilibrium flow $\mathbf{W} = W(x) \mathbf{\hat{z}} = \sin(x) \mathbf{\hat{z}}$. 
+	Similarly non-dimensionalize the field in terms of the equilibrium field so that $\mathbf{B} = \mathbf{\hat{z}}$. 
+	Then the equations for the perturbations, after expressing perturbations in terms of a streamfunction $\phi$ and flux function $\psi$, linearizing, and taking $f(x,z,t) = \hat{f}(x)e^{i (k_z z + \omega t)}$ are
+	\begin{equation}\label{eq:linphieq}
+	\begin{split}
+	\omega \left( \frac{d^2}{dx^2} - k_z^2 \right) \hat{\phi} &= -k_z W \left( \frac{d^2}{dx^2} - k_z^2 \right) \hat{\phi} + k_z W'' \hat{\phi}\\ &+ M^2 k_z \left( \frac{d^2}{dx^2} - k_z^2 \right) \hat{\psi} - \frac{i}{\mathrm{Re}}\left(\frac{d^2}{dx^2} - k_z^2\right)^2\hat{\phi}
+	\end{split}
+	\end{equation}
+	and
+	\begin{equation}\label{eq:linpsieq}
+	\omega \hat{\psi} = -k_z W \hat{\psi} + k_z \hat{\phi} - \frac{i}{\mathrm{Rm}}\left(\frac{d^2}{dx^2} - k_z^2\right)\hat{\psi}.
+	\end{equation}
+	Here, $M^2$ should be the same thing as $H_B^*$ in Harrington \& Garaud, or $1/M_\mathrm{A}^2$ in Fraser et al.~(2020).
+	
+	Define $\mathcal{Q} \equiv (d^2/dx^2 - k_z^2)$ \emph{(negative of Pessah's!)}, then this becomes
+	\begin{equation}
+	\omega \mathcal{Q} \hat{\phi} = -k_z W \mathcal{Q} \hat{\phi} + k_z W'' \hat{\phi}+ M^2 k_z \mathcal{Q} \hat{\psi} - \frac{i}{\mathrm{Re}}\mathcal{Q}^2\hat{\phi}
+	\end{equation}
+	and
+	\begin{equation}
+	\omega \hat{\psi} = -k_z W \hat{\psi} + k_z \hat{\phi} - \frac{i}{\mathrm{Rm}}\mathcal{Q}\hat{\psi}.
+	\end{equation}
+	
+	Now, take $\hat{f}(x) = \sum_n \tilde{f}_n e^{i(n + \delta)x}$, where the summation goes over integer $n$. 
+	(If we hadn't non-dimensionalized in terms of the wavenumber of the equilibrium flow, that $n$ in the exponent would be instead $nl$ where $l$ is the wavenumber of the equilibrium flow.) 
+	Here, $\delta \in [0, 1/2]$ (denoted $k_z$ in Pessah's papers) sets the periodicity in $x$ of the eigenmode $\hat{f}$ relative to the equilibrium flow. 
+	Taking $\delta = 0$ is the same thing as considering modes where $\hat{f}(x=0) = \hat{f}(x = 2\pi)$ (i.e.~same periodicity in $x$ as the equilibrium flow), taking $\delta = 1/2$ is the same thing as considering modes where $\hat{f}(x=0) = \hat{f}(x = 4\pi)$, and other values of $\delta$ have longer periodicity. 
+	It's entirely possible that $\delta>0$ modes might be more unstable than $\delta = 0$ modes, see for instance Fig.~1 in Pessah \& Goodman (arXiv: 0902.0794; note however they have a sinusoidal magnetic field). 
+	In my limited experience, that doesn't happen in the 2D hydrodynamic case with zero viscosity. 
+	
+	Taking $\hat{f}(x) = \sum_n \tilde{f}_n e^{i(n + \delta)x}$ gives $\mathcal{Q}\hat{f} = - \sum_n \tilde{f}_n [k_z^2 + (n+\delta)^2] = - \sum_n \Delta_n \tilde{f}_n$, for
+	\begin{equation}
+	\Delta_n \equiv k_z^2 + (n + \delta)^2.
+	\end{equation}
+	Also, $W = \sin(x) = (2 i)^{-1}(e^{ix} - e^{-ix})$ means that
+	\begin{equation}
+	\begin{split}
+	W\hat{f} &= \frac{1}{2i} \sum_n \tilde{f}_n \left( e^{i[(n+1) + \delta]x} - e^{i[(n-1) + \delta]x} \right)\\
+	&= \frac{1}{2i} \sum_n \left(\tilde{f}_{n-1} - \tilde{f}_{n+1}\right) e^{i(n + \delta)x}.
+	\end{split}
+	\end{equation}
+	From here, plugging all this in and rearranging gives
+	\begin{equation}
+	\omega \tilde{\phi}_n = k_z \frac{1}{2 i \Delta_n}\left[(1 - \Delta_{n-1}) \tilde{\phi}_{n-1} - (1 - \Delta_{n+1})\tilde{\phi}_{n+1}\right] + M^2 k_z \tilde{\psi}_n + i \frac{1}{\mathrm{Re}} \Delta_n \tilde{\phi}_n
+	\end{equation}
+	and
+	\begin{equation}
+	\omega \tilde{\psi}_n = - \frac{1}{2i} k_z \left( \tilde{\psi}_{n-1} - \tilde{\psi}_{n+1} \right) + k_z \tilde{\phi}_n + i\frac{1}{\mathrm{Rm}}\Delta_n \tilde{\psi}_n.
+	\end{equation}
+	
+	In \texttt{MHD\_Kolmogorov\_EVP.py} what I've done is taken these two equations and written them in matrix form as
+	\begin{equation}\label{eq:eigproblem}
+	\omega \vec{f} = \mathbf{L} \vec{f},
+	\end{equation}
+	where
+	\begin{equation}
+	\vec{f} = \begin{pmatrix}
+	\vdots\\
+	\tilde{\phi}_{n-1}\\
+	\tilde{\psi}_{n-1}\\
+	\tilde{\phi}_n\\
+	\tilde{\psi}_n\\
+	\tilde{\phi}_{n+1}\\
+	\tilde{\psi}_{n+1}\\
+	\vdots
+	\end{pmatrix}.
+	\end{equation}
+	The matrix $\mathbf{L}$ is pretty sparse. If we write it as
+	\begin{equation}
+	\mathbf{L} = \begin{pmatrix}
+	\ddots & \vdots & \vdots & \vdots & \vdots & \ddots\\
+	\dots & L_{\phi_n, \phi_n} & L_{\phi_n, \psi_n} & L_{\phi_n, \phi_{n+1}} & L_{\phi_n, \psi_{n+1}} & \dots\\
+	\dots & L_{\psi_n, \phi_n} & L_{\psi_n, \psi_n} & L_{\psi_n, \phi_{n+1}} & L_{\psi_n, \psi_{n+1}} & \dots\\
+	\ddots & \vdots & \vdots & \vdots & \vdots & \ddots
+	\end{pmatrix},
+	\end{equation}
+	then the only nonzero entries are $L_{\phi_n, \phi_n}, L_{\phi_n, \phi_{n+1}}, L_{\phi_n, \phi_{n-1}},$ and $L_{\phi_n, \psi_n}$ for the $\phi$ rows, and $L_{\psi_n, \phi_n}, L_{\psi_n, \psi_n}, L_{\psi_n, \psi_{n+1}},$ and $L_{\psi_n, \psi_{n-1}}$ for the $\psi$ rows.
+	
+	The matrix $\mathbf{L}$ should be $2N \times 2N$, where $N$ is how many Fourier modes in the expansion $\hat{f}(x) = \sum_n \tilde{f}_n e^{i(n + \delta)x}$ to include. 
+	\emph{Note that the code probably breaks if $N$ is even.} 
+	In the code, I loop over the array \texttt{m = [-N+1, ..., -1, 0, 1, N]}, and then the 0th, 2nd, 4th, ... iterations of the loop correspond to $\phi_n$ rows of $\mathbf{L}$, and the 1st, 3rd, ... iterations correspond to $\psi_n$ rows.
+\end{document}
