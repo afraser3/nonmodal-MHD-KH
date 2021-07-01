@@ -8,8 +8,8 @@ import h5py
 import numpy as np
 from matplotlib import pyplot as plt
 
-Reynolds = 50.0
-mReynolds = 5.0
+Reynolds = 1000.0
+mReynolds = 500.0
 kx = 0.2
 MA = 1.2
 
@@ -17,7 +17,7 @@ Pm = mReynolds/Reynolds
 Nz = 512
 Lz = 10.0*np.pi
 
-k = 100
+k = 800
 
 filepath = 'saved_spectra/Pm{}/Re{}/MA{}/kx{}/'.format(Pm, Reynolds, MA, kx)
 filename = 'pseudospec_Nz{}_Lz{}pi_k{}.h5'.format(Nz, Lz/np.pi, k)

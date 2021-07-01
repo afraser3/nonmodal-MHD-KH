@@ -1,3 +1,23 @@
+# July 1st, 2021
+### Progress
+- Separate scripts for calculating and saving pseudospectra vs plotting from file
+- Not much news on figuring out important "k". Importance of larger k almost seems 
+  to track with importance of larger Nz? As in, at higher Re.
+  
+- Insufficient k always makes pseudospectra seem smaller/more trivial
+
+### Questions/issues
+- How to do calc_ps with MPI?
+- What should we aim to finish in time for DPP abstract submission?
+- Things it would be nice to say:
+  - Which regions of parameter space, broadly, have more non-normality?
+  - When KH is barely stabilized by B, is there significant potential for non-modal growth?
+  - Maybe: do the different varieties of MHD KH have significantly different degrees of non-normality?
+  
+- What can we reasonably promise to finish by Nov?
+  - Linear optimal perturbations, comparison of transient vs modal growth?
+  - Maybe nonlinear simulations of linear optimals?
+
 # June 17th, 2021
 ### Progress
 - When pushing to higher Re, the subspace dimension ("k" in the documentation) turns out to be super important

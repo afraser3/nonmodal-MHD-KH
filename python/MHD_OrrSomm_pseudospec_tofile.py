@@ -10,8 +10,8 @@ import numpy as np
 import os
 import h5py
 
-Reynolds = 50.0
-mReynolds = 5.0
+Reynolds = 1000.0
+mReynolds = 500.0
 kx = 0.2
 MA = 1.2
 
@@ -19,10 +19,10 @@ Pm = mReynolds/Reynolds
 Nz = 512
 Lz = 10.0*np.pi
 
+k = 800
+psize = 100
 freq_axis_bounds = [-1.0 * kx / 0.4, 1.0 * kx / 0.4]  # the reasonable/helpful bounds seem to scale roughly with kx
 growth_axis_bounds = [-1.0 * kx / 0.4, 0.2]  # 0.2 is sometimes too small to see the full extent, but usually fine
-k = 100
-psize = 100
 real_points = np.linspace(freq_axis_bounds[0], freq_axis_bounds[1], psize)
 imag_points = np.linspace(growth_axis_bounds[0], growth_axis_bounds[1], psize)
 
