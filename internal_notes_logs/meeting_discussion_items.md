@@ -18,6 +18,21 @@
   - Linear optimal perturbations, comparison of transient vs modal growth?
   - Maybe nonlinear simulations of linear optimals?
 
+### Recap
+- DPP:
+  - Nonlinear DNS and/or optimals would be great to do, but too ambitious for this year. 
+    Linear optimals + pseudo is plenty.
+  - Don't sweat coming up with new results in the next week just for sake of abstract. We have enough for an abstract.
+  - Will send around abstract draft next week. Note pseudospectra/non-normality more familiar at DFD than DPP, use jargon accordingly.
+  
+- Pseudospectra only getting more interesting as k increases is a relief
+- Jeff pointed to [this link](https://github.com/jsoishi/mri_prefers_3d/blob/715022a2f8ba8361bac7cdcaeb52e70ab2257468/python/mri_single_yz_mode.py#L81)
+  and, even better, [this link](https://github.com/jsoishi/mri_prefers_3d/blob/715022a2f8ba8361bac7cdcaeb52e70ab2257468/python/mri.py#L230),
+  for examples of MPI plus eigentools
+  
+- Don't sweat doing a kx scan at every parameter point. Maybe look into it here and there, but fixing kx and scanning other stuff is probably fine
+- Now that saving to hdf5 is set up, once MPI is set up, can just scan lots of MA/Re/Pm at once and at sufficiently high k/Nz on Lux (local cluster)
+
 # June 17th, 2021
 ### Progress
 - When pushing to higher Re, the subspace dimension ("k" in the documentation) turns out to be super important
