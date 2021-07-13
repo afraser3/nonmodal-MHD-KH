@@ -1,9 +1,10 @@
-Title: Nonmodal growth and epsilon-pseudospectra of MHD shear flows with stabilizing magnetic fields
+Title: Nonmodal growth of MHD shear flows with stabilizing magnetic fields
 
-Shear flows are commonplace in astrophysical plasmas.
-In some parameter regimes, they serve as a free energy source to drive fluctuations and turbulence that can enhance momentum, energy, and particle transport, thus crucially affecting the evolution of the system.
-The boundary between parameter regimes where fluctuations are or are not driven by flow shear is often assumed to be provided by linear stability analyses.
-However, in many other systems, including pipe flow and stratified shear flows in neutral fluids, linear stability analyses are known to be misleading: even when systems are linearly stable, perturbations can grow significantly through so-called nonmodal or non-normal growth, giving rise to turbulence and mixing where linear stability analyses predicts no growth.
-Here we explore the degree of nonmodal growth when equilibrium magnetic fields aligned with the flow nearly or entirely stabilize shear-flow instabilities.
-Even in 2D, pseudospectra indicate significant nonmodal amplification in linearly stable regimes.
+Shear flows are common and important in astrophysical plasmas, where they often serve as free energy sources able to drive fluctuations and turbulence.
+In turn, these motions enhance momentum, energy, and particle transport, thus crucially affecting the evolution of the system.
+The parameter boundaries delineating shear-driven fluctuations are often assumed to be provided by normal-mode linear stability analyses.
+However, in many important systems, including pipe flow and stratified shear flows in neutral fluids, such analyses are known to be misleading.
+Perturbations can grow significantly through nonmodal or non-normal growth, potentially driving turbulence and mixing even at parameters where linear stability analyses predict no growth.
+Here, we explore the degree of nonmodal growth when equilibrium magnetic fields aligned with the flow nearly or entirely stabilize shear-flow instabilities.
+Pseudospectra indicate significant nonmodal amplification in linearly stable regimes for 2D systems.
 We also present progress towards comparisons of 2D and 3D optimal linear perturbations that maximize fluctuation growth.
