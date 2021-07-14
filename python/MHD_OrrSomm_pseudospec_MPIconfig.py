@@ -1,7 +1,14 @@
 """
 Calculates the epsilon-pseudospectrum for a shear layer in 2D incompressible MHD.
-Saves results to an hdf5 file.
-Parameters are hard-coded.
+Scans over MA then saves results to one hdf5 file per MA.
+
+TODO: logger.info only shows CW.rank==0 stuff. What's the best way to output the MA_local of other processes too?
+TODO: might as well make the plots with this script too, right? Maybe with a flag put in the .cfg file
+TODO: how can I put logger settings in the .cfg file? Like whether to log warnings, info, debug, etc.
+
+To run in parallel with 2 processes, e.g., do:
+    $ mpiexec -n 2 python3 MHD_OrrSomm_pseudospec_MPIconfig.py config_files/test.cfg
+The usage below is for running in serial (haven't merged with serial case because I'm new to docopt)
 
 Usage:
     MHD_OrrSomm_pseudospec_MPIconfig.py [options]
@@ -52,7 +59,6 @@ if args['<config>'] is not None:
                     v = True
                 args[k] = v
 
-# MA = float(args['--MA'])
 MA_start = float(args['--MA_start'])
 MA_stop = float(args['--MA_stop'])
 MA_num = int(args['--MA_num'])
@@ -72,7 +78,7 @@ if CW.rank == 0:
     logger.info('Scanning over these MAs: {}'.format(MA_global))
 logger.info('This MPI process will scan over these MAs: {}'.format(MA_local))
 
-MA0 = MA_global[0]  # if I understand how this all works, this is just serving as a placeholder...
+MA0 = MA_global[0]
 
 psize = 100  # num grid points (each axis) in complex frequency space over which pseudospectrum is calculated
 freq_axis_bounds = [-1.0 * kx / 0.4, 1.0 * kx / 0.4]  # the reasonable/helpful bounds seem to scale roughly with kx
@@ -103,10 +109,10 @@ for fi, filepath in enumerate(filepaths_local):
         pass
     if filename in os.listdir(filepath):  # If a file already exists at this MA...
         skip_flag_local[fi] = True  # ...then note that for later on so we can skip it
-        # raise FileExistsError
+        # raise FileExistsError  # previously I had been raising an error instead
 
 
-def energy_norm_general(X1, X2, MA):
+def energy_norm_general(X1, X2, MA):  # because the norm depends on MA, need to include MA as an argument
     u1 = X1['phi_z']
     w1 = -1.0j * kx * X1['phi']
     bx1 = X1['psi_z']
