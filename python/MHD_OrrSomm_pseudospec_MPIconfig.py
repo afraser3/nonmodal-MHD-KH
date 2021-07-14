@@ -2,8 +2,6 @@
 Calculates the epsilon-pseudospectrum for a shear layer in 2D incompressible MHD.
 Saves results to an hdf5 file.
 Parameters are hard-coded.
-TODO: learn how to use ConfigParser so I don't have to mess with git committing hard-coded parameters.
-TODO: MPI-parallelize
 
 Usage:
     MHD_OrrSomm_pseudospec_MPIconfig.py [options]
@@ -11,7 +9,11 @@ Usage:
 
 
 Options:
-    --MA=<MA>                   Alfven Mach number [default: 1.5]
+    --MA_start=<MA_start>       First Alfven Mach number (MA) in scan [default: 0.8]
+    --MA_stop=<MA_stop>         Endpoint of interval for MA scan [default: 1.4]
+    --MA_num=<MA_num>           Number of points in MA scan [default: 4]
+    --MA_endpoint=<MA_endpoint> Whether to include MA_stop in the scan or not [default: True]
+
     --Reynolds=<Reynolds>       Reynolds number [default: 500.0]
     --Pm=<Pm>                   Magnetic Prandtl number [default: 1.0]
     --kx=<kx>                   Horizontal wavenumber [default: 0.4]
@@ -32,7 +34,6 @@ import os
 import h5py
 import logging
 from configparser import ConfigParser
-# import argparse
 from pathlib import Path
 from docopt import docopt
 from mpi4py import MPI
@@ -51,7 +52,11 @@ if args['<config>'] is not None:
                     v = True
                 args[k] = v
 
-MA = float(args['--MA'])
+# MA = float(args['--MA'])
+MA_start = float(args['--MA_start'])
+MA_stop = float(args['--MA_stop'])
+MA_num = int(args['--MA_num'])
+MA_endpoint = bool(args['--MA_endpoint'])
 Reynolds = float(args['--Reynolds'])
 Pm = float(args['--Pm'])
 mReynolds = Pm*Reynolds
@@ -61,23 +66,47 @@ k = int(args['--k'])
 Nz = int(args['--Nz'])
 Lz = float(args['--Lz_factor'])*np.pi
 
-psize = 100
+MA_global = np.linspace(MA_start, MA_stop, MA_num, endpoint=MA_endpoint)  # the full set of MAs to scan over
+MA_local = MA_global[CW.rank::CW.size]  # the MAs that this processor will scan over
+if CW.rank == 0:
+    logger.info('Scanning over these MAs: {}'.format(MA_global))
+logger.info('This MPI process will scan over these MAs: {}'.format(MA_local))
+
+MA0 = MA_global[0]  # if I understand how this all works, this is just serving as a placeholder...
+
+psize = 100  # num grid points (each axis) in complex frequency space over which pseudospectrum is calculated
 freq_axis_bounds = [-1.0 * kx / 0.4, 1.0 * kx / 0.4]  # the reasonable/helpful bounds seem to scale roughly with kx
-growth_axis_bounds = [-1.0 * kx / 0.4, 0.2]  # 0.2 is sometimes too small to see the full extent, but usually fine
+growth_axis_bounds = [-1.0 * kx / 0.4, 0.2]  # 0.2 is sometimes too small to see full extent of epsilon=0.1
 real_points = np.linspace(freq_axis_bounds[0], freq_axis_bounds[1], psize)
 imag_points = np.linspace(growth_axis_bounds[0], growth_axis_bounds[1], psize)
 
-filepath = 'saved_spectra/Pm{}/Re{}/MA{}/kx{}/'.format(Pm, Reynolds, MA, kx)
+base_path = 'saved_spectra/Pm{}/Re{}/'.format(Pm, Reynolds)
+# filepaths = ['saved_spectra/Pm{}/Re{}/MA{}/kx{}/'.format(Pm, Reynolds, ma, kx) for ma in MA_global]
+filepaths_local = ['saved_spectra/Pm{}/Re{}/MA{}/kx{}/'.format(Pm, Reynolds, ma, kx) for ma in MA_local]
 filename = 'pseudospec_Nz{}_Lz{}pi_k{}.h5'.format(Nz, Lz/np.pi, k)
-if MPI.COMM_WORLD.rank == 0:
+
+# ugly hack: skip_flag_local includes the list of MAs that should be skipped because those files already exist
+# from a previous calculation (so if you scan over 200 MAs but 1 already has been done, no need to raise a whole error,
+# just skip that one MA)
+skip_flag_local = np.zeros_like(MA_local, dtype=bool)
+
+if CW.rank == 0:  # only do this for the 0th MPI process
+    try:
+        os.makedirs(base_path)
+    except FileExistsError:
+        pass
+
+for fi, filepath in enumerate(filepaths_local):
     try:
         os.makedirs(filepath)
     except FileExistsError:
         pass
-    if filename in os.listdir(filepath):
-        raise FileExistsError
+    if filename in os.listdir(filepath):  # If a file already exists at this MA...
+        skip_flag_local[fi] = True  # ...then note that for later on so we can skip it
+        # raise FileExistsError
 
-def energy_norm(X1, X2):
+
+def energy_norm_general(X1, X2, MA):
     u1 = X1['phi_z']
     w1 = -1.0j * kx * X1['phi']
     bx1 = X1['psi_z']
@@ -100,12 +129,12 @@ if mReynolds == np.inf:
 else:
     ideal = False
 z_basis = de.Chebyshev('z', Nz, interval=(-0.5 * Lz, 0.5 * Lz))
-domain = de.Domain([z_basis], grid_dtype=np.complex128)
+domain = de.Domain([z_basis], grid_dtype=np.complex128, comm=MPI.COMM_SELF)
 probvars = ['phi', 'phi_z', 'psi', 'psi_z']
 if not inviscid:
     probvars.append('uz')
     probvars.append('uzz')
-else:
+else:  # really haven't tested this! May have neglected to add the right substitutions/equations
     probvars.append('zeta')
 problem = de.EVP(domain, variables=probvars, eigenvalue='omega')
 z = domain.grid(0)
@@ -119,7 +148,7 @@ nccDU = domain.new_field(name='DU')
 nccDU['g'] = 1 / (a * np.cosh(z / a) ** 2)
 problem.parameters['DU'] = nccDU
 
-problem.parameters['MA2'] = MA ** 2.0  # Alfven Mach number squared
+problem.parameters['MA2'] = MA0 ** 2.0  # Alfven Mach number squared
 problem.parameters['kx'] = kx
 problem.parameters['Lz'] = Lz
 if not inviscid:
@@ -148,7 +177,7 @@ else:
     problem.add_equation("zeta - dx(dx(phi)) - dz(phi_z) = 0")
 if not ideal:
     problem.add_equation("dt(psi) - 1/Rm*Jz + U*dx(psi) - dx(phi) = 0")
-else:
+else:  # haven't tested this either
     problem.add_equation("dt(psi) + U*dx(psi) - dx(phi) = 0")
 problem.add_equation("phi_z - dz(phi) = 0")
 problem.add_equation("psi_z - dz(psi) = 0")
@@ -157,31 +186,33 @@ problem.add_bc("left(w) = 0")
 problem.add_bc("right(w) = 0")
 if not inviscid:
     problem.add_bc("left(dz(w)) = 0")  # no-slip, co-moving (with base flow U_0) boundaries
-    problem.add_bc("right(dz(w)) = 0")
+    problem.add_bc("right(dz(w)) = 0")  # (does free-slip make more sense?)
 problem.add_bc("right(Bz) = 0")  # perfectly conducting boundaries
 problem.add_bc("left(Bz) = 0")
 
 print("done with BCs")
 
 EP = Eigenproblem(problem, grow_func=lambda x: x.imag, freq_func=lambda x: x.real)
-# EP.solve(sparse=False)
-# print("done with EP.solve()")
 
-EP.calc_ps(k, (real_points, imag_points), inner_product=energy_norm)
+for ma_ind, ma in enumerate(MA_local):
+    if skip_flag_local[ma_ind]:
+        logger.info('skipping calculation for MA={}'.format(ma))
+    else:
+        logger.info('computing pseudospectrum for MA={}'.format(ma))
+        problem.namespace['MA2'].value = ma ** 2.0
+        EP.calc_ps(k, (real_points, imag_points), inner_product=lambda x1, x2: energy_norm_general(x1, x2, ma))
+        with h5py.File(filepaths_local[ma_ind]+filename, 'w-') as file:
+            evalues_grp = file.create_group('evalues')
+            evecs_grp = file.create_group('evecs')
+            pseudospec_grp = file.create_group('pseudospec')
 
-with h5py.File(filepath+filename, 'w-') as file:
-    evalues_grp = file.create_group('evalues')
-    evecs_grp = file.create_group('evecs')
-    pseudospec_grp = file.create_group('pseudospec')
+            evalues = evalues_grp.create_dataset('evalues', data=EP.evalues)
+            evalues_low = evalues_grp.create_dataset('evalues_low', data=EP.evalues_low)
+            evalues_high = evalues_grp.create_dataset('evalues_high', data=EP.evalues_high)
 
-    evalues = evalues_grp.create_dataset('evalues', data=EP.evalues)
-    evalues_low = evalues_grp.create_dataset('evalues_low', data=EP.evalues_low)
-    evalues_high = evalues_grp.create_dataset('evalues_high', data=EP.evalues_high)
+            evectors = evecs_grp.create_dataset('evectors', data=EP.solver.eigenvectors)
 
-    evectors = evecs_grp.create_dataset('evectors', data=EP.solver.eigenvectors)
+            ps_real = pseudospec_grp.create_dataset('ps_real', data=EP.ps_real)
+            ps_imag = pseudospec_grp.create_dataset('ps_imag', data=EP.ps_imag)
+            pseudospectrum = pseudospec_grp.create_dataset('pseudospectrum', data=EP.pseudospectrum)
 
-    ps_real = pseudospec_grp.create_dataset('ps_real', data=EP.ps_real)
-    ps_imag = pseudospec_grp.create_dataset('ps_imag', data=EP.ps_imag)
-    pseudospectrum = pseudospec_grp.create_dataset('pseudospectrum', data=EP.pseudospectrum)
-    # I think ps_real, ps_imag are the same thing as real_points and imag_points, and thus it would be redundant
-    # to save those as well. Right?
