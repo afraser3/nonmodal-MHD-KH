@@ -9,13 +9,13 @@ from dedalus import public as de
 import numpy as np
 from matplotlib import pyplot as plt
 
-Reynolds = 500.0
-mReynolds = 50.0
+Reynolds = 5000.0
+mReynolds = 500.0
 kx = 0.2
 MA = 1.2
 
 Pm = mReynolds/Reynolds
-Nz = 512
+Nz = 2048
 Lz = 10.0*np.pi
 
 freq_axis_bounds = [-1.0 * kx / 0.4, 1.0 * kx / 0.4]  # the reasonable/helpful bounds seem to scale roughly with kx
@@ -112,7 +112,7 @@ EP = Eigenproblem(problem, grow_func=lambda x: x.imag, freq_func=lambda x: x.rea
 # EP.solve(sparse=False)
 # print("done with EP.solve()")
 
-k = 100
+k = 1000
 
 psize = 100
 real_points = np.linspace(freq_axis_bounds[0], freq_axis_bounds[1], psize)
