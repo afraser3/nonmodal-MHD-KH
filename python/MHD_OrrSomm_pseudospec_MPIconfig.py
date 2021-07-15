@@ -29,6 +29,8 @@ Options:
     --Nz=<Nz>                   Resolution in z [default: 512]
     --Lz_factor=<Lz>            Box size in z divided by pi [default: 10.0]
 
+    --make_plots=<make_plots>   Whether to plot pseudospectra [default: False]
+
     --root_dir=<dir>            Root directory for output [default: ./]
     --label=<label>             Add label to directory name
 
@@ -72,11 +74,15 @@ k = int(args['--k'])
 Nz = int(args['--Nz'])
 Lz = float(args['--Lz_factor'])*np.pi
 
+make_plots = bool(args['--make_plots'])
+if make_plots:
+    from matplotlib import pyplot as plt
+
 MA_global = np.linspace(MA_start, MA_stop, MA_num, endpoint=MA_endpoint)  # the full set of MAs to scan over
 MA_local = MA_global[CW.rank::CW.size]  # the MAs that this processor will scan over
 if CW.rank == 0:
     logger.info('Scanning over these MAs: {}'.format(MA_global))
-logger.info('This MPI process will scan over these MAs: {}'.format(MA_local))
+logger.debug('This MPI process will scan over these MAs: {}'.format(MA_local))
 
 MA0 = MA_global[0]
 
@@ -221,4 +227,16 @@ for ma_ind, ma in enumerate(MA_local):
             ps_real = pseudospec_grp.create_dataset('ps_real', data=EP.ps_real)
             ps_imag = pseudospec_grp.create_dataset('ps_imag', data=EP.ps_imag)
             pseudospectrum = pseudospec_grp.create_dataset('pseudospectrum', data=EP.pseudospectrum)
-
+        if make_plots:
+            plotname = 'pseudospec_Nz{}_Lz{}pi_k{}.pdf'.format(Nz, Lz / np.pi, k)
+            plt.plot(np.real(EP.evalues), np.imag(EP.evalues), '.', c='k')
+            plt.contour(EP.ps_real, EP.ps_imag, np.log10(EP.pseudospectrum), levels=np.arange(-8, 0))
+            plt.colorbar(label=r'$\log_{10} (\epsilon)$')
+            plt.ylim((EP.ps_imag[0], EP.ps_imag[-1]))
+            plt.xlim((EP.ps_real[0], EP.ps_real[-1]))
+            plt.axhline(0, color='k', alpha=0.2)
+            plt.xlabel('real (oscillating) frequency')
+            plt.ylabel('growth rate')
+            plt.title(r'(kx, MA, Re, Pm, k) = ({}, {}, {}, {}, {})'.format(kx, ma, Reynolds, Pm, k))
+            plt.savefig(filepaths_local[ma_ind]+plotname)
+            plt.close()
