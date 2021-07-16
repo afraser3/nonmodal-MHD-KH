@@ -7,10 +7,7 @@
 #SBATCH --nodes=1 # Total number of nodes
 #SBATCH --ntasks=40
 #SBATCH --ntasks-per-node=40 # Total number of mpi tasks per node
-#SBATCH -t 01:30:00 # Run time (hh:mm:ss)
+#SBATCH -t 01:00:00 # Run time (hh:mm:ss)
 module load python/3.8.6
 export OMP_NUM_THREADS=1
-mpiexec -n 40 python3 MHD_OrrSomm_pseudospec_MPIconfig.py config_files/run_A.cfg
-###mpiexec -n 40 python3 MHD_OrrSomm_pseudospec_MPIconfig.py config_files/Re500_Pm1_k400_Nz512_MA0.05-2/Re500_Pm1_k400_Nz512_MA0.05-2.cfg
-###pdfunite saved_spectra/Pm1.0/Re500.0/plots/pseudospec*k400*.pdf saved_spectra/Pm1.0/Re500.0/plots/scan400.pdf
-###tar -cvf Re500_Pm1_k400_Nz512_MA0.05-2.tar saved_spectra/Pm1.0/Re500.0/plots/
+mpiexec -n 40 python3 MHD_OrrSomm_pseudospec.py config_files/run_G.cfg
