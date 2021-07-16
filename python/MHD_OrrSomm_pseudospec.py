@@ -179,8 +179,8 @@ EP = Eigenproblem(problem, grow_func=lambda x: x.imag, freq_func=lambda x: x.rea
 
 for ma_ind, ma in enumerate(MA_local):
     logger.info('computing pseudospectrum for MA={}'.format(ma))
-    EP._set_parameters({'MA2': ma ** 2.0})
-    EP.calc_ps(k, (real_points, imag_points), inner_product=lambda x1, x2: energy_norm_general(x1, x2, ma))
+    EP.calc_ps(k, (real_points, imag_points), inner_product=lambda x1, x2: energy_norm_general(x1, x2, ma),
+               parameters={'MA2': ma ** 2.0})
     with h5py.File(str(filenames_local[ma_ind]), 'w-') as file:
         evalues_grp = file.create_group('evalues')
         evecs_grp = file.create_group('evecs')
