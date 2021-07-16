@@ -7,20 +7,20 @@ To run in parallel with 2 processes, e.g., do:
 The above line would save results to runs/test/ (creating directories as necessary)
 
 Config file options:
-    --MA_start          First Alfven Mach number (MA) in scan [default: 0.8]
-    --MA_stop           Endpoint of interval for MA scan [default: 1.4]
-    --MA_num            Number of points in MA scan [default: 4]
-    --MA_endpoint       Whether to include MA_stop in the scan or not [default: True]
+    MA_start          First Alfven Mach number (MA) in scan [default: 0.8]
+    MA_stop           Endpoint of interval for MA scan [default: 1.4]
+    MA_num            Number of points in MA scan [default: 4]
+    MA_endpoint       Whether to include MA_stop in the scan or not [default: True]
 
-    --Reynolds          Reynolds number [default: 500.0]
-    --Pm                Magnetic Prandtl number [default: 1.0]
-    --kx                Horizontal wavenumber [default: 0.4]
+    Reynolds          Reynolds number [default: 500.0]
+    Pm                Magnetic Prandtl number [default: 1.0]
+    kx                Horizontal wavenumber [default: 0.4]
 
-    --k                 Dimensionality of subspace pseudospec is drawn from [default: 100]
-    --Nz                Resolution in z [default: 512]
-    --Lz_factor         Box size in z divided by pi [default: 10.0]
+    k                 Dimensionality of subspace pseudospec is drawn from [default: 100]
+    Nz                Resolution in z [default: 512]
+    Lz_factor         Box size in z divided by pi [default: 10.0]
 
-    --make_plots        Whether to plot pseudospectra [default: False]
+    make_plots        Whether to plot pseudospectra [default: False]
 
 """
 
