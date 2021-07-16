@@ -20,6 +20,7 @@ Config file options:
     --Nz                Resolution in z [default: 512]
     --Lz_factor         Box size in z divided by pi [default: 10.0]
 
+    --save_evecs        Whether to save eigenvectors in the .h5 files [default: False]
     --make_plots        Whether to plot pseudospectra [default: False]
 
 """
@@ -59,6 +60,7 @@ k = params.getint('k')
 Nz = params.getint('Nz')
 Lz = params.getfloat('Lz_factor')*np.pi
 
+save_evecs = params.getboolean('save_evecs')
 make_plots = params.getboolean('make_plots')
 if make_plots:
     from matplotlib import pyplot as plt
@@ -74,7 +76,7 @@ logger.debug('This MPI process will scan over these MAs: {}'.format(MA_local))
 datadir = Path("runs") / config_file.stem
 plotdir = datadir / 'plots'
 # filenames that this MPI process will save to
-filenames_global = [datadir / 'pseudospec_{:03d}.h5'.format(ma_i) for ma_i, ma in enumerate(MA_global)]
+filenames_global = [datadir / 'pseudospec_{:04d}.h5'.format(ma_i) for ma_i, ma in enumerate(MA_global)]
 filenames_local = filenames_global[CW.rank::CW.size]
 
 if CW.rank == 0:  # only do this for the 0th MPI process
@@ -183,18 +185,18 @@ for ma_ind, ma in enumerate(MA_local):
                parameters={'MA2': ma ** 2.0})
     with h5py.File(str(filenames_local[ma_ind]), 'w-') as file:
         evalues_grp = file.create_group('evalues')
-        evecs_grp = file.create_group('evecs')
-        pseudospec_grp = file.create_group('pseudospec')
-
         evalues = evalues_grp.create_dataset('evalues', data=EP.evalues)
         evalues_low = evalues_grp.create_dataset('evalues_low', data=EP.evalues_low)
         evalues_high = evalues_grp.create_dataset('evalues_high', data=EP.evalues_high)
 
-        evectors = evecs_grp.create_dataset('evectors', data=EP.solver.eigenvectors)
-
+        pseudospec_grp = file.create_group('pseudospec')
         ps_real = pseudospec_grp.create_dataset('ps_real', data=EP.ps_real)
         ps_imag = pseudospec_grp.create_dataset('ps_imag', data=EP.ps_imag)
         pseudospectrum = pseudospec_grp.create_dataset('pseudospectrum', data=EP.pseudospectrum)
+
+        if save_evecs:
+            evecs_grp = file.create_group('evecs')
+            evectors = evecs_grp.create_dataset('evectors', data=EP.solver.eigenvectors)
     if make_plots:
         plt.plot(np.real(EP.evalues), np.imag(EP.evalues), '.', c='k')
         if np.min(EP.pseudospectrum) < 0.1:
