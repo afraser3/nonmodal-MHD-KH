@@ -4,6 +4,9 @@ Listing here the various parameters relevant to the .cfg files found in python/c
 Following Jeff's suggestion of letting lettered runs (run_A.cfg, run_B.cfg, etc) denote startup/exploratory runs, 
 while numbered runs will denote science/publication runs. 
 
+In the second column, "start", "stop", and "num" are describing the scan in MA that I did: 
+it starts at "start", ends at "stop", and there were "num" points in the scan. 
+
 ## Lettered runs
 | Letter | MA (start, stop, num) | Re     | Pm   | kx   |  k   | Nz   | Lz/pi |
 | ------ | --------------------- | ---    | ---  | ---  | ---  | ---  | ----- |
