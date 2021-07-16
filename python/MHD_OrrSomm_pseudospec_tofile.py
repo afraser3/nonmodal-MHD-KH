@@ -2,8 +2,6 @@
 Calculates the epsilon-pseudospectrum for a shear layer in 2D incompressible MHD.
 Saves results to an hdf5 file.
 Parameters are hard-coded.
-TODO: learn how to use ConfigParser so I don't have to mess with git committing hard-coded parameters.
-TODO: MPI-parallelize
 """
 from eigentools import Eigenproblem
 from dedalus import public as de

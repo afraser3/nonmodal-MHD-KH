@@ -19,9 +19,11 @@ Lz = 10.0*np.pi
 
 k = 800
 
-filepath = 'saved_spectra/Pm{}/Re{}/MA{}/kx{}/'.format(Pm, Reynolds, MA, kx)
-filename = 'pseudospec_Nz{}_Lz{}pi_k{}.h5'.format(Nz, Lz/np.pi, k)
+# filepath = 'saved_spectra/Pm{}/Re{}/MA{}/kx{}/'.format(Pm, Reynolds, MA, kx)
+# filename = 'pseudospec_Nz{}_Lz{}pi_k{}.h5'.format(Nz, Lz/np.pi, k)
 plotname = 'pseudospec_Nz{}_Lz{}pi_k{}.pdf'.format(Nz, Lz/np.pi, k)
+filepath = 'runs/run_A/'
+filename = 'pseudospec_039.h5'
 
 with h5py.File(filepath+filename, 'r') as file:
     evalues = np.array(file['evalues/evalues'])
@@ -38,5 +40,5 @@ plt.axhline(0, color='k', alpha=0.2)
 plt.xlabel('real (oscillating) frequency')
 plt.ylabel('growth rate')
 plt.title(r'(kx, MA, Re, Pm, k) = ({}, {}, {}, {}, {})'.format(kx, MA, Reynolds, Pm, k))
-plt.savefig(filepath+plotname)
-# plt.show()
+# plt.savefig(filepath+plotname)
+plt.show()
