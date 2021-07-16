@@ -2,8 +2,6 @@
 Calculates the epsilon-pseudospectrum for a shear layer in 2D incompressible MHD.
 Scans over MA then saves results to one hdf5 file per MA.
 
-TODO: how can I put logger settings in the .cfg file? Like whether to log warnings, info, debug, etc.
-
 To run in parallel with 2 processes, e.g., do:
     $ mpiexec -n 2 python3 MHD_OrrSomm_pseudospec_MPIconfig.py config_files/test.cfg
 The above line would save results to runs/test/ (creating directories as necessary)
