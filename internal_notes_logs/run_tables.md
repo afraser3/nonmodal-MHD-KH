@@ -29,10 +29,15 @@ it starts at "start", ends at "stop", and there were "num" points in the scan.
 | Q      | (0.05, 2.0, 40)       | 0.5    | 100  | 0.2  | 200  | 256  | 10    |          |
 | R      | (0.05, 4.0, 80)       | 500    | 1    | 0.2  | 800  | 2048 | 10    | Similar to O, but still weird -- very jumpy wrt MA and not at same MA as O|
 | S      | (0.05, 4.0, 80)       | 500    | 1    | 0.2  | 1000 | 1024 | 10    | Still different and weird |
-| T      | (0.05, 4.0, 80)       | 500    | 1    | 0.2  | 2048 | 1024 | 10    |          |
-| U      | (0.05, 4.0, 80)       | 500    | 1    | 0.2  | 1024 | 512  | 10    | Strange errors: x-th leading minor of the array is not positive-definite in scipy.linalg.cholesky call |
+| T      | (0.05, 4.0, 80)       | 500    | 1    | 0.2  | 2048 | 1024 | 10    | Strange errors: x-th leading minor of the array is not positive-definite in scipy.linalg.cholesky call |
+| U      | (0.05, 4.0, 80)       | 500    | 1    | 0.2  | 1024 | 512  | 10    | Same error |
 | V      | (0.05, 4.0, 80)       | 500    | 1    | 0.2  | 1000 | 512  | 10    | Same error |
 | W      | (0.05, 4.0, 80)       | 500    | 1    | 0.2  | 600  | 512  | 10    | No error; "jumpiness" persists |
 | X      | (0.05, 4.0, 80)       | 500    | 1    | 0.2  | 800  | 512  | 10    | No error; "jumpiness" persists |
 | Y      | (0.05, 4.0, 80)       | 50     | 1    | 0.2  | 200  | 256  | 10    | Nothing suspicious |
 | Z      | (0.05, 4.0, 80)       | 50     | 1    | 0.2  | 400  | 256  | 10    | Nothing suspicious |
+| AA     | (0.05, 4.0, 80)       | 500    | 1    | 0.2  | 1600 | 2048 | 10    |          |
+| AB     | (0.05, 4.0, 80)       | 500    | 1    | 0.2  | 1600 | 1024 | 10    |          |
+| AC     | (0.05, 4.0, 80)       | 500    | 1    | 0.2  | 2000 | 2048 | 10    |          |
+| AD     | (0.05, 4.0, 80)       | 500    | 1    | 0.2  | 800  | 1024 | 10    | mu = 0.25 |
+| AE     | (0.05, 4.0, 80)       | 500    | 1    | 0.2  | 800  | 1024 | 10    | mu = 0.25j |

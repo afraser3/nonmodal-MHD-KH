@@ -57,6 +57,9 @@ mReynolds = Pm*Reynolds
 kx = params.getfloat('kx')
 
 k = params.getint('k')
+mu_real = params.getfloat('mu_real')
+mu_imag = params.getfloat('mu_imag')
+mu = mu_real + 1.0j*mu_imag
 Nz = params.getint('Nz')
 Lz = params.getfloat('Lz_factor')*np.pi
 
@@ -181,7 +184,7 @@ EP = Eigenproblem(problem, grow_func=lambda x: x.imag, freq_func=lambda x: x.rea
 
 for ma_ind, ma in enumerate(MA_local):
     logger.info('computing pseudospectrum for MA={}'.format(ma))
-    EP.calc_ps(k, (real_points, imag_points), inner_product=lambda x1, x2: energy_norm_general(x1, x2, ma),
+    EP.calc_ps(k, (real_points, imag_points), mu=mu, inner_product=lambda x1, x2: energy_norm_general(x1, x2, ma),
                parameters={'MA2': ma ** 2.0})
     with h5py.File(str(filenames_local[ma_ind]), 'w-') as file:
         evalues_grp = file.create_group('evalues')
@@ -201,7 +204,10 @@ for ma_ind, ma in enumerate(MA_local):
         plt.plot(np.real(EP.evalues), np.imag(EP.evalues), '.', c='k')
         if np.min(EP.pseudospectrum) < 0.1:
             plt.contour(EP.ps_real, EP.ps_imag, np.log10(EP.pseudospectrum), levels=np.arange(-8, 0))
-            plt.colorbar(label=r'$\log_{10} (\epsilon)$')
+            try:
+                plt.colorbar(label=r'$\log_{10} (\epsilon)$')
+            except IndexError:  # seems to happen if the pseudospectrum is too low to show up, I think
+                pass
         plt.ylim((EP.ps_imag[0], EP.ps_imag[-1]))
         plt.xlim((EP.ps_real[0], EP.ps_real[-1]))
         plt.axhline(0, color='k', alpha=0.2)
