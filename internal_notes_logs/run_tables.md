@@ -50,6 +50,8 @@ it starts at "start", ends at "stop", and there were "num" points in the scan.
 | AL     | (0.05, 4.0, 80)       | 2500   | 1    | 0.2  | 400  | 512  | 0.15j | 10    | Not converged |
 | AM     | (0.05, 4.0, 80)       | 2500   | 1    | 0.2  | 400  | 1024 | 0.15j | 10    | Probably not converged |
 | AN     | (0.05, 4.0, 80)       | 2500   | 1    | 0.2  | 800  | 1024 | 0.15j | 10    | Probably not converged |
-| AO     | (0.05, 4.0, 80)       | 2500   | 1    | 0.2  | 400  | 2048 | 0.1j  | 10    |  |
-| AP     | (0.05, 4.0, 80)       | 2500   | 1    | 0.2  | 800  | 2048 | 0.1j  | 10    |  |
+| AO     | (0.05, 4.0, 80)       | 2500   | 1    | 0.2  | 400  | 2048 | 0.1j  | 10    | Weird behavior on slide 20/21, margin of stability |
+| AP     | (0.05, 4.0, 80)       | 2500   | 1    | 0.2  | 800  | 2048 | 0.1j  | 10    | The first time the pseudospectrum has ever decreased with increased k (see slide 20/21) |
 | AQ     | (0.05, 4.0, 80)       | 2500   | 1    | 0.2  | 1600 | 2048 | 0.1j  | 10    |  |
+| AR     | (0.05, 4.0, 80)       | 2500   | 1    | 0.2  | 1600 | 1024 | 0.15j | 10    | This one is a tiny bit better than AQ. Indistinguishable from AS |
+| AS     | (0.05, 4.0, 80)       | 2500   | 1    | 0.2  | 1600 | 1024 | 0.1j  | 10    |  |

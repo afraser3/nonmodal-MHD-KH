@@ -1,3 +1,26 @@
+# September 2nd, 2021
+### Progress
+- Worked up to Re = 2500
+- Messed around with "mu" parameter to get better-behaved pseudospectra at high MA
+- Took time off! And started fellowship proposals.
+
+### Recap
+- Everyone is on-board with including this stuff in fellowship proposals, with the understanding that we intend to keep collaborating either way because this project is great
+- Noticed that it's not just weird behavior in pseudospectra, but the spectrum might be funny, mainly weird omega = 0, gamma < 0 modes e.g. in run AF. Let's plot those modes and see what's going on.
+- Created Google Drive folder to dump run files (.h5, .png, and .pdf) into and share with team
+- Should definitely create overleaf document to maintain organization of ideas/results as this stretches on
+- Immediate next steps, maybe for DPP:
+  - To help diagnose this "mu" and "k" business in weird pseudospectra behavior, take the linear operator for Kolmogorov flow (which I've already coded up as an ordinary EVP in 2D, 3D, and for streaky flows, due to ongoing work w/ P. Garaud) and calculate the pseudospectra directly using resolvent, then compare with pseudospectra obtained with this new method
+    - This is too technical and uninteresting to deal with before DPP, but we're gonna do this before publishing
+  - Pseudospectra of 3D modes
+    - Easy! Do this before DPP if the following doesn't pan out
+  - Linear optimals
+    - Conceptually manageable, but it's anybody's guess as to how long it will take to converge on a solution for a single parameter point, thus who knows how long parameter scans will take
+    - Following Kaminski PhD Thesis Ch 2, solve for the adjoint equations, quickly code them up in Dedalus, and just see how long a single parameter point takes
+    - For this test, we care more about how long it takes than the actual result, so don't bother with careful selection of norm
+    - If it takes long, kick this down the road for post-DPP. If it's doable, let's include this at DPP.
+    - Sure would be fun to do nonlinear optimals, compare result of energy norm vs dissipation norm, and see how much stable mode excitation is in initial condition or occurs along the way to the optimized time.
+
 # July 1st, 2021
 ### Progress
 - Separate scripts for calculating and saving pseudospectra vs plotting from file
