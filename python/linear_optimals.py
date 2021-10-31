@@ -2,6 +2,7 @@ from eigentools import Eigenproblem
 from dedalus import public as de
 import numpy as np
 import scipy
+from matplotlib import pyplot as plt
 import logging
 logger = logging.getLogger(__name__)
 
@@ -10,10 +11,10 @@ Reynolds = 50.0
 mReynolds = 50.0
 Lz = 10.0*np.pi
 kx = 0.2
-MA = 1.5
+MA = 0.1  # 25.0
 MA2 = MA**2.0
 k = 100
-ts = np.linspace(0.0, 10.0, 10)
+ts = np.linspace(0.0, 30.0, 20)
 Gs = np.zeros_like(ts)
 
 
@@ -107,17 +108,28 @@ EP = Eigenproblem(problem, grow_func=lambda x: x.imag, freq_func=lambda x: x.rea
 # inner_product = lambda x1, x2: energy_norm_general(x1, x2, MA)
 pencil = 0
 EP.solve(sparse=True, N=k, pencil=pencil)
-pre_right = EP.solver.pencils[pencil].pre_right
-pre_right_LU = scipy.sparse.linalg.splu(pre_right.tocsc())
-V = pre_right_LU.solve(EP.solver.eigenvectors)
+pre_right = EP.solver.pencils[pencil].pre_right  # right-preconditioner for the matrix pencil, call it PR
+pre_right_LU = scipy.sparse.linalg.splu(pre_right.tocsc())  # LU factorization of the right-preconditioner
+V = pre_right_LU.solve(EP.solver.eigenvectors)  # V satisfies PR @ V = solver.eigenvectors. I think this means V is the eigenvectors WITHOUT pre-conditioning
 Q, R = np.linalg.qr(V)
-E = (EP.solver.pencils[pencil].M_exp.toarray())
-E_inv = scipy.linalg.pinv(E)
+E = -(EP.solver.pencils[pencil].M_exp.toarray())
+E_inv = scipy.linalg.pinv(E)  # this is probably bad
 A = (EP.solver.pencils[pencil].L_exp.toarray())
+# E = -(EP.solver.pencils[pencil].M_exp)
+# E_inv = scipy.sparse.linalg.inv(E)
+# A = (EP.solver.pencils[pencil].L_exp)
+E_inv_A = E_inv @ A
+E_inv_A_Qbasis = np.conj(Q.T) @ E_inv_A @ Q
 M = EP.compute_mass_matrix(pre_right@Q, lambda x1, x2: energy_norm_general(x1, x2, MA))
 F = scipy.linalg.cholesky(M)
 F_inv = scipy.linalg.inv(F)
 for tind, t in enumerate(ts):
-    K = scipy.linalg.expm(E_inv @ A * t)
-    s_vals = scipy.linalg.svdvals(F@K@F_inv)  # throws an error because K is 1536x1536 but F is 100x100
+    # K = scipy.linalg.expm(E_inv @ A * t)
+    K = scipy.linalg.expm(E_inv_A_Qbasis * t)
+    s_vals = scipy.linalg.svdvals(F@K@F_inv)
     Gs[tind] = s_vals[0]
+plt.semilogy(ts, Gs)
+plt.semilogy(ts, Gs[0]*np.exp(ts*np.max(np.imag(EP.evalues)))*Gs[-1]/np.exp(ts[-1]*np.max(np.imag(EP.evalues))), '--', c='C0')
+plt.xlabel(r'$T$')
+plt.ylabel(r'$G(T)$')
+plt.show()
