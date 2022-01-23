@@ -11,10 +11,11 @@ Reynolds = 50.0
 mReynolds = 50.0
 Lz = 10.0*np.pi
 kx = 0.2
-MA = 0.1  # 25.0
+MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
+# MA = 1.0  # For this value, the system is stable.
 MA2 = MA**2.0
 k = 100
-ts = np.linspace(0.0, 30.0, 20)
+ts = np.linspace(0.0, 40.0, 10)
 Gs = np.zeros_like(ts)
 
 
@@ -108,28 +109,64 @@ EP = Eigenproblem(problem, grow_func=lambda x: x.imag, freq_func=lambda x: x.rea
 # inner_product = lambda x1, x2: energy_norm_general(x1, x2, MA)
 pencil = 0
 EP.solve(sparse=True, N=k, pencil=pencil)
+# I think the following line gives F^dagger @ F from Reddy 1993. But it's too slow.
+# M_full = EP.compute_mass_matrix(np.eye(np.shape(EP.solver.eigenvectors)[0]), lambda x1, x2: energy_norm_general(x1, x2, MA))
+# F_full_dagger = np.linalg.cholesky(M_full)
+# F_full = F_full_dagger.conj().T
 pre_right = EP.solver.pencils[pencil].pre_right  # right-preconditioner for the matrix pencil, call it PR
 pre_right_LU = scipy.sparse.linalg.splu(pre_right.tocsc())  # LU factorization of the right-preconditioner
 V = pre_right_LU.solve(EP.solver.eigenvectors)  # V satisfies PR @ V = solver.eigenvectors. I think this means V is the eigenvectors WITHOUT pre-conditioning
-Q, R = np.linalg.qr(V)
-E = -(EP.solver.pencils[pencil].M_exp.toarray())
-E_inv = scipy.linalg.pinv(E)  # this is probably bad
-A = (EP.solver.pencils[pencil].L_exp.toarray())
-# E = -(EP.solver.pencils[pencil].M_exp)
-# E_inv = scipy.sparse.linalg.inv(E)
-# A = (EP.solver.pencils[pencil].L_exp)
-E_inv_A = E_inv @ A
-E_inv_A_Qbasis = np.conj(Q.T) @ E_inv_A @ Q
-M = EP.compute_mass_matrix(pre_right@Q, lambda x1, x2: energy_norm_general(x1, x2, MA))
-F = scipy.linalg.cholesky(M)
-F_inv = scipy.linalg.inv(F)
+# V = EP.solver.eigenvectors
+Q, R = np.linalg.qr(V)  # Q is an orthonormal (in terms of the 2-norm!) basis in the subspace spanned by the eigenvectors in V, R is the change of basis tsfm
+M_E = EP.compute_mass_matrix(pre_right @ Q, lambda x1, x2: energy_norm_general(x1, x2, MA))  # This is M represented in the basis of the columns of Q
+# M_E = EP.compute_mass_matrix(Q, lambda x1, x2: energy_norm_general(x1, x2, MA))
+Fdagger = np.linalg.cholesky(M_E)
+F = Fdagger.conj().T  # this gives ||F @ u||_2 = ||u||_E for u expressed in the (k-dimensional!) basis given by Q
+# FQ, R_F = np.linalg.qr(F@V)
+# FQ, R_F = np.linalg.qr(F_full @ V)
+###########
+###########
 for tind, t in enumerate(ts):
-    # K = scipy.linalg.expm(E_inv @ A * t)
-    K = scipy.linalg.expm(E_inv_A_Qbasis * t)
-    s_vals = scipy.linalg.svdvals(F@K@F_inv)
+    K = R @ np.diag(np.exp(EP.solver.eigenvalues * t)) @ np.linalg.inv(R)
+    s_vals = scipy.linalg.svdvals(F @ K @ np.linalg.inv(F))
+    # s_vals = scipy.linalg.svdvals(K)
     Gs[tind] = s_vals[0]
+
+if False:  # the way I was failing to do it in 2021
+    pre_right = EP.solver.pencils[pencil].pre_right  # right-preconditioner for the matrix pencil, call it PR
+    pre_right_LU = scipy.sparse.linalg.splu(pre_right.tocsc())  # LU factorization of the right-preconditioner
+    V = pre_right_LU.solve(EP.solver.eigenvectors)  # V satisfies PR @ V = solver.eigenvectors. I think this means V is the eigenvectors WITHOUT pre-conditioning
+    Q, R = np.linalg.qr(V)
+    R_inv = np.linalg.inv(R)
+    E = -(EP.solver.pencils[pencil].M_exp.toarray())
+    E_inv = scipy.linalg.pinv(E)  # this is probably bad
+    A = (EP.solver.pencils[pencil].L_exp.toarray())
+    # test Q -> R issue...
+    if True:  # what I was doing before, but this doesn't make sense
+        E_Qbasis = np.conj(Q.T) @ E @ Q
+        A_Qbasis = np.conj(Q.T) @ A @ Q
+    else:  # this makes sense but shape mismatch: R is 100x100, E is over the full vector space
+        E_Qbasis = R @ E @ R_inv  # np.conj(Q.T) @ E @ Q
+        A_Qbasis = R @ A @ R_inv  # np.conj(Q.T) @ A @ Q
+    E_inv_Qbasis = np.linalg.inv(E_Qbasis)
+    E_inv_A_Qbasis2 = E_inv_Qbasis @ A_Qbasis
+    # E = -(EP.solver.pencils[pencil].M_exp)
+    # E_inv = scipy.sparse.linalg.inv(E)
+    # A = (EP.solver.pencils[pencil].L_exp)
+    E_inv_A = E_inv @ A
+    E_inv_A_Qbasis = np.conj(Q.T) @ E_inv_A @ Q
+    M = EP.compute_mass_matrix(pre_right@Q, lambda x1, x2: energy_norm_general(x1, x2, MA))
+    # F = scipy.linalg.cholesky(M)  # pretty certain this gives Fdagger, not F!
+    Fdagger = scipy.linalg.cholesky(M)
+    F = Fdagger.conj().T
+    F_inv = scipy.linalg.inv(F)
+    for tind, t in enumerate(ts):
+        # K = scipy.linalg.expm(E_inv @ A * t)
+        K = scipy.linalg.expm(E_inv_A_Qbasis2 * t)
+        s_vals = scipy.linalg.svdvals(F@K@F_inv)
+        Gs[tind] = s_vals[0]
 plt.semilogy(ts, Gs)
-plt.semilogy(ts, Gs[0]*np.exp(ts*np.max(np.imag(EP.evalues)))*Gs[-1]/np.exp(ts[-1]*np.max(np.imag(EP.evalues))), '--', c='C0')
+plt.semilogy(ts, Gs[0]*np.exp(ts*2.0*np.max(np.imag(EP.evalues)))*Gs[-1]/np.exp(ts[-1]*2.0*np.max(np.imag(EP.evalues))), '--', c='C0')
 plt.xlabel(r'$T$')
 plt.ylabel(r'$G(T)$')
 plt.show()
