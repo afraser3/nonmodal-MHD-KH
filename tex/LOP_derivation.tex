@@ -1,0 +1,163 @@
+\documentclass[aps,pop,preprint]{revtex4}
+\usepackage{amsmath}
+\usepackage{amssymb}
+%\usepackage{graphicx}
+%\graphicspath{{figures/}} % Location of the graphics files
+\usepackage[usenames, dvipsnames]{color}
+
+\begin{document}
+\title{Derivation of linear optimal perturbations via SVD}
+\begin{abstract}
+These notes are for carefully doing the linear algebra steps for getting LOPs to make sure I'm not missing anything. 
+NOTE: I'm going to organize this document such that the first section is the most basic derivation, and subsequent sections introduce extra layers of complication (generalized eigenvalue problem, preconditioners, etc.). 
+\end{abstract}
+\maketitle
+
+\section{Simplest LOP derivation}
+\label{sec:simplest}
+I'm following equations 12-16 in Squire \& Bhattacharjee ApJ 2014 for inspiration.
+
+Consider the linear system
+\begin{equation}
+\frac{\partial U}{\partial t} = \mathcal{L} U,
+\label{eq:simplest_system}
+\end{equation}
+where $U(t)$ is the system state and $\mathcal{L}$ is a time-independent linear differential operator.  
+%(Squire \& Bhattacharjee consider the case where $\mathcal{L}$ is time-dependent, but we're not interested in that so I won't consider it here). 
+Then the general solution is given by the propagator acting on the initial condition:
+\begin{equation}
+U(t) = \mathcal{K}(t) U(0),
+\label{eq:simplest_solution}
+\end{equation}
+where
+\begin{equation}
+\mathcal{K}(t) = \exp(\mathcal{L} t).
+\label{eq:simplest_propagator}
+\end{equation}
+Then, the maximum amplification in terms of some norm $|| \cdot ||_\chi^2$ by time $T$ is
+\begin{equation}
+G_\chi(T) = \max_{U(0)} \frac{|| \mathcal{K}(T) U(0) ||_\chi^2}{||U(0)||_\chi^2}.
+\end{equation}
+
+Now, let's represent these as vectors and square matrices in an $N$-dimensional vector space with some basis (by default, the Chebyshev spectral basis we're using in Eigentools). 
+Let's use boldface capital letters to denote the matrix representation of an operator in this basis, e.g., $\mathcal{L} \to \mathbf{L}$, and similarly let's do $U \to \vec{U}$. 
+(Later, it might be worth using a notation where the matrix representations in two different bases are given by $\mathbf{L}_A$ and $\mathbf{L}_B$ or something. I think Axler's book uses something like $\mathcal{M}_A[\mathcal{L}]$ vs $\mathcal{M}_B[\mathcal{L}]$.) 
+%Then putting arrows over the letters for vectors will have been a mistake.)
+Then, in terms of the standard 2-norm that comes from summing over the squared absolute value of the vector components, $||\vec{x}||_2^2 = \sum_n |x_n|^2$, the maximum amplification is given by the largest singular value of the matrix $\mathbf{K}$ (the matrix corresponding to $\mathcal{K}$).
+
+\section{Changing norms}
+\label{sec:norms}
+This 2-norm is in general not the same thing as the energy norm. 
+%or the $L^2$ norm (by which I mean the square integral of $U$ over the domain) -- especially for the case of the Chebyshev spectral basis. 
+Both Squire \& Bhattacharjee and Sec.~2.2 of Schmid's nonmodal stability review explain how to deal with this, and they both cite Reddy et al 1993 which has a slightly more thorough description. 
+Using the ``symmetric bilinear forms" sections of linear algebra textbooks as guidance, we can represent energy in some basis in terms of a matrix as $E[U] = ||U||_E^2 = \vec{U}^\dagger\mathbf{W}\vec{U}$. 
+Then, taking the Cholesky decomposition $\mathbf{W} = \mathbf{F}^\dagger \mathbf{F}$ (where Squire \& Bhattacharjee note that numerical errors are often introduced, and so they used high-precision arithmetic for this part) gives us that 
+\begin{equation}
+||U||_E = ||\mathbf{F}\vec{U}||_2
+\label{eq:E_norm_vector}
+\end{equation}
+(for arbitrary vectors) and
+\begin{equation}
+||\mathcal{A}||_E = ||\mathbf{F} \mathbf{A} \mathbf{F}^{-1} ||_2
+\label{eq:E_norm_matrix}
+\end{equation}
+(for arbitrary operators).
+
+Putting this all together, we have that
+\begin{equation}
+G_E(T) = \max_{U(0)} \frac{||\mathcal{K}(T) U(0) ||_E^2}{||U(0)||_E^2}
+\label{eq:energy_gain_def}
+\end{equation}
+can be calculated by taking the largest singular value of the matrix
+\begin{equation}
+\mathbf{F} \mathbf{K} \mathbf{F}^{-1}.
+\label{eq:propagator_Enorm}
+\end{equation}
+
+\section{Dealing with generalized eigenvalue problems and spurious modes}
+\label{sec:eigen-subspace}
+There are two additional issues that are solved the same way. 
+They are:
+\begin{itemize}
+\item[(1)] What do we do if Eq.~\eqref{eq:simplest_system} has an operator on the LHS, so it becomes $\partial_t \mathcal{M} U = \mathcal{L} U$?
+\item[(2)] What if the discretization scheme introduces ``spurious modes" that we don't want to affect our calculation of $G_E$?
+\end{itemize}
+
+The first is an issue if $\mathcal{M}$ is not invertible (as is the case if one of our governing equations is $\nabla \cdot U = 0$ -- and maybe this is in general a problem that comes up from Dedalus' first-order formalism?) because then we can't get a propagator -- $\exp(\mathcal{M}^{-1} \mathcal{L} t)$ is only the propagator if $\mathcal{M}$ is invertible. 
+We navigate this issue by \textit{restricting our calculation to the subspace over which $\mathcal{M}$ is invertible.} 
+(Physically, I'm guessing this corresponds to only considering the $G_E$ that arises from vectors that satisfy $\nabla \cdot U = 0$, which is what we want anyway!)
+
+The second is an issue because, if the discretized system includes unphysical modes, those modes might result in a large $G_E$ that isn't actually physical and would also be resolution-dependent. 
+We navigate this issue by \textit{restricting our calculation to the subspace given by some number of physical eigenmodes.}
+
+In both cases, we solve the problem by restricting the calculation to some subspace. 
+
+This trick is sort of mentioned but not really shown in Squire \& Bhattacharjee, I don't find it mentioned in Schmid's review, and it's shown in MacTaggart's JPP paper on non-modal growth in the tearing instability (section 3.3) to sufficient detail that you can repeat the steps, but the derivation, justification, and explanation of the solution is absent. 
+Appendix B of Reddy, Schmid, and Henningson SIAM J.~Appl.~Math.~(1993) is more helpful (as long as you recall the relationship between the QR decomposition of a matrix A and the Gram-Schmidt process, and that R becomes the change-of-basis matrix from the column vectors A to the orthonormal column vectors of Q). 
+
+I'm pretty sure my code is messing up some detail of the combination of this trick plus either the energy norm bit, or the preconditioning bit. 
+So I'll first assume we don't care about the energy norm or preconditioners.
+
+In the eigenmode basis, the matrix representation of $\mathcal{M}^{-1}\mathcal{L}$ is a diagonal matrix with the eigenvalues along the diagonal. 
+Let's call it $\mathbf{D}$. 
+This makes computing the propagator easy, and is what Squire \& Bhattacharjee say they do. 
+But the eigenmodes are generally not orthogonal, so this is not an orthogonal basis, and this complicates a few things -- for example, I don't think you can get $G$ (or at least not in terms of the norm you think you're using) by doing an SVD of $\exp(\mathbf{D})$. 
+I'm not claiming that Squire \& Bhattacharjee made this mistake. 
+Their code can be found at \texttt{github.com/jonosquire/NMStools} but I'm struggling to read it because it's all in Mathematica.
+
+The similarity/change-of-basis transformation that gets you from the eigenmode basis to the orthogonalized basis over the same subspace is given by Eq.~(B.4) in Reddy, which is the same thing as Eq.~(3.10) in MacTaggart. 
+Let $\mathbf{V}$ be a matrix whose columns are the eigenvectors we want to include in this calculation. 
+Then let
+\begin{equation}
+\mathbf{V} = \mathbf{QR}
+\end{equation}
+be a QR decomposition. 
+Then $\mathbf{R}$ is the change-of-basis matrix between the basis made up by the columns of $\mathbf{V}$ and the one made up by the columns of $\mathbf{Q}$. 
+So, since $\mathbf{D}$ is the matrix representation of $\mathcal{M}^{-1}\mathcal{L}$ in the first basis, we have that
+\begin{equation}
+\mathbf{R} \mathbf{D} \mathbf{R}^{-1}
+\end{equation}
+is its representation in the second basis. 
+Replace $\mathbf{D}$ with $\exp(\mathbf{D} t)$ to get $\mathcal{K}$ in these bases. 
+Thus, taking the SVD of
+\begin{equation}
+\mathbf{R} \exp(\mathbf{D} t) \mathbf{R}^{-1}
+\end{equation}
+should get you $G$ in terms of some sort of norm. 
+I'm a little fuzzy on what norm it is, though. 
+It's certainly some kind of 2-norm, but I don't think it's the 2-norm in terms of the Chebyshev coefficients of a mode. 
+Instead, I think it's the 2-norm in terms of the coefficients of a mode in the orthonormal basis given by the columns of $\mathbf{Q}$.
+
+\section{Subspaces and energy norms}
+Now we want to combine the previous two sections so that we know what matrix to take an SVD of to yield $G_E$ where only the desired subspace is considered. 
+
+The method in Appendix B of Reddy, specifically equations B.1 and B.4, totally works, but only if you have $\mathbf{W}$ (see section II.) represented in terms of the Chebyshev basis. 
+I tried getting $\mathbf{W}$ in this basis by looping over all possible basis vectors and calculating their energies. 
+But this is extremely slow! 
+If I run with a $z$ resolution of 256, then my MHD Orr Sommerfeld system yields a 1536-dimensional vector space (because there's 2 physical fields plus a few more to express the equations in a first-order formalism). 
+Constructing $\mathbf{W}$ in this basis requires looping over $1536 \times 1536$ combinations of basis vectors. 
+Following Reddy, I could totally construct $\mathbf{W}$ by hand if I carefully thought about the energy of an arbitrary state in the Chebyshev basis, but then we can't generalize this to other systems, which would be nice to do in the spirit of contributing to Eigentools. 
+
+We're typically dealing with something like a 100-dimensional subspace of the full vector space, so we should be able to get away with constructing a $100 \times 100$ matrix corresponding to $\mathbf{W}$ projected onto this subspace. 
+As I understand it \texttt{L414} of \texttt{eigenproblem.py} on the main branch on github, which reads \texttt{M = self.compute\_mass\_matrix(pre\_right@Q, inner\_product)}, does exactly that. 
+Ignoring the issue of preconditioners, this constructs $\mathbf{W}$ represented in the basis given by the columns of $\mathbf{Q}$. 
+This matrix, call it $\mathbf{W}_Q$, is $100 \times 100$. 
+Then if we do $\mathbf{W}_Q = \mathbf{F}^\dagger_Q \mathbf{F}_Q$, we should have $||U||_E^2 = ||\mathbf{F} \vec{U}||_2^2 = ||\mathbf{F}_Q \vec{U}_Q||_2^2$, where $\vec{U}$ is a 1536-dimensional vector and $||\vec{U}||_2^2$ is the 2-norm you get by summing over its Chebyshev coefficients, and $\vec{U}_Q$ is a 100-dimensional vector given by expressing $U$ in the basis of $\mathbf{Q}$ and $||\vec{U}_Q||_2^2$ is the 2-norm you get by summing over the square absolute values of those 100 coefficients.
+%Following Reddy, let $\mathbf{F}$ be the same matrix as the last section, and let $\mathbf{V}$ be a matrix whose columns are the eigenvectors we want to include in this LOP calculation. 
+%Then let
+%\begin{equation}
+%\mathbf{FV} = (\mathbf{FQ})\mathbf{R}
+%\end{equation}
+%be a QR decomposition of $\mathbf{FV }$. 
+%(This notation is misleading, I think! If you do a QR decomposition on V alone, you don't get the same R as if you do a QR decomposition on FV!) 
+%Then the representation of $\mathcal{M}^{-1} \mathcal{L}$ in the orthonormal basis corresponding to the span of these eigenmodes that we're interested in is
+%\begin{equation}
+%\mathbf{R} \mathbf{D} \mathbf{R}^{-1}
+%\end{equation}
+
+Putting this all together, I claim that I should be able to get $G_E$ by taking the largest singular value of
+\begin{equation}
+\mathbf{F}_Q \mathbf{R} \exp(\mathbf{D} t) \mathbf{R}^{-1} \mathbf{F_Q}^{-1}.
+\end{equation}
+Unfortunately, this isn't giving me a reasonable result for parameters where the system is stable.
+\end{document}
