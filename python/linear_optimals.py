@@ -8,18 +8,21 @@ logger = logging.getLogger(__name__)
 
 Nz = 256
 Reynolds = 50.0
-mReynolds = 50.0
+Pm = 1.0
+mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
 kx = 0.2
-MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
-# MA = 1.0  # For this value, the system is stable.
+# MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
+MA = 1.0  # For this value, the system is stable.
+MAs = np.array([0.5, 0.75, 1.0, 1.25, 1.5])
 MA2 = MA**2.0
-k = 100
-ts = np.linspace(0.0, 40.0, 10)
+k = 50
+fname = 'LOP_MA_scan_Nz{}_k{}_Re{}_Pm{}.pdf'.format(Nz, k, Reynolds, Pm)
+ts = np.linspace(0.0, 80.0, 40)
 Gs = np.zeros_like(ts)
 
 
-def energy_norm_general(X1, X2, MA):  # because the norm depends on MA, need to include MA as an argument
+def energy_norm_general(X1, X2, ma):
     u1 = X1['phi_z']
     w1 = -1.0j * kx * X1['phi']
     bx1 = X1['psi_z']
@@ -29,7 +32,7 @@ def energy_norm_general(X1, X2, MA):  # because the norm depends on MA, need to 
     bx2 = X2['psi_z']
     bz2 = -1.0j * kx * X2['psi']
 
-    field = (np.conj(u1)*u2 + np.conj(w1)*w2 + (1.0/MA**2.0)*(np.conj(bx1)*bx2 + np.conj(bz1)*bz2)).evaluate().integrate()
+    field = (np.conj(u1)*u2 + np.conj(w1)*w2 + (1.0/ma**2.0)*(np.conj(bx1)*bx2 + np.conj(bz1)*bz2)).evaluate().integrate()
     return field['g'][0]
 
 
@@ -49,7 +52,8 @@ if not inviscid:
     probvars.append('uzz')
 else:  # really haven't tested this! May have neglected to add the right substitutions/equations
     probvars.append('zeta')
-problem = de.EVP(domain, variables=probvars, eigenvalue='omega')
+# problem = de.EVP(domain, variables=probvars, eigenvalue='omega')
+problem = de.EVP(domain, variables=probvars, eigenvalue='gamma')
 z = domain.grid(0)
 a = 1.0
 
@@ -69,7 +73,8 @@ if not inviscid:
 if not ideal:
     problem.parameters['Rm'] = mReynolds
 problem.substitutions['dx(A)'] = "1.0j*kx*A"
-problem.substitutions['dt(A)'] = "-1.0j*omega*A"
+# problem.substitutions['dt(A)'] = "-1.0j*omega*A"
+problem.substitutions['dt(A)'] = "gamma*A"
 problem.substitutions['u'] = 'phi_z'
 problem.substitutions['w'] = "-dx(phi)"
 problem.substitutions['Bz'] = "-dx(psi)"
@@ -104,31 +109,31 @@ problem.add_bc("left(Bz) = 0")
 logger.info("done with BCs")
 
 EP = Eigenproblem(problem, grow_func=lambda x: x.imag, freq_func=lambda x: x.real)
-
 pencil = 0
-EP.solve(sparse=True, N=k, pencil=pencil)
-# I think the following line gives F^dagger @ F from Reddy 1993. But it's too slow.
-# M_full = EP.compute_mass_matrix(np.eye(np.shape(EP.solver.eigenvectors)[0]), lambda x1, x2: energy_norm_general(x1, x2, MA))
-# F_full_dagger = np.linalg.cholesky(M_full)
-# F_full = F_full_dagger.conj().T
-pre_right = EP.solver.pencils[pencil].pre_right  # right-preconditioner for the matrix pencil, call it PR
-pre_right_LU = scipy.sparse.linalg.splu(pre_right.tocsc())  # LU factorization of the right-preconditioner
-V = pre_right_LU.solve(EP.solver.eigenvectors)  # V satisfies PR @ V = solver.eigenvectors. I think this means V is the eigenvectors WITHOUT pre-conditioning
-# V = EP.solver.eigenvectors
-Q, R = np.linalg.qr(V)  # Q is an orthonormal (in terms of the 2-norm!) basis in the subspace spanned by the eigenvectors in V, R is the change of basis tsfm
-M_E = EP.compute_mass_matrix(pre_right @ Q, lambda x1, x2: energy_norm_general(x1, x2, MA))  # This is M represented in the basis of the columns of Q
-# M_E = EP.compute_mass_matrix(Q, lambda x1, x2: energy_norm_general(x1, x2, MA))
-Fdagger = np.linalg.cholesky(M_E)
-F = Fdagger.conj().T  # this gives ||F @ u||_2 = ||u||_E for u expressed in the (k-dimensional!) basis given by Q
-# FQ, R_F = np.linalg.qr(F@V)
-# FQ, R_F = np.linalg.qr(F_full @ V)
-for tind, t in enumerate(ts):
-    K = R @ np.diag(np.exp(EP.solver.eigenvalues * t)) @ np.linalg.inv(R)
-    s_vals = scipy.linalg.svdvals(F @ K @ np.linalg.inv(F))
-    Gs[tind] = s_vals[0]
 
-plt.semilogy(ts, Gs)
-plt.semilogy(ts, Gs[0]*np.exp(ts*2.0*np.max(np.imag(EP.evalues)))*Gs[-1]/np.exp(ts[-1]*2.0*np.max(np.imag(EP.evalues))), '--', c='C0')
+for ma_ind, ma in enumerate(MAs):
+    EP.solve(sparse=True, N=k, pencil=pencil, parameters={'MA2': ma ** 2.0})
+    pre_right = EP.solver.pencils[pencil].pre_right  # right-preconditioner for the matrix pencil, call it PR
+    pre_right_LU = scipy.sparse.linalg.splu(pre_right.tocsc())  # LU factorization of the right-preconditioner
+    V = pre_right_LU.solve(EP.solver.eigenvectors)  # V satisfies PR @ V = solver.eigenvectors. I think this means V is the eigenvectors WITHOUT pre-conditioning
+    Q, R = np.linalg.qr(V)  # Q is an orthonormal (in terms of the 2-norm!) basis in the subspace spanned by the eigenvectors in V, R is the change of basis tsfm
+    M_E = EP.compute_mass_matrix(pre_right @ Q, lambda x1, x2: energy_norm_general(x1, x2, ma))  # This is M represented in the basis of the columns of Q
+    Fdagger = np.linalg.cholesky(M_E)
+    F = Fdagger.conj().T  # this gives ||F @ u||_2 = ||u||_E for u expressed in the (k-dimensional!) basis given by Q
+    for tind, t in enumerate(ts):
+        # K = R @ np.diag(np.exp(-1.0j*EP.solver.eigenvalues * t)) @ np.linalg.inv(R)
+        K = R @ np.diag(np.exp(EP.solver.eigenvalues * t)) @ np.linalg.inv(R)
+        s_vals = scipy.linalg.svdvals(F @ K @ np.linalg.inv(F))
+        Gs[tind] = s_vals[0]
+    Gs = Gs**2.0
+
+    plt.semilogy(ts, Gs, c='C{}'.format(ma_ind), label=r'$M_A = {:4.2f}$'.format(ma))
+    # plt.semilogy(ts, Gs[0]*np.exp(ts*2.0*np.max(np.imag(EP.evalues)))*Gs[-1]/np.exp(ts[-1]*2.0*np.max(np.imag(EP.evalues))), '--', c='C0')
+    plt.semilogy(ts, Gs[0]*np.exp(ts*2.0*np.max(np.real(EP.evalues)))*Gs[-1]/np.exp(ts[-1]*2.0*np.max(np.real(EP.evalues))), '--', c='C{}'.format(ma_ind))
+    print(ma_ind)
 plt.xlabel(r'$T$')
 plt.ylabel(r'$G(T)$')
-plt.show()
+plt.xlim((0, ts[-1]))
+plt.legend()
+plt.savefig(fname, bbox_inches='tight')
+# plt.show()
