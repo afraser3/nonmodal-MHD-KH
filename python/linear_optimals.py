@@ -14,10 +14,14 @@ Lz = 10.0*np.pi
 kx = 0.2
 # MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
 MA = 1.0  # For this value, the system is stable.
-MAs = np.array([0.5, 0.75, 1.0, 1.25, 1.5])
+MAs = np.array([0.5, 0.75])  # , 1.0, 1.25])  # , 1.5])
 MA2 = MA**2.0
-k = 50
-fname = 'LOP_MA_scan_Nz{}_k{}_Re{}_Pm{}.pdf'.format(Nz, k, Reynolds, Pm)
+k = 250
+dense = False
+if dense:
+    fname = 'LOP_MA_scan_Nz{}_dense_Re{}_Pm{}.pdf'.format(Nz, Reynolds, Pm)
+else:
+    fname = 'LOP_MA_scan_Nz{}_k{}_Re{}_Pm{}-test.pdf'.format(Nz, k, Reynolds, Pm)
 ts = np.linspace(0.0, 80.0, 40)
 Gs = np.zeros_like(ts)
 
@@ -108,28 +112,38 @@ problem.add_bc("left(Bz) = 0")
 
 logger.info("done with BCs")
 
-EP = Eigenproblem(problem, grow_func=lambda x: x.imag, freq_func=lambda x: x.real)
+EP = Eigenproblem(problem, grow_func=lambda x: x.imag, freq_func=lambda x: x.real, reject=False)  # TBD whether reject=False is the right move
 pencil = 0
 
 for ma_ind, ma in enumerate(MAs):
-    EP.solve(sparse=True, N=k, pencil=pencil, parameters={'MA2': ma ** 2.0})
+    if dense:
+        EP.solve(sparse=False, pencil=pencil, parameters={'MA2': ma ** 2.0})
+    else:
+        EP.solve(sparse=True, N=k, pencil=pencil, parameters={'MA2': ma ** 2.0})
     pre_right = EP.solver.pencils[pencil].pre_right  # right-preconditioner for the matrix pencil, call it PR
     pre_right_LU = scipy.sparse.linalg.splu(pre_right.tocsc())  # LU factorization of the right-preconditioner
-    V = pre_right_LU.solve(EP.solver.eigenvectors)  # V satisfies PR @ V = solver.eigenvectors. I think this means V is the eigenvectors WITHOUT pre-conditioning
+    if dense:
+        finite_EVs = np.real(EP.solver.eigenvalues) < 10.0  # np.isfinite(EP.solver.eigenvalues)
+        eigenvalues = EP.solver.eigenvalues[finite_EVs]
+        eigenvectors = ((EP.solver.eigenvectors.T)[finite_EVs]).T  # pretty sure there's a better way to do this
+    else:
+        eigenvalues = EP.solver.eigenvalues
+        eigenvectors = EP.solver.eigenvectors
+    V = pre_right_LU.solve(eigenvectors)  # V satisfies PR @ V = solver.eigenvectors. I think this means V is the eigenvectors WITHOUT pre-conditioning
     Q, R = np.linalg.qr(V)  # Q is an orthonormal (in terms of the 2-norm!) basis in the subspace spanned by the eigenvectors in V, R is the change of basis tsfm
     M_E = EP.compute_mass_matrix(pre_right @ Q, lambda x1, x2: energy_norm_general(x1, x2, ma))  # This is M represented in the basis of the columns of Q
     Fdagger = np.linalg.cholesky(M_E)
     F = Fdagger.conj().T  # this gives ||F @ u||_2 = ||u||_E for u expressed in the (k-dimensional!) basis given by Q
     for tind, t in enumerate(ts):
         # K = R @ np.diag(np.exp(-1.0j*EP.solver.eigenvalues * t)) @ np.linalg.inv(R)
-        K = R @ np.diag(np.exp(EP.solver.eigenvalues * t)) @ np.linalg.inv(R)
+        K = R @ np.diag(np.exp(eigenvalues * t)) @ np.linalg.inv(R)
         s_vals = scipy.linalg.svdvals(F @ K @ np.linalg.inv(F))
         Gs[tind] = s_vals[0]
     Gs = Gs**2.0
 
     plt.semilogy(ts, Gs, c='C{}'.format(ma_ind), label=r'$M_A = {:4.2f}$'.format(ma))
     # plt.semilogy(ts, Gs[0]*np.exp(ts*2.0*np.max(np.imag(EP.evalues)))*Gs[-1]/np.exp(ts[-1]*2.0*np.max(np.imag(EP.evalues))), '--', c='C0')
-    plt.semilogy(ts, Gs[0]*np.exp(ts*2.0*np.max(np.real(EP.evalues)))*Gs[-1]/np.exp(ts[-1]*2.0*np.max(np.real(EP.evalues))), '--', c='C{}'.format(ma_ind))
+    plt.semilogy(ts, Gs[0]*np.exp(ts*2.0*np.max(np.real(eigenvalues)))*Gs[-1]/np.exp(ts[-1]*2.0*np.max(np.real(eigenvalues))), '--', c='C{}'.format(ma_ind))
     print(ma_ind)
 plt.xlabel(r'$T$')
 plt.ylabel(r'$G(T)$')
