@@ -1,3 +1,17 @@
+# January 31st - Feb 4th, 2021 (recapping multiple scattered discussions)
+### Progress
+- Pre-Jan 31st: LOPs script was giving nonsense. TeX'ed up some notes explaining the various matrix manipulations it's supposed to be doing
+- Jan 31st: noticed bug in script. Now LOPs work!
+- Computed G(T) for various M_A at Re = Rm = 50, looks fantastic
+- G(T) for dense solver looks unphysical
+
+### Recap
+- Expect G(T) to increase at higher Re -- check this
+- Re-do G(T) with dense solver but reject the spurious modes using, e.g., eigenproblem._discard_spurious_eigenvalues()
+- Recalculate G(T) for Pouseuille flow from Reddy et al 1993 Fig 12 as a sanity check
+- Plot the structures of the LOPs, and energy vs time for their linear evolution -- in particular, what's going on with the oscillations in G(T) for low M_A?
+- Should we submit to PRL? Worth checking with Paul about connections to fusion
+
 # September 2nd, 2021
 ### Progress
 - Worked up to Re = 2500
