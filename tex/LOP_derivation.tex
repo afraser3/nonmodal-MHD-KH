@@ -50,7 +50,7 @@ Then, in terms of the standard 2-norm that comes from summing over the squared a
 This 2-norm is in general not the same thing as the energy norm. 
 %or the $L^2$ norm (by which I mean the square integral of $U$ over the domain) -- especially for the case of the Chebyshev spectral basis. 
 Both Squire \& Bhattacharjee and Sec.~2.2 of Schmid's nonmodal stability review explain how to deal with this, and they both cite Reddy et al 1993 which has a slightly more thorough description. 
-Using the ``symmetric bilinear forms" sections of linear algebra textbooks as guidance, we can represent energy in some basis in terms of a matrix as $E[U] = ||U||_E^2 = \vec{U}^\dagger\mathbf{W}\vec{U}$. 
+Using the ``symmetric bilinear forms" sections of linear algebra textbooks as guidance (or see the wikipedia page of that name), we can represent energy in some basis in terms of a matrix $\mathbf{W}$ as $E[U] = ||U||_E^2 = \vec{U}^\dagger\mathbf{W}\vec{U}$, where $E[U]$ is the energy of state $U$.  
 Then, taking the Cholesky decomposition $\mathbf{W} = \mathbf{F}^\dagger \mathbf{F}$ (where Squire \& Bhattacharjee note that numerical errors are often introduced, and so they used high-precision arithmetic for this part) gives us that 
 \begin{equation}
 ||U||_E = ||\mathbf{F}\vec{U}||_2
@@ -83,9 +83,9 @@ They are:
 \item[(2)] What if the discretization scheme introduces ``spurious modes" that we don't want to affect our calculation of $G_E$?
 \end{itemize}
 
-The first is an issue if $\mathcal{M}$ is not invertible (as is the case if one of our governing equations is $\nabla \cdot U = 0$ -- and maybe this is in general a problem that comes up from Dedalus' first-order formalism?) because then we can't get a propagator -- $\exp(\mathcal{M}^{-1} \mathcal{L} t)$ is only the propagator if $\mathcal{M}$ is invertible. 
+The first is an issue if $\mathcal{M}$ is not invertible (as is the case if one of our governing equations is $\nabla \cdot U = 0$ -- and maybe this is in general a problem that comes up from Dedalus' first-order formalism?) because then we can't get a propagator: $\exp(\mathcal{M}^{-1} \mathcal{L} t)$ is only the propagator if $\mathcal{M}$ is invertible. 
 We navigate this issue by \textit{restricting our calculation to the subspace over which $\mathcal{M}$ is invertible.} 
-(Physically, I'm guessing this corresponds to only considering the $G_E$ that arises from vectors that satisfy $\nabla \cdot U = 0$, which is what we want anyway!)
+(Physically, I'm guessing this corresponds to only considering the $G_E$ that arises from initial perturbations that satisfy $\nabla \cdot U = 0$, which is what we want anyway!)
 
 The second is an issue because, if the discretized system includes unphysical modes, those modes might result in a large $G_E$ that isn't actually physical and would also be resolution-dependent. 
 We navigate this issue by \textit{restricting our calculation to the subspace given by some number of physical eigenmodes.}
@@ -93,9 +93,9 @@ We navigate this issue by \textit{restricting our calculation to the subspace gi
 In both cases, we solve the problem by restricting the calculation to some subspace. 
 
 This trick is sort of mentioned but not really shown in Squire \& Bhattacharjee, I don't find it mentioned in Schmid's review, and it's shown in MacTaggart's JPP paper on non-modal growth in the tearing instability (section 3.3) to sufficient detail that you can repeat the steps, but the derivation, justification, and explanation of the solution is absent. 
-Appendix B of Reddy, Schmid, and Henningson SIAM J.~Appl.~Math.~(1993) is more helpful (as long as you recall the relationship between the QR decomposition of a matrix A and the Gram-Schmidt process, and that R becomes the change-of-basis matrix from the column vectors A to the orthonormal column vectors of Q). 
+Appendix B of Reddy, Schmid, and Henningson SIAM J.~Appl.~Math.~(1993) is more helpful (as long as you recall the relationship between the QR decomposition of a matrix A and the Gram-Schmidt process, and that R becomes the change-of-basis matrix from the column vectors of A to the orthonormal column vectors of Q). 
 
-I'm pretty sure my code is messing up some detail of the combination of this trick plus either the energy norm bit, or the preconditioning bit. 
+I'm pretty sure my code is messing up some detail of the combination of this trick plus either the energy norm bit, or the preconditioning bit \textit{[turns out my code was wrong because it was missing a factor of $i$...]}. 
 So I'll first assume we don't care about the energy norm or preconditioners.
 
 In the eigenmode basis, the matrix representation of $\mathcal{M}^{-1}\mathcal{L}$ is a diagonal matrix with the eigenvalues along the diagonal. 
@@ -113,11 +113,11 @@ Then let
 \end{equation}
 be a QR decomposition. 
 Then $\mathbf{R}$ is the change-of-basis matrix between the basis made up by the columns of $\mathbf{V}$ and the one made up by the columns of $\mathbf{Q}$. 
-So, since $\mathbf{D}$ is the matrix representation of $\mathcal{M}^{-1}\mathcal{L}$ in the first basis, we have that
+So, since $\mathbf{D}$ is the matrix representation of $\mathcal{M}^{-1}\mathcal{L}$ in the $\mathbf{V}$ basis, we have that
 \begin{equation}
 \mathbf{R} \mathbf{D} \mathbf{R}^{-1}
 \end{equation}
-is its representation in the second basis. 
+is its representation in the $\mathbf{Q}$ basis. 
 Replace $\mathbf{D}$ with $\exp(\mathbf{D} t)$ to get $\mathcal{K}$ in these bases. 
 Thus, taking the SVD of
 \begin{equation}
@@ -131,15 +131,14 @@ Instead, I think it's the 2-norm in terms of the coefficients of a mode in the o
 \section{Subspaces and energy norms}
 Now we want to combine the previous two sections so that we know what matrix to take an SVD of to yield $G_E$ where only the desired subspace is considered. 
 
-The method in Appendix B of Reddy, specifically equations B.1 and B.4, totally works, but only if you have $\mathbf{W}$ (see section II.) represented in terms of the Chebyshev basis. 
-I tried getting $\mathbf{W}$ in this basis by looping over all possible basis vectors and calculating their energies. 
-But this is extremely slow! 
+The method in Appendix B of Reddy, specifically equations B.1 and B.4 (which involves taking a QR decomposition of $\mathbf{FV}$ rather than of $\mathbf{V}$, where $\mathbf{F}$ is the same $\mathbf{F}$ that I introduced in Sec.~II of this document), totally works, but only if you have $\mathbf{W}$ (see section II) represented in terms of the Chebyshev basis. 
+I tried getting $\mathbf{W}$ in this basis by looping over all possible basis vectors and calculating their energies (essentially following the ``Matrix representation" section of the Wikipedia article ``Symmetric bilinear form"), but this is extremely slow! 
 If I run with a $z$ resolution of 256, then my MHD Orr Sommerfeld system yields a 1536-dimensional vector space (because there's 2 physical fields plus a few more to express the equations in a first-order formalism). 
 Constructing $\mathbf{W}$ in this basis requires looping over $1536 \times 1536$ combinations of basis vectors. 
 Following Reddy, I could totally construct $\mathbf{W}$ by hand if I carefully thought about the energy of an arbitrary state in the Chebyshev basis, but then we can't generalize this to other systems, which would be nice to do in the spirit of contributing to Eigentools. 
 
 We're typically dealing with something like a 100-dimensional subspace of the full vector space, so we should be able to get away with constructing a $100 \times 100$ matrix corresponding to $\mathbf{W}$ projected onto this subspace. 
-As I understand it \texttt{L414} of \texttt{eigenproblem.py} on the main branch on github, which reads \texttt{M = self.compute\_mass\_matrix(pre\_right@Q, inner\_product)}, does exactly that. 
+As I understand it \texttt{L414} of \texttt{eigenproblem.py} on the main branch on Eigentools on github, which reads \texttt{M = self.compute\_mass\_matrix(pre\_right@Q, inner\_product)}, does exactly that. 
 Ignoring the issue of preconditioners, this constructs $\mathbf{W}$ represented in the basis given by the columns of $\mathbf{Q}$. 
 This matrix, call it $\mathbf{W}_Q$, is $100 \times 100$. 
 Then if we do $\mathbf{W}_Q = \mathbf{F}^\dagger_Q \mathbf{F}_Q$, we should have $||U||_E^2 = ||\mathbf{F} \vec{U}||_2^2 = ||\mathbf{F}_Q \vec{U}_Q||_2^2$, where $\vec{U}$ is a 1536-dimensional vector and $||\vec{U}||_2^2$ is the 2-norm you get by summing over its Chebyshev coefficients, and $\vec{U}_Q$ is a 100-dimensional vector given by expressing $U$ in the basis of $\mathbf{Q}$ and $||\vec{U}_Q||_2^2$ is the 2-norm you get by summing over the square absolute values of those 100 coefficients.
@@ -160,4 +159,6 @@ Putting this all together, I claim that I should be able to get $G_E$ by taking 
 \mathbf{F}_Q \mathbf{R} \exp(\mathbf{D} t) \mathbf{R}^{-1} \mathbf{F_Q}^{-1}.
 \end{equation}
 Unfortunately, this isn't giving me a reasonable result for parameters where the system is stable.
+
+\textit{[Update: turns out this last equation was absolutely correct, and I was just missing a factor of $i$ in my code!]}
 \end{document}

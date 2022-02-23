@@ -2,12 +2,13 @@ from eigentools import Eigenproblem
 from dedalus import public as de
 import numpy as np
 import scipy
+from pathlib import Path
 from matplotlib import pyplot as plt
 import logging
 logger = logging.getLogger(__name__)
 
-Nz = 256
-Reynolds = 50.0
+Nz = 512
+Reynolds = 500.0
 Pm = 1.0
 mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
@@ -15,14 +16,19 @@ kx = 0.2
 # MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
 MA = 1.0  # For this value, the system is stable.
 MAs = np.array([0.5, 0.75])  # , 1.0, 1.25])  # , 1.5])
+# MAs = np.array([0.0625, 0.125, 0.25, 0.5])
 MA2 = MA**2.0
-k = 250
-dense = False
+k = 100
+dense = True
+reject_spurious = True
+plotdir = Path("LOPs/Re{}".format(Reynolds))
+if not plotdir.exists():
+    plotdir.mkdir(parents=True)
 if dense:
-    fname = 'LOP_MA_scan_Nz{}_dense_Re{}_Pm{}.pdf'.format(Nz, Reynolds, Pm)
+    fname = 'LOPs/Re{}/LOP_MA_scan_Nz{}_dense_Pm{}.pdf'.format(Reynolds, Nz, Pm)
 else:
-    fname = 'LOP_MA_scan_Nz{}_k{}_Re{}_Pm{}-test.pdf'.format(Nz, k, Reynolds, Pm)
-ts = np.linspace(0.0, 80.0, 40)
+    fname = 'LOPs/Re{}/LOP_MA_scan_Nz{}_k{}_Pm{}.pdf'.format(Reynolds, Nz, k, Pm)
+ts = np.linspace(0.0, 80.0, 200)
 Gs = np.zeros_like(ts)
 
 
@@ -112,7 +118,7 @@ problem.add_bc("left(Bz) = 0")
 
 logger.info("done with BCs")
 
-EP = Eigenproblem(problem, grow_func=lambda x: x.imag, freq_func=lambda x: x.real, reject=False)  # TBD whether reject=False is the right move
+EP = Eigenproblem(problem, grow_func=lambda x: x.imag, freq_func=lambda x: x.real, reject=reject_spurious)  # TBD whether reject=False is the right move
 pencil = 0
 
 for ma_ind, ma in enumerate(MAs):
@@ -123,9 +129,13 @@ for ma_ind, ma in enumerate(MAs):
     pre_right = EP.solver.pencils[pencil].pre_right  # right-preconditioner for the matrix pencil, call it PR
     pre_right_LU = scipy.sparse.linalg.splu(pre_right.tocsc())  # LU factorization of the right-preconditioner
     if dense:
-        finite_EVs = np.real(EP.solver.eigenvalues) < 10.0  # np.isfinite(EP.solver.eigenvalues)
-        eigenvalues = EP.solver.eigenvalues[finite_EVs]
-        eigenvectors = ((EP.solver.eigenvectors.T)[finite_EVs]).T  # pretty sure there's a better way to do this
+        if reject_spurious:
+            eigenvalues = EP.evalues_good
+            eigenvectors = ((EP.solver.eigenvectors.T)[EP.evalues_index]).T  # pretty sure there's a better way to do this
+        else:  # TODO: this way of filtering is probably bad
+            finite_EVs = np.real(EP.solver.eigenvalues) < 10.0  # np.isfinite(EP.solver.eigenvalues)
+            eigenvalues = EP.solver.eigenvalues[finite_EVs]
+            eigenvectors = ((EP.solver.eigenvectors.T)[finite_EVs]).T  # pretty sure there's a better way to do this
     else:
         eigenvalues = EP.solver.eigenvalues
         eigenvectors = EP.solver.eigenvectors
