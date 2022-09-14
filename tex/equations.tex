@@ -4,6 +4,9 @@
 
 \newcommand{\Rm}{\mathrm{Rm}}
 \renewcommand{\Re}{\mathrm{Re}}
+\newcommand{\xhat}{\hat{\mathbf{x}}}
+\newcommand{\yhat}{\hat{\mathbf{y}}}
+\newcommand{\zhat}{\hat{\mathbf{z}}}
 
 \begin{document}
 	% \title{Model equations}
@@ -35,7 +38,7 @@
 	\end{equation}
 	and
 	\begin{equation}
-	\frac{\partial}{\partial t} \mathbf{B} = \nabla \times (\mathbf{v} \times \mathbf{B}) + \frac{1}{\Re} \nabla^2 \mathbf{B},
+	\frac{\partial}{\partial t} \mathbf{B} = \nabla \times (\mathbf{v} \times \mathbf{B}) + \frac{1}{\Rm} \nabla^2 \mathbf{B},
 	\end{equation}
 	where now everything is nondimensionalized, $p$ is really $p/\rho_0$, and $M_A \equiv U_0/v_A \propto U_0/B_0$ ($v_A$ is the Alfv\'{e}n velocity). 
 	So a weak magnetic field means a high $M_A$, and the threshold for stabilizing KH in ideal MHD ($\nu = 0$, $\eta = 0$) is in the neighborhood of $M_A \approx 1$.
@@ -50,4 +53,41 @@
 \frac{\partial}{\partial t} \psi = \left\{ \phi, \psi \right\} + \frac{1}{\mathrm{Rm}}\nabla^2 \psi
 \end{equation}
 (where $\left\{f, g\right\} \equiv \partial_x f \partial_z g - \partial_z g \partial_x f$).
+\subsection{3D Case}
+For the 3D case, we'll use the vector potential $\mathbf{B} = \nabla \times \mathbf{A}$ in the Coulomb gauge such that $\nabla \cdot \mathbf{A} = 0$ and the induction equation reads
+	\begin{equation}
+	\frac{\partial  \mathbf{A}}{\partial t} + \nabla \Phi = \mathbf{v} \times \mathbf{B} + \frac{1}{\Rm} \nabla^2 \mathbf{A}.
+	\end{equation}
+We'll need to expand all the non-linear terms into their quasi-linear forms. We'll use capital letters for background quantities and lower case for fluctuations, $\mathbf{v}_{tot} = \mathbf{U} + \mathbf{u}$,
+
+Noting that the background current density $\mathbf{J} = \nabla \times \mathbf{B} = 0$, the Lorentz force becomes
+\begin{equation}
+    \mathbf{J_{tot} \times B_{tot}} = \mathbf{j \times B} = j_z B_0 \yhat + j_y B_0 \zhat
+\end{equation}
+with
+\begin{equation}
+    \mathbf{j} =  (\partial_y b_z - \partial_z b_y) \xhat + (\partial_z b_x - \partial_x b_z) \yhat + (\partial_x b_y - \partial_y b_x) \zhat.
+\end{equation}
+
+Next, we need the non-linear term in the induction equation, 
+\begin{equation}
+    \mathbf{v_{tot} \times B_{tot}} = \mathbf{U \times b} + \mathbf {u \times B} = v B_0 \xhat + w B_0 \yhat.
+\end{equation}
+Finally, we need the non-linear advection term,
+\begin{equation}
+    \mathbf{v_{tot}}\cdot \nabla \mathbf{v_{tot}} = \mathbf{U} \cdot \nabla \mathbf{u} + \mathbf{u} \cdot \nabla \mathbf{U} = U \partial_x \mathbf{u} + w \partial_z U \xhat.
+\end{equation}
+
+Breaking these into component form, and returning to non-dimensional form, we arrive at our final equation set for Dedalus,
+\begin{align}
+    \partial_t u + U\partial_x u + w \partial_z U + \partial_x p - \frac{1}{\Re} \nabla^2 u &= 0\\
+    \partial_t v + U\partial_x v + \partial_y p - \frac{j_z}{M_A^2} - \frac{1}{\Re} \nabla^2 v &= 0\\
+    \partial_t w + U\partial_x w + \partial_z p - \frac{j_y}{M_A^2} - \frac{1}{\Re} \nabla^2 w &= 0\\
+    \partial_x u + \partial_y v + wz &= 0\\
+    \partial_t A_x + \partial_x \Phi - v - \frac{1}{\Rm} \nabla^2 A_x &= 0\\
+    \partial_t A_y + \partial_y \Phi - w - U b_z - \frac{1}{\Rm} \nabla^2 A_y &= 0\\
+    \partial_t A_z + \partial_z \Phi - U b_y - \frac{1}{\Rm} \nabla^2 A_z &= 0\\
+    \partial_x A_x + \partial_y A_y + A_zz &= 0,
+\end{align}
+not including the first order reduction variables $uz, vz,A_xz, A_yz,$
 \end{document}

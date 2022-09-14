@@ -10,6 +10,9 @@
 \begin{abstract}
 These notes are for carefully doing the linear algebra steps for getting LOPs to make sure I'm not missing anything. 
 NOTE: I'm going to organize this document such that the first section is the most basic derivation, and subsequent sections introduce extra layers of complication (generalized eigenvalue problem, preconditioners, etc.). 
+This was last updated in Fall/Winter 2021 when I was stumped as to why this method was giving me bad results. 
+Shortly afterwards I realized I was missing a factor of $i$ in my code. 
+But I haven't updated these notes to reflect that, and I don't think they touch on preconditioners either.
 \end{abstract}
 \maketitle
 
@@ -51,7 +54,7 @@ This 2-norm is in general not the same thing as the energy norm.
 %or the $L^2$ norm (by which I mean the square integral of $U$ over the domain) -- especially for the case of the Chebyshev spectral basis. 
 Both Squire \& Bhattacharjee and Sec.~2.2 of Schmid's nonmodal stability review explain how to deal with this, and they both cite Reddy et al 1993 which has a slightly more thorough description. 
 Using the ``symmetric bilinear forms" sections of linear algebra textbooks as guidance (or see the wikipedia page of that name), we can represent energy in some basis in terms of a matrix $\mathbf{W}$ as $E[U] = ||U||_E^2 = \vec{U}^\dagger\mathbf{W}\vec{U}$, where $E[U]$ is the energy of state $U$.  
-Then, taking the Cholesky decomposition $\mathbf{W} = \mathbf{F}^\dagger \mathbf{F}$ (where Squire \& Bhattacharjee note that numerical errors are often introduced, and so they used high-precision arithmetic for this part) gives us that 
+Then, taking the Cholesky decomposition $\mathbf{W} = \mathbf{F}^\dagger \mathbf{F}$ (where Squire \& Bhattacharjee note that numerical errors are often introduced, and so they used high-precision arithmetic for this part -- I don't have experience doing that so I'm just using double precision) gives us that 
 \begin{equation}
 ||U||_E = ||\mathbf{F}\vec{U}||_2
 \label{eq:E_norm_vector}
