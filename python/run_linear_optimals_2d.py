@@ -9,8 +9,8 @@ from matplotlib import pyplot as plt
 import logging
 logger = logging.getLogger(__name__)
 
-Nz = 128 #512
-Reynolds = 500.0
+Nz = 256 #512
+Reynolds = 50.0
 Pm = 1.0
 mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
@@ -125,7 +125,7 @@ for ma_ind, ma in enumerate(MAs):
 
     plt.semilogy(ts, Gs, c='C{}'.format(ma_ind), label=r'$M_A = {:4.2f}$'.format(ma))
     plt.semilogy(ts, Gs[0]*np.exp(ts*2.0*np.max(np.real(eigenvalues)))*Gs[-1]/np.exp(ts[-1]*2.0*np.max(np.real(eigenvalues))), '--', c='C{}'.format(ma_ind))
-    print(ma_ind)
+    logger.info(f"MA: {ma},  max eval = {np.max(np.real(eigenvalues))}")
 plt.xlabel(r'$T$')
 plt.ylabel(r'$G(T)$')
 plt.xlim((0, ts[-1]))

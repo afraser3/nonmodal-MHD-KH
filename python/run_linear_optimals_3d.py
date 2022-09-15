@@ -70,7 +70,6 @@ problem.parameters['DU'] = nccDU
 problem.parameters['MA2'] = MA2 ** 2.0  # Alfven Mach number squared
 problem.parameters['kx'] = kx
 problem.parameters['ky'] = ky
-problem.parameters['Lz'] = Lz
 problem.parameters['Re'] = Reynolds
 problem.parameters['Rm'] = mReynolds
 problem.substitutions['dx(A)'] = "1.0j*kx*A"
@@ -84,9 +83,10 @@ problem.substitutions['omega_z'] = "dx(v) - dy(u)"
 problem.substitutions['Jx'] = "dy(Bz) - dz(By)"
 problem.substitutions['Jy'] = "dz(Bx) - dx(Bz)"
 problem.substitutions['Jz'] = "dx(By) - dy(Bx)"
-problem.add_equation("dt(u) + U*dx(u) + w*DU + dx(p) + (dy(omega_z) - dz(omega_y))/Re = 0")
-problem.add_equation("dt(v) + U*dx(v)        + dy(p) - Jz/MA2 - (dz(omega_x) - dx(omega_z))/Re = 0")
-problem.add_equation("dt(w) + U*dx(w)        + dz(p) + Jy/MA2 - (dx(omega_y) - dy(omega_x))/Re = 0")
+
+problem.add_equation("dt(u) + U*dx(u) + w*DU + dx(p)          + (dy(omega_z) - dz(omega_y))/Re = 0")
+problem.add_equation("dt(v) + U*dx(v)        + dy(p) - Jz/MA2 + (dz(omega_x) - dx(omega_z))/Re = 0")
+problem.add_equation("dt(w) + U*dx(w)        + dz(p) + Jy/MA2 + (dx(omega_y) - dy(omega_x))/Re = 0")
 problem.add_equation("dx(u) + dy(v) + dz(w) = 0")
 problem.add_equation("dy(w) - dz(v) - omega_x = 0")
 problem.add_equation("dz(u) - dx(w) - omega_y = 0")
@@ -124,7 +124,7 @@ for ma_ind, ma in enumerate(MAs):
 
     plt.semilogy(ts, Gs, c='C{}'.format(ma_ind), label=r'$M_A = {:4.2f}$'.format(ma))
     plt.semilogy(ts, Gs[0]*np.exp(ts*2.0*np.max(np.real(eigenvalues)))*Gs[-1]/np.exp(ts[-1]*2.0*np.max(np.real(eigenvalues))), '--', c='C{}'.format(ma_ind))
-    print(ma_ind)
+    logger.info(f"MA: {ma},  max eval = {np.max(np.real(eigenvalues))}")
 plt.xlabel(r'$T$')
 plt.ylabel(r'$G(T)$')
 plt.xlim((0, ts[-1]))
