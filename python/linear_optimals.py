@@ -5,7 +5,7 @@ import scipy
 import logging
 logger = logging.getLogger(__name__)
 
-def LOP(EP, times, parameters, norm, pencil=0, dense=True):
+def LOP(EP, times, parameters, norm, ma, pencil=0, dense=True):
 
     Gs = np.zeros_like(times)
     if dense:

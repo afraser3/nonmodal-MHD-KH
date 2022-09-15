@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 import logging
 logger = logging.getLogger(__name__)
 
-Nz = 512
+Nz = 128 #512
 Reynolds = 500.0
 Pm = 1.0
 mReynolds = Pm * Reynolds
@@ -121,7 +121,7 @@ EP = Eigenproblem(problem, grow_func=lambda x: x.imag, freq_func=lambda x: x.rea
 pencil = 0
 
 for ma_ind, ma in enumerate(MAs):
-    Gs, eigenvalues, eigenvectors = LOP(EP, ts, {'MA2': ma ** 2.0}, energy_norm_general, pencil=pencil, dense=dense)
+    Gs, eigenvalues, eigenvectors = LOP(EP, ts, {'MA2': ma ** 2.0}, energy_norm_general, ma, pencil=pencil, dense=dense)
 
     plt.semilogy(ts, Gs, c='C{}'.format(ma_ind), label=r'$M_A = {:4.2f}$'.format(ma))
     plt.semilogy(ts, Gs[0]*np.exp(ts*2.0*np.max(np.real(eigenvalues)))*Gs[-1]/np.exp(ts[-1]*2.0*np.max(np.real(eigenvalues))), '--', c='C{}'.format(ma_ind))
