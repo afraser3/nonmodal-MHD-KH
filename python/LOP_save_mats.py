@@ -14,11 +14,11 @@ mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
 kx = 0.2
 # MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
-MA = 0.75  # For this value, the system is stable.
+MA = 0.8
 # MAs = np.array([0.0625, 0.125, 0.25, 0.5])
 MA2 = MA**2.0
 k = 100
-dense = False
+dense = True
 reject_spurious = True
 if dense:
     savedir = Path("LOPs/Re{}/MA{}/Pm{}".format(Reynolds, MA, Pm))
@@ -29,7 +29,9 @@ else:
 if not savedir.exists():
     savedir.mkdir(parents=True)
 # ts = np.linspace(0.0, 80.0, 200)
-ts = np.linspace(0.0, 20.0, 5)
+# ts = np.linspace(0.0, 60.0, 13)
+ts = np.linspace(0.0, 50.0, 51)
+# ts = np.linspace(0.0, 1000.0, 11)
 
 
 def energy_norm_general(X1, X2, ma):
@@ -74,7 +76,7 @@ nccDU = domain.new_field(name='DU')
 nccDU['g'] = 1 / (a * np.cosh(z / a) ** 2)
 problem.parameters['DU'] = nccDU
 
-problem.parameters['MA2'] = MA2 ** 2.0  # Alfven Mach number squared
+problem.parameters['MA2'] = MA2  # Alfven Mach number squared
 problem.parameters['kx'] = kx
 problem.parameters['Lz'] = Lz
 if not inviscid:
@@ -150,6 +152,7 @@ with h5py.File(fname, mode="w-") as file:
     R_data = setup_mats_grp.create_dataset('R', data=R)
     Q_data = setup_mats_grp.create_dataset('Q', data=Q)
     F_data = setup_mats_grp.create_dataset('F', data=F)
+    pre_right_data = setup_mats_grp.create_dataset('pre_right', data=pre_right.toarray())
 
     scales_grp = file.create_group('scales')  # in the spirit of "scales" in d2 h5 files, but this is a bad name for this use case
     ts_data = scales_grp.create_dataset('ts', data=ts)
