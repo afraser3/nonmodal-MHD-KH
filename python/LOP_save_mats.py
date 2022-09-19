@@ -1,3 +1,5 @@
+from linear_optimals import LOP, F_from_norm
+
 from eigentools import Eigenproblem
 from dedalus import public as de
 import numpy as np
@@ -14,13 +16,12 @@ mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
 kx = 0.2
 # MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
-MA = 0.8
-# MAs = np.array([0.0625, 0.125, 0.25, 0.5])
+MA = 0.85
 MA2 = MA**2.0
 k = 100
 dense = True
 reject_spurious = True
-if dense:
+if dense:  # TODO: the name should really include kx
     savedir = Path("LOPs/Re{}/MA{}/Pm{}".format(Reynolds, MA, Pm))
     fname = "LOPs/Re{}/MA{}/Pm{}/Nz{}_dense.h5".format(Reynolds, MA, Pm, Nz)
 else:
@@ -28,10 +29,7 @@ else:
     fname = "LOPs/Re{}/MA{}/Pm{}/Nz{}_k{}.h5".format(Reynolds, MA, Pm, Nz, k)
 if not savedir.exists():
     savedir.mkdir(parents=True)
-# ts = np.linspace(0.0, 80.0, 200)
-# ts = np.linspace(0.0, 60.0, 13)
 ts = np.linspace(0.0, 50.0, 51)
-# ts = np.linspace(0.0, 1000.0, 11)
 
 
 def energy_norm_general(X1, X2, ma):
@@ -45,6 +43,26 @@ def energy_norm_general(X1, X2, ma):
     bz2 = -1.0j * kx * X2['psi']
 
     field = (np.conj(u1)*u2 + np.conj(w1)*w2 + (1.0/ma**2.0)*(np.conj(bx1)*bx2 + np.conj(bz1)*bz2)).evaluate().integrate()
+    return field['g'][0]
+
+
+def KE_norm_general(X1, X2, ma):  # ma should not be an argument here, but I'm not sure exactly how to generalize the relevant part of linear_optimals.F_from_norm
+    u1 = X1['phi_z']
+    w1 = -1.0j * kx * X1['phi']
+    u2 = X2['phi_z']
+    w2 = -1.0j * kx * X2['phi']
+
+    field = (np.conj(u1)*u2 + np.conj(w1)*w2).evaluate().integrate()
+    return field['g'][0]
+
+
+def ME_norm_general(X1, X2, ma):
+    bx1 = X1['psi_z']
+    bz1 = -1.0j * kx * X1['psi']
+    bx2 = X2['psi_z']
+    bz2 = -1.0j * kx * X2['psi']
+
+    field = ((1.0/ma**2.0)*(np.conj(bx1)*bx2 + np.conj(bz1)*bz2)).evaluate().integrate()
     return field['g'][0]
 
 
@@ -121,30 +139,13 @@ logger.info("done with BCs")
 EP = Eigenproblem(problem, grow_func=lambda x: x.imag, freq_func=lambda x: x.real, reject=reject_spurious)
 pencil = 0
 
-if dense:
-    EP.solve(sparse=False, pencil=pencil)
-else:
-    EP.solve(sparse=True, N=k, pencil=pencil)
-pre_right = EP.solver.pencils[pencil].pre_right  # right-preconditioner for the matrix pencil, call it PR
-pre_right_LU = scipy.sparse.linalg.splu(pre_right.tocsc())  # LU factorization of the right-preconditioner
-if dense:
-    if reject_spurious:
-        eigenvalues = EP.evalues_good
-        eigenvectors = ((EP.solver.eigenvectors.T)[EP.evalues_index]).T  # pretty sure there's a better way to do this
-    else:  # TODO: this way of filtering is probably bad
-        finite_EVs = np.real(EP.solver.eigenvalues) < 10.0  # np.isfinite(EP.solver.eigenvalues)
-        eigenvalues = EP.solver.eigenvalues[finite_EVs]
-        eigenvectors = ((EP.solver.eigenvectors.T)[finite_EVs]).T  # pretty sure there's a better way to do this
-else:
-    eigenvalues = EP.solver.eigenvalues
-    eigenvectors = EP.solver.eigenvectors
-V = pre_right_LU.solve(eigenvectors)  # V satisfies PR @ V = solver.eigenvectors. I think this means V is the eigenvectors WITHOUT pre-conditioning
-Q, R = np.linalg.qr(V)  # Q is an orthonormal (in terms of the 2-norm!) basis in the subspace spanned by the eigenvectors in V, R is the change of basis tsfm
-M_E = EP.compute_mass_matrix(pre_right @ Q, lambda x1, x2: energy_norm_general(x1, x2, MA))  # This is M represented in the basis of the columns of Q
-Fdagger = np.linalg.cholesky(M_E)
-F = Fdagger.conj().T  # this gives ||F @ u||_2 = ||u||_E for u expressed in the (k-dimensional!) basis given by Q
+Gs, eigenvalues, eigenvectors, F, Q, R, pre_right = LOP(EP, ts, {'MA2': MA2}, energy_norm_general, MA, pencil=pencil, dense=dense)
+Finv = np.linalg.inv(F)
+F_KE = F_from_norm(EP, pre_right, Q, KE_norm_general, MA)
+F_KE_inv = np.linalg.inv(F_KE)
+F_ME = F_from_norm(EP, pre_right, Q, ME_norm_general, MA)
+F_ME_inv = np.linalg.inv(F_ME)
 
-# with h5py.File(savedir/"setup_mats.h5", mode="w-") as file:  # was going to make separate h5 files for above matrices vs stuff done at each t below. seems better to have one big h5 file
 with h5py.File(fname, mode="w-") as file:
     setup_mats_grp = file.create_group('setup_mats')
     evalues_data = setup_mats_grp.create_dataset('eigenvalues', data=eigenvalues)
@@ -152,6 +153,8 @@ with h5py.File(fname, mode="w-") as file:
     R_data = setup_mats_grp.create_dataset('R', data=R)
     Q_data = setup_mats_grp.create_dataset('Q', data=Q)
     F_data = setup_mats_grp.create_dataset('F', data=F)
+    F_KE_data = setup_mats_grp.create_dataset('F_KE', data=F_KE)
+    F_ME_data = setup_mats_grp.create_dataset('F_ME', data=F_ME)
     pre_right_data = setup_mats_grp.create_dataset('pre_right', data=pre_right.toarray())
 
     scales_grp = file.create_group('scales')  # in the spirit of "scales" in d2 h5 files, but this is a bad name for this use case
@@ -162,15 +165,20 @@ with h5py.File(fname, mode="w-") as file:
     zs_data = scales_grp.create_dataset('z', data=z)
     print("starting time loop")
 
+    energies_grp = file.create_group('energies')  # maybe I'll put ME or KE or something here, not just Gs?
+    Gs_data = energies_grp.create_dataset('Gs', data=Gs)
+
     for tind, t in enumerate(ts):
         t_grp = file.create_group('ti_{}'.format(tind))
         # K = R @ np.diag(np.exp(-1.0j*EP.solver.eigenvalues * t)) @ np.linalg.inv(R)
         K = R @ np.diag(np.exp(eigenvalues * t)) @ np.linalg.inv(R)
-        U, s, Vh = scipy.linalg.svd(F @ K @ np.linalg.inv(F))
+        propagator = F @ K @ Finv
+        U, s, Vh = scipy.linalg.svd(propagator)
         # s_vals = scipy.linalg.svdvals(F @ K @ np.linalg.inv(F))
         # Gs[tind] = s_vals[0]**2.0
-        K_data = t_grp.create_dataset('K', data=K)
-        U_data = t_grp.create_dataset('U', data=U)
+        # K_data = t_grp.create_dataset('K', data=K)
+        prop_data = t_grp.create_dataset('propagator', data=propagator)
+        # U_data = t_grp.create_dataset('U', data=U)
         s_data = t_grp.create_dataset('s', data=s)
         Vh_data = t_grp.create_dataset('Vh', data=Vh)
 print("done")

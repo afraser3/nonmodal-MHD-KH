@@ -5,6 +5,7 @@ import scipy
 import logging
 logger = logging.getLogger(__name__)
 
+
 def LOP(EP, times, parameters, norm, ma, pencil=0, dense=True, k=100):
 
     Gs = np.zeros_like(times)
@@ -31,4 +32,13 @@ def LOP(EP, times, parameters, norm, ma, pencil=0, dense=True, k=100):
         Gs[tind] = s_vals[0]
     Gs = Gs**2.0
 
-    return Gs, eigenvalues, eigenvectors
+    return Gs, eigenvalues, eigenvectors, F, Q, R, pre_right
+
+
+def F_from_norm(EP, pre_right, Q, norm, ma):  # I want this to be its own function so I can calculate F_KE, F_ME, etc.
+    if EP.evalues is None:
+        raise NotImplementedError("F_from_norm assumes EP is already solved.")
+    M_E = EP.compute_mass_matrix(pre_right @ Q, lambda x1, x2: norm(x1, x2, ma))  # when norm is KE, ma is totally unnecessary. How do I generalize this with **kwargs magic?
+    Fdagger = np.linalg.cholesky(M_E)
+    F = Fdagger.conj().T
+    return F

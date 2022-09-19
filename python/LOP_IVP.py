@@ -14,7 +14,7 @@ Pm = 1.0
 mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
 kx = 0.2
-MA = 0.8
+MA = 0.85
 MA2 = MA**2.0
 k = 100
 dense = True
@@ -34,6 +34,8 @@ with h5py.File(fname, mode='r') as file:
     evec = evec / evec_phase
     F = np.array(file['setup_mats/F'])
     Finv = np.linalg.inv(F)
+    F_KE = np.array(file['setup_mats/F_KE'])
+    F_ME = np.array(file['setup_mats/F_ME'])
     R = np.array(file['setup_mats/R'])
     Q = np.array(file['setup_mats/Q'])
     pre_right = np.array(file['setup_mats/pre_right'])
@@ -44,20 +46,24 @@ with h5py.File(fname, mode='r') as file:
     LOPs = []
     Gs = np.zeros_like(ts_LOP)
     E_test = np.zeros_like(ts_LOP)
+    KE_test = np.zeros_like(ts_LOP)
+    ME_test = np.zeros_like(ts_LOP)
     v1_test = np.array(file['ti_{}/Vh'.format(test_ind)]).conj()[0]
     # for tind, t in enumerate(ts_LOP[1:], 1):
     for tind, t in enumerate(ts_LOP):
-        K = np.array(file['ti_{}/K'.format(tind)])
-        propagator = F @ K @ Finv
+        # K = np.array(file['ti_{}/K'.format(tind)])
+        propagator = np.array(file['ti_{}/propagator'.format(tind)])  # F @ K @ Finv
         E_test[tind] = np.sum(np.abs(propagator @ v1_test) ** 2.0)
-        U = np.array(file['ti_{}/U'.format(tind)])
+        KE_test[tind] = np.sum(np.abs(F_KE @ Finv @ propagator @ v1_test) ** 2.0)
+        ME_test[tind] = np.sum(np.abs(F_ME @ Finv @ propagator @ v1_test) ** 2.0)
+        # U = np.array(file['ti_{}/U'.format(tind)])
         Vh = np.array(file['ti_{}/Vh'.format(tind)])
         s = np.array(file['ti_{}/s'.format(tind)])
         Gs[tind] = s[0]**2.0
         v1 = Vh.conj()[0]  # the optimal perturbation in the F'ed and Q'ed basis
-        v1F = np.linalg.inv(F) @ v1  # change of basis away from the F'ed basis
-        # now I want to say that R is the change-of-basis matrix between the Q and eigenvector bases, and so I should be doing
-        # R^-1, but that doesn't give the right dimensions.
+        v1F = Finv @ v1  # change of basis away from the F'ed basis
+        # now I want to say that R is the change-of-basis matrix between the Q and eigenvector bases, and so I should
+        # be doing R^-1, but that doesn't give the right dimensions.
         # I'm pretty sure that v1F is v1 in the basis of the columns of Q, so I should be able to do Q @ v1F to
         # get the perturbation in terms of Chebyshev expansion coefficients
         LOP = Q @ v1F
@@ -119,28 +125,39 @@ for i, var in enumerate(probvars):
 
 
 def energy_norm(X1):
-    # X2 = X1
     u1 = X1['phi_z']
     w1 = -1.0j * kx * X1['phi']
     bx1 = X1['psi_z']
     bz1 = -1.0j * kx * X1['psi']
-    # u2 = X2['phi_z']
-    # w2 = -1.0j * kx * X2['phi']
-    # bx2 = X2['psi_z']
-    # bz2 = -1.0j * kx * X2['psi']
-
-    # field = (np.conj(u1)*u2 + np.conj(w1)*w2 + (1.0/MA2)*(np.conj(bx1)*bx2 + np.conj(bz1)*bz2)).evaluate().integrate()
     field = (np.abs(u1) ** 2.0 + np.abs(w1) ** 2.0 + (1.0 / MA2) * (
                 np.abs(bx1) ** 2.0 + np.abs(bz1) ** 2.0)).evaluate().integrate()
+    return field['g'][0]
+
+
+def kinetic_energy(X1):
+    u1 = X1['phi_z']
+    w1 = -1.0j * kx * X1['phi']
+    field = (np.abs(u1) ** 2.0 + np.abs(w1) ** 2.0).evaluate().integrate()
+    return field['g'][0]
+
+
+def magnetic_energy(X1):
+    bx1 = X1['psi_z']
+    bz1 = -1.0j * kx * X1['psi']
+    field = ((1.0 / MA2) * (np.abs(bx1) ** 2.0 + np.abs(bz1) ** 2.0)).evaluate().integrate()
     return field['g'][0]
 
 
 dt = 1e-2
 ts = np.arange(0.0, ts_LOP[-1] + dt, dt)
 energies = np.zeros_like(ts)
+KEs = np.zeros_like(ts)
+MEs = np.zeros_like(ts)
 ti = 0
 while solver.ok:
     energies[ti] = energy_norm(solver.state)
+    KEs[ti] = kinetic_energy(solver.state)
+    MEs[ti] = magnetic_energy(solver.state)
     solver.step(dt)
     if solver.iteration % 100 == 0:
         log_string = 'Iteration: {:5d}, '.format(solver.iteration)
@@ -151,12 +168,17 @@ while solver.ok:
 
 plt.semilogy(ts_LOP, Gs, c='k', label=r'$G(t_0)$')
 plt.semilogy(ts_LOP[test_ind], Gs[test_ind], 'x', c='k')
-plt.semilogy(ts, energies, label=r'$E(t, t_0=10)$ via IVP')
+plt.semilogy(ts, energies, label=r'$E(t, t_0={:4.2f})$ via IVP'.format(ts_LOP[test_ind]))
 plt.semilogy(ts_LOP, E_test, '--', label=r'$E$ via propagator')
+plt.semilogy(ts, KEs, label=r'$KE(t, t_0={:4.2f})$'.format(ts_LOP[test_ind]))
+plt.semilogy(ts_LOP, KE_test, '--', label=r'$KE$ via propagator')
+plt.semilogy(ts, MEs, label=r'$ME(t, t_0={:4.2f})$'.format(ts_LOP[test_ind]))
+plt.semilogy(ts_LOP, ME_test, '--', label=r'$ME$ via propagator')
 plt.xlabel(r'$t, t_0$')
 plt.ylabel(r'$G, E$')
 plt.xlim((ts_LOP[0], ts_LOP[-1]))
 plt.legend()
 plt.tight_layout()
-# plt.savefig('LOP_IVP_test.pdf')
-plt.show()
+plt.yscale('linear')
+plt.savefig('LOP_IVP_test3.pdf')
+# plt.show()

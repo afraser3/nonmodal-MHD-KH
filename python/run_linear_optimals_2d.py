@@ -62,7 +62,6 @@ if not inviscid:
     probvars.append('uzz')
 else:  # really haven't tested this! May have neglected to add the right substitutions/equations
     probvars.append('zeta')
-# problem = de.EVP(domain, variables=probvars, eigenvalue='omega')
 problem = de.EVP(domain, variables=probvars, eigenvalue='gamma')
 z = domain.grid(0)
 a = 1.0
@@ -75,7 +74,7 @@ nccDU = domain.new_field(name='DU')
 nccDU['g'] = 1 / (a * np.cosh(z / a) ** 2)
 problem.parameters['DU'] = nccDU
 
-problem.parameters['MA2'] = MA2 ** 2.0  # Alfven Mach number squared
+problem.parameters['MA2'] = MA2  # Alfven Mach number squared
 problem.parameters['kx'] = kx
 problem.parameters['Lz'] = Lz
 if not inviscid:
@@ -83,7 +82,6 @@ if not inviscid:
 if not ideal:
     problem.parameters['Rm'] = mReynolds
 problem.substitutions['dx(A)'] = "1.0j*kx*A"
-# problem.substitutions['dt(A)'] = "-1.0j*omega*A"
 problem.substitutions['dt(A)'] = "gamma*A"
 problem.substitutions['u'] = 'phi_z'
 problem.substitutions['w'] = "-dx(phi)"
@@ -122,7 +120,7 @@ EP = Eigenproblem(problem, grow_func=lambda x: x.real, freq_func=lambda x: x.ima
 pencil = 0
 
 for ma_ind, ma in enumerate(MAs):
-    Gs, eigenvalues, eigenvectors = LOP(EP, ts, {'MA2': ma ** 2.0}, energy_norm_general, ma, pencil=pencil, dense=dense)
+    Gs, eigenvalues, eigenvectors, F, Q, R, pre_right = LOP(EP, ts, {'MA2': ma ** 2.0}, energy_norm_general, ma, pencil=pencil, dense=dense)
 
     plt.semilogy(ts, Gs, c='C{}'.format(ma_ind), label=r'$M_A = {:4.2f}$'.format(ma))
     plt.semilogy(ts, Gs[0]*np.exp(ts*2.0*np.max(np.real(eigenvalues)))*Gs[-1]/np.exp(ts[-1]*2.0*np.max(np.real(eigenvalues))), '--', c='C{}'.format(ma_ind))
