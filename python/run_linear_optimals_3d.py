@@ -7,20 +7,22 @@ import scipy
 from pathlib import Path
 from matplotlib import pyplot as plt
 import logging
+plt.style.use('prl')
+
 logger = logging.getLogger(__name__)
 
-Nz = 128 # 512
-Reynolds = 500.0
+Nz = 256 # 512
+Reynolds = 50.
 Pm = 1.0
 mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
 kx = 0.2
-ky = 0 # test 
+ky = 1e-8 # test 
 # MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
 MA = 1.0  # For this value, the system is stable.
-MAs = np.array([0.5, 0.75])  
+MAs = np.array([0.5, 0.75])
 MA2 = MA**2.0
-k = 100
+k = 10
 dense = True
 reject_spurious = True
 plotdir = Path("LOPs_3D/Re{}".format(Reynolds))
@@ -116,11 +118,11 @@ problem.add_bc("left(dz(By)) = 0")
 
 logger.info("done with BCs")
 
-EP = Eigenproblem(problem, grow_func=lambda x: x.imag, freq_func=lambda x: x.real, reject=reject_spurious)  # TBD whether reject=False is the right move
+EP = Eigenproblem(problem, grow_func=lambda x: x.real, freq_func=lambda x: x.imag, reject=reject_spurious)  # TBD whether reject=False is the right move
 pencil = 0
 
 for ma_ind, ma in enumerate(MAs):
-    Gs, eigenvalues, eigenvectors = LOP(EP, ts, {'MA2': ma ** 2.0}, energy_norm_general, ma, pencil=pencil, dense=dense)
+    Gs, eigenvalues, eigenvectors = LOP(EP, ts, {'MA2': ma ** 2.0}, energy_norm_general, ma, pencil=pencil, dense=dense, k=k)
 
     plt.semilogy(ts, Gs, c='C{}'.format(ma_ind), label=r'$M_A = {:4.2f}$'.format(ma))
     plt.semilogy(ts, Gs[0]*np.exp(ts*2.0*np.max(np.real(eigenvalues)))*Gs[-1]/np.exp(ts[-1]*2.0*np.max(np.real(eigenvalues))), '--', c='C{}'.format(ma_ind))

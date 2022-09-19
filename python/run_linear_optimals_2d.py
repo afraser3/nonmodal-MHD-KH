@@ -8,6 +8,7 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 import logging
 logger = logging.getLogger(__name__)
+plt.style.use('prl')
 
 Nz = 256 #512
 Reynolds = 50.0
@@ -117,7 +118,7 @@ problem.add_bc("left(Bz) = 0")
 
 logger.info("done with BCs")
 
-EP = Eigenproblem(problem, grow_func=lambda x: x.imag, freq_func=lambda x: x.real, reject=reject_spurious)  # TBD whether reject=False is the right move
+EP = Eigenproblem(problem, grow_func=lambda x: x.real, freq_func=lambda x: x.imag, reject=reject_spurious)  # TBD whether reject=False is the right move
 pencil = 0
 
 for ma_ind, ma in enumerate(MAs):

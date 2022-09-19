@@ -5,7 +5,7 @@ import scipy
 import logging
 logger = logging.getLogger(__name__)
 
-def LOP(EP, times, parameters, norm, ma, pencil=0, dense=True):
+def LOP(EP, times, parameters, norm, ma, pencil=0, dense=True, k=100):
 
     Gs = np.zeros_like(times)
     if dense:
@@ -14,11 +14,11 @@ def LOP(EP, times, parameters, norm, ma, pencil=0, dense=True):
         EP.solve(sparse=True, N=k, pencil=pencil, parameters=parameters)
     pre_right = EP.solver.pencils[pencil].pre_right  # right-preconditioner for the matrix pencil, call it PR
     pre_right_LU = scipy.sparse.linalg.splu(pre_right.tocsc())  # LU factorization of the right-preconditioner
+
+    eigenvalues = EP.evalues
     if dense:
-        eigenvalues = EP.evalues_good
         eigenvectors = ((EP.solver.eigenvectors.T)[EP.evalues_index]).T  # pretty sure there's a better way to do this
     else:
-        eigenvalues = EP.solver.eigenvalues
         eigenvectors = EP.solver.eigenvectors
     V = pre_right_LU.solve(eigenvectors)  # V satisfies PR @ V = solver.eigenvectors. I think this means V is the eigenvectors WITHOUT pre-conditioning
     Q, R = np.linalg.qr(V)  # Q is an orthonormal (in terms of the 2-norm!) basis in the subspace spanned by the eigenvectors in V, R is the change of basis tsfm
