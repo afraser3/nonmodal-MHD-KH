@@ -9,8 +9,8 @@ import h5py
 import logging
 logger = logging.getLogger(__name__)
 
-Nz = 128  # 128 is definitely not enough for these parameters
-Reynolds = 250.0
+Nz = 256  # 128 is definitely not enough for these parameters
+Reynolds = 50.0
 Pm = 1.0
 mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
