@@ -1,4 +1,4 @@
-from linear_optimals import LOP, F_from_norm
+from linear_optimals import LOP_setup_mats, LOP, F_from_norm
 
 from eigentools import Eigenproblem
 from dedalus import public as de
@@ -9,7 +9,7 @@ import h5py
 import logging
 logger = logging.getLogger(__name__)
 
-Nz = 256
+Nz = 128  # 128 is definitely not enough for these parameters
 Reynolds = 250.0
 Pm = 1.0
 mReynolds = Pm * Reynolds
@@ -139,7 +139,8 @@ logger.info("done with BCs")
 EP = Eigenproblem(problem, grow_func=lambda x: x.imag, freq_func=lambda x: x.real, reject=reject_spurious)
 pencil = 0
 
-Gs, eigenvalues, eigenvectors, F, Q, R, pre_right = LOP(EP, ts, {'MA2': MA2}, energy_norm_general, MA, pencil=pencil, dense=dense)
+eigenvalues, eigenvectors, F, Q, R, pre_right = LOP_setup_mats(EP, {'MA2': MA2}, energy_norm_general, MA, pencil=pencil, dense=dense)
+Gs, eigenvalues, eigenvectors = LOP(EP, ts, {'MA2': MA2}, energy_norm_general, MA, pencil=pencil, dense=dense)
 Finv = np.linalg.inv(F)
 F_KE = F_from_norm(EP, pre_right, Q, KE_norm_general, MA)
 F_KE_inv = np.linalg.inv(F_KE)

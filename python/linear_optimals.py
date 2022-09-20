@@ -6,9 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def LOP(EP, times, parameters, norm, ma, pencil=0, dense=True, k=100):
-
-    Gs = np.zeros_like(times)
+def LOP_setup_mats(EP, parameters, norm, ma, pencil=0, dense=True, k=100):
     if dense:
         EP.solve(sparse=False, pencil=pencil, parameters=parameters)
     else:
@@ -26,13 +24,21 @@ def LOP(EP, times, parameters, norm, ma, pencil=0, dense=True, k=100):
     M_E = EP.compute_mass_matrix(pre_right @ Q, lambda x1, x2: norm(x1, x2, ma))  # This is M represented in the basis of the columns of Q
     Fdagger = np.linalg.cholesky(M_E)
     F = Fdagger.conj().T  # this gives ||F @ u||_2 = ||u||_E for u expressed in the (k-dimensional!) basis given by Q
+
+    return eigenvalues, eigenvectors, F, Q, R, pre_right
+
+
+def LOP(EP, times, parameters, norm, ma, pencil=0, dense=True, k=100):
+
+    Gs = np.zeros_like(times)
+    eigenvalues, eigenvectors, F, Q, R, pre_right = LOP_setup_mats(EP, parameters, norm, ma, pencil=pencil, dense=dense, k=k)
     for tind, t in enumerate(times):
         K = R @ np.diag(np.exp(eigenvalues * t)) @ np.linalg.inv(R)
         s_vals = scipy.linalg.svdvals(F @ K @ np.linalg.inv(F))
         Gs[tind] = s_vals[0]
     Gs = Gs**2.0
 
-    return Gs, eigenvalues, eigenvectors, F, Q, R, pre_right
+    return Gs, eigenvalues, eigenvectors
 
 
 def F_from_norm(EP, pre_right, Q, norm, ma):  # I want this to be its own function so I can calculate F_KE, F_ME, etc.

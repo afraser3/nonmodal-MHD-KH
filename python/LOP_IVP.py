@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 test_ind = 20
 
-Nz = 256
+Nz = 128
 Reynolds = 250.0
 Pm = 1.0
 mReynolds = Pm * Reynolds
@@ -180,5 +180,5 @@ plt.xlim((ts_LOP[0], ts_LOP[-1]))
 plt.legend()
 plt.tight_layout()
 plt.yscale('linear')
-plt.savefig('LOP_IVP_test3.pdf')
+plt.savefig('LOP_IVP_test4.pdf')
 # plt.show()
