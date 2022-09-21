@@ -16,7 +16,7 @@ Pm = 1.0
 mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
 kx = 0.2
-ky = 0.1
+ky = 1e-8  # worked for ky=0.1, but 0.2 gives no good eigenvalues, strangely. At Nz=1024 it gave 1 good eigenvalue.
 # MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
 MA = 1.0  # For this value, the system is stable.
 MAs = np.array([0.5, 0.75, 1.0])

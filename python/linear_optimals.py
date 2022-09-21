@@ -11,6 +11,8 @@ def LOP_setup_mats(EP, parameters, norm, ma, pencil=0, dense=True, k=100):
         EP.solve(sparse=False, pencil=pencil, parameters=parameters)
     else:
         EP.solve(sparse=True, N=k, pencil=pencil, parameters=parameters)
+    if len(EP.evalues_good) == 0:
+        raise ValueError("No good eigenvalues for these parameters")
     pre_right = EP.solver.pencils[pencil].pre_right  # right-preconditioner for the matrix pencil, call it PR
     pre_right_LU = scipy.sparse.linalg.splu(pre_right.tocsc())  # LU factorization of the right-preconditioner
 
