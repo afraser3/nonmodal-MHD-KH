@@ -8,9 +8,9 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 import logging
 logger = logging.getLogger(__name__)
-plt.style.use('prl')
+# plt.style.use('prl')
 
-Nz = 256 #512
+Nz = 256
 Reynolds = 50.0
 Pm = 1.0
 mReynolds = Pm * Reynolds
@@ -18,18 +18,18 @@ Lz = 10.0*np.pi
 kx = 0.2
 # MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
 MA = 1.0  # For this value, the system is stable.
-MAs = np.array([0.5, 0.75])  
+MAs = np.array([0.5, 0.75, 1.0])
 MA2 = MA**2.0
 k = 100
-dense = True
+dense = False
 reject_spurious = True
 plotdir = Path("LOPs/Re{}".format(Reynolds))
 if not plotdir.exists():
     plotdir.mkdir(parents=True)
 if dense:
-    fname = 'LOPs/Re{}/LOP_MA_scan_Nz{}_dense_Pm{}.pdf'.format(Reynolds, Nz, Pm)
+    fname = 'LOPs/Re{}/LOP_MA_scan_kx{}_Nz{}_dense_Pm{}_2d.pdf'.format(Reynolds, kx, Nz, Pm)
 else:
-    fname = 'LOPs/Re{}/LOP_MA_scan_Nz{}_k{}_Pm{}.pdf'.format(Reynolds, Nz, k, Pm)
+    fname = 'LOPs/Re{}/LOP_MA_scan_kx{}_Nz{}_k{}_Pm{}_2d.pdf'.format(Reynolds, kx, Nz, k, Pm)
 ts = np.linspace(0.0, 80.0, 200)
 
 

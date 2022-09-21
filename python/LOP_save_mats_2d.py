@@ -9,27 +9,28 @@ import h5py
 import logging
 logger = logging.getLogger(__name__)
 
-Nz = 512  # 128 is definitely not enough for these parameters
+Nz = 256  # 128 is definitely not enough for these parameters
 Reynolds = 50.0
 Pm = 1.0
 mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
 kx = 0.2
 # MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
-MA = 0.85
+MA = 0.5
 MA2 = MA**2.0
 k = 100
-dense = True
+dense = False
 reject_spurious = True
 if dense:  # TODO: the name should really include kx
-    savedir = Path("LOPs/Re{}/MA{}/Pm{}".format(Reynolds, MA, Pm))
-    fname = "LOPs/Re{}/MA{}/Pm{}/Nz{}_dense.h5".format(Reynolds, MA, Pm, Nz)
+    savedir = Path("LOPs/Re{}/MA{}/Pm{}/2d".format(Reynolds, MA, Pm))
+    fname = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_dense.h5".format(Reynolds, MA, Pm, Nz)
 else:
-    savedir = Path("LOPs/Re{}/MA{}/Pm{}".format(Reynolds, MA, Pm))
-    fname = "LOPs/Re{}/MA{}/Pm{}/Nz{}_k{}.h5".format(Reynolds, MA, Pm, Nz, k)
+    savedir = Path("LOPs/Re{}/MA{}/Pm{}/2d".format(Reynolds, MA, Pm))
+    fname = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_k{}.h5".format(Reynolds, MA, Pm, Nz, k)
 if not savedir.exists():
     savedir.mkdir(parents=True)
-ts = np.linspace(0.0, 50.0, 51)
+# ts = np.linspace(0.0, 50.0, 51)
+ts = np.linspace(0.0, 80.0, 200)
 
 
 def energy_norm_general(X1, X2, ma):

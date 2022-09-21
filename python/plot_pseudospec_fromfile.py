@@ -22,14 +22,18 @@ k = 800
 # filepath = 'saved_spectra/Pm{}/Re{}/MA{}/kx{}/'.format(Pm, Reynolds, MA, kx)
 # filename = 'pseudospec_Nz{}_Lz{}pi_k{}.h5'.format(Nz, Lz/np.pi, k)
 plotname = 'pseudospec_Nz{}_Lz{}pi_k{}.pdf'.format(Nz, Lz/np.pi, k)
-filepath = 'runs/run_A/'
-filename = 'pseudospec_039.h5'
+filepath = 'runs/run_AA/'
+filename = 'pseudospec_0063.h5'
 
 with h5py.File(filepath+filename, 'r') as file:
     evalues = np.array(file['evalues/evalues'])
+    evalues_low = np.array(file['evalues/evalues_low'])
+    evalues_high = np.array(file['evalues/evalues_high'])
     ps_real = np.array(file['pseudospec/ps_real'])
     ps_imag = np.array(file['pseudospec/ps_imag'])
     pseudospectrum = np.array(file['pseudospec/pseudospectrum'])
+plt.plot(np.real(evalues_low), np.imag(evalues_low), 'x')
+plt.plot(np.real(evalues_high), np.imag(evalues_high), '+')
 plt.plot(np.real(evalues), np.imag(evalues), '.', c='k')
 # plt.legend()
 plt.contour(ps_real, ps_imag, np.log10(pseudospectrum), levels=np.arange(-8, 0))

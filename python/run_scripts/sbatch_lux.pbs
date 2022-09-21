@@ -4,10 +4,10 @@
 #SBATCH --account=cpuq
 #SBATCH --output="EIGENTOOLS.o%j" # Name of stdout output file
 #SBATCH --error="EIGENTOOLS.e%j" # Name of stderr error file
-#SBATCH --nodes=1 # Total number of nodes
-#SBATCH --ntasks=40
+#SBATCH --nodes=2 # Total number of nodes
+#SBATCH --ntasks=80
 #SBATCH --ntasks-per-node=40 # Total number of mpi tasks per node
-#SBATCH -t 01:00:00 # Run time (hh:mm:ss)
+#SBATCH -t 24:00:00 # Run time (hh:mm:ss)
 module load python/3.8.6
 export OMP_NUM_THREADS=1
-mpiexec -n 40 python3 MHD_OrrSomm_pseudospec.py config_files/run_G.cfg
+mpiexec -n 80 python3 MHD_OrrSomm_pseudospec.py config_files/run_AS.cfg

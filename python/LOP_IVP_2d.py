@@ -8,25 +8,25 @@ logger = logging.getLogger(__name__)
 
 test_ind = 20
 
-Nz = 512
+Nz = 256
 Reynolds = 50.0
 Pm = 1.0
 mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
 kx = 0.2
-MA = 0.85
+MA = 0.5
 MA2 = MA**2.0
 k = 100
-dense = True
+dense = False
 reject_spurious = True
 if dense:
-    fname = "LOPs/Re{}/MA{}/Pm{}/Nz{}_dense.h5".format(Reynolds, MA, Pm, Nz)
-    plot_name = "LOPs/Re{}/MA{}/Pm{}/Nz{}_dense.pdf".format(Reynolds, MA, Pm, Nz)
-    out_dir = "LOPs/Re{}/MA{}/Pm{}/Nz{}_dense/".format(Reynolds, MA, Pm, Nz)
+    fname = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_dense.h5".format(Reynolds, MA, Pm, Nz)
+    plot_name = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_dense.pdf".format(Reynolds, MA, Pm, Nz)
+    out_dir = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_dense/".format(Reynolds, MA, Pm, Nz)
 else:
-    fname = "LOPs/Re{}/MA{}/Pm{}/Nz{}_k{}.h5".format(Reynolds, MA, Pm, Nz, k)
-    plot_name = "LOPs/Re{}/MA{}/Pm{}/Nz{}_k{}.pdf".format(Reynolds, MA, Pm, Nz, k)
-    out_dir = "LOPs/Re{}/MA{}/Pm{}/Nz{}_k{}/".format(Reynolds, MA, Pm, Nz, k)
+    fname = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_k{}.h5".format(Reynolds, MA, Pm, Nz, k)
+    plot_name = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_k{}.pdf".format(Reynolds, MA, Pm, Nz, k)
+    out_dir = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_k{}/".format(Reynolds, MA, Pm, Nz, k)
 
 with h5py.File(fname, mode='r') as file:
     eigenvalues = np.array(file['setup_mats/eigenvalues'])

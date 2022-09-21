@@ -7,31 +7,30 @@ import scipy
 from pathlib import Path
 from matplotlib import pyplot as plt
 import logging
-plt.style.use('prl')
-
 logger = logging.getLogger(__name__)
+# plt.style.use('prl')
 
-Nz = 256 # 512
+Nz = 256
 Reynolds = 50.
 Pm = 1.0
 mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
 kx = 0.2
-ky = 1e-8 # test 
+ky = 0.1
 # MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
 MA = 1.0  # For this value, the system is stable.
-MAs = np.array([0.5, 0.75])
+MAs = np.array([0.5, 0.75, 1.0])
 MA2 = MA**2.0
-k = 10
-dense = True
+k = 100
+dense = False
 reject_spurious = True
 plotdir = Path("LOPs_3D/Re{}".format(Reynolds))
 if not plotdir.exists():
     plotdir.mkdir(parents=True)
 if dense:
-    fname = 'LOPs_3D/Re{}/LOP_MA_scan_Nz{}_dense_Pm{}.pdf'.format(Reynolds, Nz, Pm)
+    fname = 'LOPs_3D/Re{}/LOP_MA_scan_kx{}_ky{}_Nz{}_dense_Pm{}_3d.pdf'.format(Reynolds, kx, ky, Nz, Pm)
 else:
-    fname = 'LOPs_3D/Re{}/LOP_MA_scan_Nz{}_k{}_Pm{}.pdf'.format(Reynolds, Nz, k, Pm)
+    fname = 'LOPs_3D/Re{}/LOP_MA_scan_kx{}_ky{}_Nz{}_k{}_Pm{}_3d.pdf'.format(Reynolds, kx, ky, Nz, k, Pm)
 ts = np.linspace(0.0, 80.0, 200)
 
 
@@ -69,7 +68,7 @@ nccDU = domain.new_field(name='DU')
 nccDU['g'] = 1 / (a * np.cosh(z / a) ** 2)
 problem.parameters['DU'] = nccDU
 
-problem.parameters['MA2'] = MA2 ** 2.0  # Alfven Mach number squared
+problem.parameters['MA2'] = MA2  # Alfven Mach number squared
 problem.parameters['kx'] = kx
 problem.parameters['ky'] = ky
 problem.parameters['Re'] = Reynolds
