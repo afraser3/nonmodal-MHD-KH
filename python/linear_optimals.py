@@ -14,11 +14,13 @@ def LOP_setup_mats(EP, parameters, norm, ma, pencil=0, dense=True, k=100):
     pre_right = EP.solver.pencils[pencil].pre_right  # right-preconditioner for the matrix pencil, call it PR
     pre_right_LU = scipy.sparse.linalg.splu(pre_right.tocsc())  # LU factorization of the right-preconditioner
 
-    eigenvalues = EP.evalues
-    if dense:
-        eigenvectors = ((EP.solver.eigenvectors.T)[EP.evalues_index]).T  # pretty sure there's a better way to do this
-    else:
-        eigenvectors = EP.solver.eigenvectors
+    # eigenvalues = EP.evalues
+    # if dense:
+        # eigenvectors = ((EP.solver.eigenvectors.T)[EP.evalues_index]).T  # pretty sure there's a better way to do this
+    # else:
+        # eigenvectors = EP.solver.eigenvectors
+    eigenvalues = EP.evalues_good
+    eigenvectors = ((EP.solver.eigenvectors.T)[EP.evalues_index]).T
     V = pre_right_LU.solve(eigenvectors)  # V satisfies PR @ V = solver.eigenvectors. I think this means V is the eigenvectors WITHOUT pre-conditioning
     Q, R = np.linalg.qr(V)  # Q is an orthonormal (in terms of the 2-norm!) basis in the subspace spanned by the eigenvectors in V, R is the change of basis tsfm
     M_E = EP.compute_mass_matrix(pre_right @ Q, lambda x1, x2: norm(x1, x2, ma))  # This is M represented in the basis of the columns of Q
