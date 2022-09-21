@@ -137,7 +137,7 @@ problem.add_bc("left(Bz) = 0")
 
 logger.info("done with BCs")
 
-EP = Eigenproblem(problem, grow_func=lambda x: x.imag, freq_func=lambda x: x.real, reject=reject_spurious)
+EP = Eigenproblem(problem, grow_func=lambda x: x.real, freq_func=lambda x: x.imag, reject=reject_spurious)
 pencil = 0
 
 eigenvalues, eigenvectors, F, Q, R, pre_right = LOP_setup_mats(EP, {'MA2': MA2}, energy_norm_general, MA, pencil=pencil, dense=dense)
