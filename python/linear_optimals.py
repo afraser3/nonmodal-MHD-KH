@@ -32,7 +32,7 @@ def LOP_setup_mats(EP, parameters, norm, pencil=0, dense=True, k=100):
     return eigenvalues, eigenvectors, F, Q, R, pre_right
 
 
-def LOP(EP, times, parameters, norm, pencil=0, dense=True, k=100):
+def LOP(EP, times, parameters, norm, pencil=0, dense=True, k=100, return_setup_mats=False):
 
     Gs = np.zeros_like(times)
     eigenvalues, eigenvectors, F, Q, R, pre_right = LOP_setup_mats(EP, parameters, norm, pencil=pencil, dense=dense, k=k)
@@ -42,7 +42,10 @@ def LOP(EP, times, parameters, norm, pencil=0, dense=True, k=100):
         Gs[tind] = s_vals[0]
     Gs = Gs**2.0
 
-    return Gs, eigenvalues, eigenvectors
+    if return_setup_mats:
+        return Gs, eigenvalues, eigenvectors, F, Q, R, pre_right
+    else:
+        return Gs, eigenvalues, eigenvectors
 
 
 def F_from_norm(EP, pre_right, Q, norm, ma):  # I want this to be its own function so I can calculate F_KE, F_ME, etc.
