@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def LOP_setup_mats(EP, parameters, norm, ma, pencil=0, dense=True, k=100):
+def LOP_setup_mats(EP, parameters, norm, pencil=0, dense=True, k=100):
     if dense:
         EP.solve(sparse=False, pencil=pencil, parameters=parameters)
     else:
@@ -25,17 +25,17 @@ def LOP_setup_mats(EP, parameters, norm, ma, pencil=0, dense=True, k=100):
     eigenvectors = ((EP.solver.eigenvectors.T)[EP.evalues_index]).T
     V = pre_right_LU.solve(eigenvectors)  # V satisfies PR @ V = solver.eigenvectors. I think this means V is the eigenvectors WITHOUT pre-conditioning
     Q, R = np.linalg.qr(V)  # Q is an orthonormal (in terms of the 2-norm!) basis in the subspace spanned by the eigenvectors in V, R is the change of basis tsfm
-    M_E = EP.compute_mass_matrix(pre_right @ Q, lambda x1, x2: norm(x1, x2, ma))  # This is M represented in the basis of the columns of Q
+    M_E = EP.compute_mass_matrix(pre_right @ Q, norm)  # This is M represented in the basis of the columns of Q
     Fdagger = np.linalg.cholesky(M_E)
     F = Fdagger.conj().T  # this gives ||F @ u||_2 = ||u||_E for u expressed in the (k-dimensional!) basis given by Q
 
     return eigenvalues, eigenvectors, F, Q, R, pre_right
 
 
-def LOP(EP, times, parameters, norm, ma, pencil=0, dense=True, k=100):
+def LOP(EP, times, parameters, norm, pencil=0, dense=True, k=100):
 
     Gs = np.zeros_like(times)
-    eigenvalues, eigenvectors, F, Q, R, pre_right = LOP_setup_mats(EP, parameters, norm, ma, pencil=pencil, dense=dense, k=k)
+    eigenvalues, eigenvectors, F, Q, R, pre_right = LOP_setup_mats(EP, parameters, norm, pencil=pencil, dense=dense, k=k)
     for tind, t in enumerate(times):
         K = R @ np.diag(np.exp(eigenvalues * t)) @ np.linalg.inv(R)
         s_vals = scipy.linalg.svdvals(F @ K @ np.linalg.inv(F))
