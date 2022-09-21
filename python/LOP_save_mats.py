@@ -9,7 +9,7 @@ import h5py
 import logging
 logger = logging.getLogger(__name__)
 
-Nz = 256  # 128 is definitely not enough for these parameters
+Nz = 512  # 128 is definitely not enough for these parameters
 Reynolds = 50.0
 Pm = 1.0
 mReynolds = Pm * Reynolds
@@ -142,10 +142,10 @@ pencil = 0
 eigenvalues, eigenvectors, F, Q, R, pre_right = LOP_setup_mats(EP, {'MA2': MA2}, energy_norm_general, MA, pencil=pencil, dense=dense)
 Gs, eigenvalues, eigenvectors = LOP(EP, ts, {'MA2': MA2}, energy_norm_general, MA, pencil=pencil, dense=dense)
 Finv = np.linalg.inv(F)
-F_KE = F_from_norm(EP, pre_right, Q, KE_norm_general, MA)
-F_KE_inv = np.linalg.inv(F_KE)
-F_ME = F_from_norm(EP, pre_right, Q, ME_norm_general, MA)
-F_ME_inv = np.linalg.inv(F_ME)
+# F_KE = F_from_norm(EP, pre_right, Q, KE_norm_general, MA)
+# F_KE_inv = np.linalg.inv(F_KE)
+# F_ME = F_from_norm(EP, pre_right, Q, ME_norm_general, MA)
+# F_ME_inv = np.linalg.inv(F_ME)
 
 with h5py.File(fname, mode="w-") as file:
     setup_mats_grp = file.create_group('setup_mats')
@@ -154,8 +154,8 @@ with h5py.File(fname, mode="w-") as file:
     R_data = setup_mats_grp.create_dataset('R', data=R)
     Q_data = setup_mats_grp.create_dataset('Q', data=Q)
     F_data = setup_mats_grp.create_dataset('F', data=F)
-    F_KE_data = setup_mats_grp.create_dataset('F_KE', data=F_KE)
-    F_ME_data = setup_mats_grp.create_dataset('F_ME', data=F_ME)
+    # F_KE_data = setup_mats_grp.create_dataset('F_KE', data=F_KE)
+    # F_ME_data = setup_mats_grp.create_dataset('F_ME', data=F_ME)
     pre_right_data = setup_mats_grp.create_dataset('pre_right', data=pre_right.toarray())
 
     scales_grp = file.create_group('scales')  # in the spirit of "scales" in d2 h5 files, but this is a bad name for this use case
