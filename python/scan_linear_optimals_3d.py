@@ -183,7 +183,11 @@ for kx_ind, kx in enumerate(kx_local):
         kydir = kxdirs_local[kx_ind] / 'kyi_{:04d}'.format(ky_ind)
         if not kydir.exists():
             kydir.mkdir(parents=True)
-        Gs, eigenvalues, eigenvectors, F, Q, R, pre_right = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_setup_mats=True)
+        try:
+            Gs, eigenvalues, eigenvectors, F, Q, R, pre_right = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_setup_mats=True)
+        except ValueError:
+            logger.warning("skipping (kx, ky) = ({}, {}) because no good eigenvalues were found".format(kx, ky))
+            continue  # this means that no .h5 or .png files will be created for this ky, and the code will continue on to the next ky
         # Gs_local[kx_ind, ky_ind] = Gs
         with h5py.File(str(kydir / "gains_mats.h5"), mode='w-') as file:
             setup_mats_grp = file.create_group('setup_mats')
