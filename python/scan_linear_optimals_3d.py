@@ -28,6 +28,11 @@ logger.info("Running with config file {}".format(str(config_file)))
 # Parse settings from .cfg file and save to variables
 runconfig = ConfigParser()
 runconfig.read(str(config_file))
+# data dir to save to: if "LOPs_3D/config_files/run1.cfg" is input, then "LOPs_3D/run1/" becomes the output directory
+basedir = Path("LOPs_3D") / config_file.stem
+if CW.rank == 0:  # only do this for the 0th MPI process
+    if not basedir.exists():
+        basedir.mkdir(parents=True)
 
 # Parameters
 params = runconfig['parameters']
@@ -64,32 +69,24 @@ make_plots = params.getboolean('make_plots')
 
 ky_global = np.linspace(ky_start, ky_stop, ky_num, endpoint=ky_endpoint)  # the full set of kys to scan over
 kx_global = np.linspace(kx_start, kx_stop, kx_num, endpoint=kx_endpoint)  # the full set of kxs to scan over
-kx_local = kx_global[CW.rank::CW.size]  # the kxs that this processor will scan over
-
-# in order to do this properly I need to ask Jeff to explain to me L254-259 in mri_prefers_3d/python/mri.py
-# Gs_local = np.zeros_like((len(kx_local), len(ky_global), len(ts)), dtype=np.float64)
-# Gs_global = np.zeros_like((len(kx_global), len(ky_global), len(ts)), dtype=np.float64)
+kxdirs_global = [basedir / 'kxi_{:04d}/'.format(kx_i) for kx_i, kx in enumerate(kx_global)]
+if CW.rank == 0:
+    for kxdir in kxdirs_global:
+        if not kxdir.exists():
+            kxdir.mkdir(parents=True)
 
 kx0 = kx_global[0]  # just a placeholder MA for setting Dedalus EVP up
 ky0 = ky_global[0]
 if CW.rank == 0:
     logger.info('Scanning over these kxs: {}'.format(kx_global))
-logger.debug('This MPI process will scan over these kxs: {}'.format(kx_local))
+    logger.info('And scanning over these kys: {}'.format(ky_global))
 
-# data dir to save to: if "LOPs_3D/config_files/run1.cfg" is input, then "LOPs_3D/run1/" becomes the output directory
-basedir = Path("LOPs_3D") / config_file.stem
-# filenames that this MPI process will save to
-# filenames_global = [basedir / 'setup_mats_{:04d}.h5'.format(ma_i) for ma_i, ma in enumerate(MA_global)]
-kxdirs_global = [basedir / 'kxi_{:04d}/'.format(kx_i) for kx_i, kx in enumerate(kx_global)]
-kxdirs_local = kxdirs_global[CW.rank::CW.size]
+# kx_local = kx_global[CW.rank::CW.size]  # the kxs that this processor will scan over
+# logger.debug('This MPI process will scan over these kxs: {}'.format(kx_local))
 
-if CW.rank == 0:  # only do this for the 0th MPI process
-    if not basedir.exists():
-        basedir.mkdir(parents=True)
-
-for kxdir in kxdirs_local:
-    if not kxdir.exists():
-        kxdir.mkdir(parents=True)
+# in order to do this properly I need to ask Jeff to explain to me L254-259 in mri_prefers_3d/python/mri.py
+# Gs_local = np.zeros_like((len(kx_local), len(ky_global), len(ts)), dtype=np.float64)
+# Gs_global = np.zeros_like((len(kx_global), len(ky_global), len(ts)), dtype=np.float64)
 
 
 def energy_norm_general(X1, X2, kx, ky):
@@ -110,9 +107,10 @@ def energy_norm_general(X1, X2, kx, ky):
     field = (np.conj(u1)*u2 + np.conj(v1)*v2 + np.conj(w1)*w2 + (1.0/MA2)*(np.conj(bx1)*bx2 + np.conj(by1)*by2 + np.conj(bz1)*bz2)).evaluate().integrate()
     return field['g'][0]
 
+
 z_basis = de.Chebyshev('z', Nz, interval=(-0.5 * Lz, 0.5 * Lz))
 domain = de.Domain([z_basis], grid_dtype=np.complex128, comm=MPI.COMM_SELF)
-probvars = ['u','v','w','p','Ax','Ay','Az','Phi','omega_x','omega_y','Bx','By']
+probvars = ['u', 'v', 'w', 'p', 'Ax', 'Ay', 'Az', 'Phi', 'omega_x', 'omega_y', 'Bx', 'By']
 
 problem = de.EVP(domain, variables=probvars, eigenvalue='gamma')
 z = domain.grid(0)
@@ -178,43 +176,70 @@ logger.info("done with BCs")
 EP = Eigenproblem(problem, grow_func=lambda x: x.real, freq_func=lambda x: x.imag, reject=reject_spurious)
 pencil = 0
 
-for kx_ind, kx in enumerate(kx_local):
-    for ky_ind, ky in enumerate(ky_global):
-        kydir = kxdirs_local[kx_ind] / 'kyi_{:04d}'.format(ky_ind)
-        if not kydir.exists():
-            kydir.mkdir(parents=True)
-        try:
-            Gs, eigenvalues, eigenvectors, F, Q, R, pre_right = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_setup_mats=True)
-        except ValueError:
-            logger.warning("skipping (kx, ky) = ({}, {}) because no good eigenvalues were found".format(kx, ky))
-            continue  # this means that no .h5 or .png files will be created for this ky, and the code will continue on to the next ky
-        # Gs_local[kx_ind, ky_ind] = Gs
-        with h5py.File(str(kydir / "gains_mats.h5"), mode='w-') as file:
-            setup_mats_grp = file.create_group('setup_mats')
-            evalues_data = setup_mats_grp.create_dataset('eigenvalues', data=eigenvalues)
-            evecs_data = setup_mats_grp.create_dataset('eigenvectors', data=eigenvectors)
-            R_data = setup_mats_grp.create_dataset('R', data=R)
-            Q_data = setup_mats_grp.create_dataset('Q', data=Q)
-            F_data = setup_mats_grp.create_dataset('F', data=F)
-            pre_right_data = setup_mats_grp.create_dataset('pre_right', data=pre_right.toarray())
+parameter_grids = np.meshgrid(kx_global, ky_global)
+dims = parameter_grids[0].shape
+index = np.arange(np.prod(dims))
+load_indices = np.array_split(index, CW.size)
+my_indices = load_indices[CW.rank]
+local_grid = np.empty(my_indices.size, dtype=np.float64)
+# this is ugly -- I realized local_grid in criticalfinder.py was an array of growth rates, but I wanted an array of
+# gains (where each set of gains is an array of length len(ts))
+local_grid = np.zeros((*np.shape(local_grid), len(ts)), dtype=np.float64)
+for n, index in enumerate(my_indices):
+    logger.info("working on local calculation {}/{}".format(n+1, len(my_indices)))
+    unraveled_index = np.unravel_index(index, dims)
+    values = [parameter_grids[i][unraveled_index] for i, v in enumerate(parameter_grids)]
+    kx = values[0]
+    kxi = unraveled_index[1]
+    ky = values[1]
+    kyi = unraveled_index[0]
+    local_dir = basedir / 'kxi_{:04d}'.format(kxi) / 'kyi_{:04d}'.format(kyi)
+    if not local_dir.exists():
+        local_dir.mkdir(parents=True)
+    try:
+        Gs, eigenvalues, eigenvectors, F, Q, R, pre_right = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_setup_mats=True)
+    except ValueError:
+        logger.warning("skipping (kx, ky) = ({}, {}) because no good eigenvalues were found".format(kx, ky))
+        continue  # this means that no .h5 or .png files will be created for this ky, and the code will continue on to the next ky
+    # Gs_local[kx_ind, ky_ind] = Gs
+    local_grid[n] = Gs
+    with h5py.File(str(local_dir / "gains_mats.h5"), mode='w-') as file:
+        setup_mats_grp = file.create_group('setup_mats')
+        evalues_data = setup_mats_grp.create_dataset('eigenvalues', data=eigenvalues)
+        evecs_data = setup_mats_grp.create_dataset('eigenvectors', data=eigenvectors)
+        R_data = setup_mats_grp.create_dataset('R', data=R)
+        Q_data = setup_mats_grp.create_dataset('Q', data=Q)
+        F_data = setup_mats_grp.create_dataset('F', data=F)
+        pre_right_data = setup_mats_grp.create_dataset('pre_right', data=pre_right.toarray())
 
-            scales_grp = file.create_group(
-                'scales')  # in the spirit of "scales" in d2 h5 files, but this is a bad name for this use case
-            ts_data = scales_grp.create_dataset('ts', data=ts)
-            kx_data = scales_grp.create_dataset('kx', data=kx)
-            ky_data = scales_grp.create_dataset('ky', data=ky)
-            Nz_data = scales_grp.create_dataset('Nz', data=Nz)
-            Lz_data = scales_grp.create_dataset('Lz', data=Lz)
-            zs_data = scales_grp.create_dataset('z', data=z)
+        scales_grp = file.create_group(
+            'scales')  # in the spirit of "scales" in d2 h5 files, but this is a bad name for this use case
+        ts_data = scales_grp.create_dataset('ts', data=ts)
+        kx_data = scales_grp.create_dataset('kx', data=kx)
+        ky_data = scales_grp.create_dataset('ky', data=ky)
+        Nz_data = scales_grp.create_dataset('Nz', data=Nz)
+        Lz_data = scales_grp.create_dataset('Lz', data=Lz)
+        zs_data = scales_grp.create_dataset('z', data=z)
 
-            gains_grp = file.create_group('gains')
-            Gs_data = gains_grp.create_dataset('Gs', data=Gs)
-        if make_plots:
-            plt.semilogy(ts, Gs, c='C{}'.format(ky_ind))
-            plt.semilogy(ts, Gs[0]*np.exp(ts*2.0*np.max(np.real(eigenvalues)))*Gs[-1]/np.exp(ts[-1]*2.0*np.max(np.real(eigenvalues))), '--', c='C{}'.format(ky_ind))
-            plt.xlabel(r'$T$')
-            plt.ylabel(r'$G(T)$')
-            plt.xlim((0, ts[-1]))
-            plt.savefig(str(kydir / 'gain.png'))
-            plt.close()
+        gains_grp = file.create_group('gains')
+        Gs_data = gains_grp.create_dataset('Gs', data=Gs)
+    if make_plots:
+        plt.semilogy(ts, Gs)
+        plt.semilogy(ts, Gs[0]*np.exp(ts*2.0*np.max(np.real(eigenvalues)))*Gs[-1]/np.exp(ts[-1]*2.0*np.max(np.real(eigenvalues))), '--')
+        plt.xlabel(r'$T$')
+        plt.ylabel(r'$G(T)$')
+        plt.xlim((0, ts[-1]))
+        plt.title(r'kx = {}, ky = {}'.format(kx, ky))
+        plt.savefig(str(local_dir / 'gain.png'))
+        plt.close()
 
+data = np.zeros((*np.shape(dims), len(ts)), dtype=np.float64)
+rec_counts = np.array([s.size for s in load_indices])
+displacements = np.cumsum(rec_counts) - rec_counts
+CW.Gatherv(local_grid, [data, rec_counts, displacements, MPI.F_DOUBLE])
+print(CW.rank, local_grid)
+if CW.rank == 0:
+    print(data)
+    with h5py.File(str(basedir / "gains.h5"), mode='w-') as file:
+        gains_grp = file.create_group('gains')
+        Gs_data = gains_grp.create_dataset('Gs', data=data)
