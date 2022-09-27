@@ -181,17 +181,19 @@ dims = parameter_grids[0].shape
 index = np.arange(np.prod(dims))
 load_indices = np.array_split(index, CW.size)
 my_indices = load_indices[CW.rank]
-local_grid = np.empty(my_indices.size, dtype=np.float64)
-# this is ugly -- I realized local_grid in criticalfinder.py was an array of growth rates, but I wanted an array of
-# gains (where each set of gains is an array of length len(ts))
-local_grid = np.zeros((*np.shape(local_grid), len(ts)), dtype=np.float64)
+
+local_grid = np.zeros((my_indices.size, len(ts)), dtype=np.float64)
+local_kx = np.zeros(my_indices.size, dtype=np.float64)
+local_ky = np.zeros(my_indices.size, dtype=np.float64)
 for n, index in enumerate(my_indices):
     logger.info("working on local calculation {}/{}".format(n+1, len(my_indices)))
     unraveled_index = np.unravel_index(index, dims)
     values = [parameter_grids[i][unraveled_index] for i, v in enumerate(parameter_grids)]
     kx = values[0]
+    local_kx[n] = kx
     kxi = unraveled_index[1]
     ky = values[1]
+    local_ky[n] = ky
     kyi = unraveled_index[0]
     local_dir = basedir / 'kxi_{:04d}'.format(kxi) / 'kyi_{:04d}'.format(kyi)
     if not local_dir.exists():
@@ -236,13 +238,24 @@ for n, index in enumerate(my_indices):
 data = np.zeros((*dims, len(ts)), dtype=np.float64)
 rec_counts = np.array([s.size for s in load_indices])*len(ts)
 displacements = np.cumsum(rec_counts) - rec_counts
+CW.Gatherv(local_grid, [data, rec_counts, displacements, MPI.F_DOUBLE])
+
+rec_counts_kx = np.array([s.size for s in load_indices])
+displacements_kx = np.cumsum(rec_counts_kx) - rec_counts_kx
+data_kx = np.zeros(dims, dtype=np.float64)
+data_ky = np.zeros(dims, dtype=np.float64)
+CW.Gatherv(local_kx, [data_kx, rec_counts_kx, displacements_kx, MPI.F_DOUBLE])
+CW.Gatherv(local_ky, [data_ky, rec_counts_kx, displacements_kx, MPI.F_DOUBLE])
 # print(CW.rank, rec_counts, displacements)
 # if CW.rank == 0:
     # print(np.shape(data))
     # print(np.shape(local_grid))
-CW.Gatherv(local_grid, [data, rec_counts, displacements, MPI.F_DOUBLE])
 # print(CW.rank, local_grid)
 if CW.rank == 0:
     with h5py.File(str(basedir / "gains.h5"), mode='w-') as file:
         gains_grp = file.create_group('gains')
         Gs_data = gains_grp.create_dataset('Gs', data=data)
+
+        ks_grp = file.create_group('ks')
+        kxs_data = ks_grp.create_dataset('kx', data=data_kx)
+        kys_data = ks_grp.create_dataset('ky', data=data_ky)
