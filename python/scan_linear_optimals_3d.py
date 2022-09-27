@@ -233,13 +233,16 @@ for n, index in enumerate(my_indices):
         plt.savefig(str(local_dir / 'gain.png'))
         plt.close()
 
-data = np.zeros((*np.shape(dims), len(ts)), dtype=np.float64)
-rec_counts = np.array([s.size for s in load_indices])
+data = np.zeros((*dims, len(ts)), dtype=np.float64)
+rec_counts = np.array([s.size for s in load_indices])*len(ts)
 displacements = np.cumsum(rec_counts) - rec_counts
+# print(CW.rank, rec_counts, displacements)
+# if CW.rank == 0:
+    # print(np.shape(data))
+    # print(np.shape(local_grid))
 CW.Gatherv(local_grid, [data, rec_counts, displacements, MPI.F_DOUBLE])
-print(CW.rank, local_grid)
+# print(CW.rank, local_grid)
 if CW.rank == 0:
-    print(data)
     with h5py.File(str(basedir / "gains.h5"), mode='w-') as file:
         gains_grp = file.create_group('gains')
         Gs_data = gains_grp.create_dataset('Gs', data=data)
