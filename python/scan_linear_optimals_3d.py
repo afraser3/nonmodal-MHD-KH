@@ -199,7 +199,9 @@ for n, index in enumerate(my_indices):
     if not local_dir.exists():
         local_dir.mkdir(parents=True)
     try:
-        Gs, eigenvalues, eigenvectors, F, Q, R, pre_right = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_setup_mats=True)
+        # Gs, eigenvalues, eigenvectors, F, Q, R, pre_right = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_setup_mats=True)
+        # Gs, perturbations, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_perturbations=True)
+        Gs, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k)
     except ValueError:
         logger.warning("skipping (kx, ky) = ({}, {}) because no good eigenvalues were found".format(kx, ky))
         continue  # this means that no .h5 or .png files will be created for this ky, and the code will continue on to the next ky
@@ -208,11 +210,11 @@ for n, index in enumerate(my_indices):
     with h5py.File(str(local_dir / "gains_mats.h5"), mode='w-') as file:
         setup_mats_grp = file.create_group('setup_mats')
         evalues_data = setup_mats_grp.create_dataset('eigenvalues', data=eigenvalues)
-        evecs_data = setup_mats_grp.create_dataset('eigenvectors', data=eigenvectors)
+        # evecs_data = setup_mats_grp.create_dataset('eigenvectors', data=eigenvectors)
         # R_data = setup_mats_grp.create_dataset('R', data=R)
         # Q_data = setup_mats_grp.create_dataset('Q', data=Q)
         # F_data = setup_mats_grp.create_dataset('F', data=F)
-        pre_right_data = setup_mats_grp.create_dataset('pre_right', data=pre_right.toarray())
+        # pre_right_data = setup_mats_grp.create_dataset('pre_right', data=pre_right.toarray())
 
         scales_grp = file.create_group(
             'scales')  # in the spirit of "scales" in d2 h5 files, but this is a bad name for this use case
@@ -225,6 +227,7 @@ for n, index in enumerate(my_indices):
 
         gains_grp = file.create_group('gains')
         Gs_data = gains_grp.create_dataset('Gs', data=Gs)
+        # perturbations_data =
     if make_plots:
         plt.semilogy(ts, Gs)
         plt.semilogy(ts, Gs[0]*np.exp(ts*2.0*np.max(np.real(eigenvalues)))*Gs[-1]/np.exp(ts[-1]*2.0*np.max(np.real(eigenvalues))), '--')
