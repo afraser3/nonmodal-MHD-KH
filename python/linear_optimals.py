@@ -32,20 +32,42 @@ def LOP_setup_mats(EP, parameters, norm, pencil=0, dense=True, k=100):
     return eigenvalues, eigenvectors, F, Q, R, pre_right
 
 
-def LOP(EP, times, parameters, norm, pencil=0, dense=True, k=100, return_setup_mats=False):
+def LOP(EP, times, parameters, norm, pencil=0, dense=True, k=100, return_setup_mats=False, return_perturbations=False):
 
     Gs = np.zeros_like(times)
     eigenvalues, eigenvectors, F, Q, R, pre_right = LOP_setup_mats(EP, parameters, norm, pencil=pencil, dense=dense, k=k)
+    Finv = np.linalg.inv(F)
     for tind, t in enumerate(times):
         K = R @ np.diag(np.exp(eigenvalues * t)) @ np.linalg.inv(R)
-        s_vals = scipy.linalg.svdvals(F @ K @ np.linalg.inv(F))
+        propagator = F @ K @ Finv
+        if return_perturbations:
+            U, s_vals, Vh = scipy.linalg.svd(propagator)
+            v1 = Vh.conj()[0]  # the optimal perturbation in the F'ed and Q'ed basis
+            v1F = Finv @ v1  # change of basis away from the F'ed basis
+            # v1F is v1 in the basis of the columns of Q, so can just do Q @ v1F to
+            # get the perturbation in terms of (pre-conditioned) Chebyshev expansion coefficients
+            LOP = Q @ v1F
+            LOP = pre_right @ LOP
+            LOP_phase = LOP[0] / np.abs(LOP[0])
+            LOP = LOP / LOP_phase
+            if tind == 0:
+                perturbations = np.zeros((len(LOP), len(times)), dtype=np.complex128)
+            perturbations[:, tind] = LOP
+        else:
+            s_vals = scipy.linalg.svdvals(propagator)
         Gs[tind] = s_vals[0]
     Gs = Gs**2.0
 
     if return_setup_mats:
-        return Gs, eigenvalues, eigenvectors, F, Q, R, pre_right
+        if return_perturbations:
+            return Gs, perturbations, eigenvalues, eigenvectors, F, Q, R, pre_right
+        else:
+            return Gs, eigenvalues, eigenvectors, F, Q, R, pre_right
     else:
-        return Gs, eigenvalues, eigenvectors
+        if return_perturbations:
+            return Gs, perturbations, eigenvalues, eigenvectors
+        else:
+            return Gs, eigenvalues, eigenvectors
 
 
 def F_from_norm(EP, pre_right, Q, norm, ma):  # I want this to be its own function so I can calculate F_KE, F_ME, etc.
