@@ -1,0 +1,216 @@
+# Reads the files made by LOP_save_mats.py and plots the perturbations
+import numpy as np
+from matplotlib import pyplot as plt
+import h5py
+from pathlib import Path
+from dedalus import public as de
+import logging
+logger = logging.getLogger(__name__)
+
+test_ind = 100
+
+Nz = 256  # 128 is definitely not enough for these parameters
+Reynolds = 50.0
+Pm = 1.0
+mReynolds = Pm * Reynolds
+Lz = 10.0*np.pi
+kx = 0.025
+ky = 0.35
+MA = 1.0
+MA2 = MA**2.0
+k = 100
+dense = False
+reject_spurious = True
+
+if dense:
+    h5dir = Path("LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
+    h5_fname = str(h5dir / 'Nz{}_dense.h5'.format(Nz))
+    plot_name = str(h5dir / 'Nz{}_dense_ti{}.pdf'.format(Nz, test_ind))
+    # out_dir = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_dense/".format(Reynolds, MA, Pm, Nz)
+else:
+    h5dir = Path("LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
+    h5_fname = str(h5dir / 'Nz{}_k{}.h5'.format(Nz, k))
+    plot_name = str(h5dir / 'Nz{}_k{}_ti{}.pdf'.format(Nz, k, test_ind))
+    # out_dir = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_k{}/".format(Reynolds, MA, Pm, Nz, k)
+
+with h5py.File(h5_fname, mode='r') as file:
+    eigenvalues = np.array(file['setup_mats/eigenvalues'])
+    indx = np.argmax(np.real(eigenvalues))
+    evec = np.array(file['setup_mats/eigenvectors'][:, indx])
+    evec_phase = evec[0] / np.abs(evec[0])
+    evec = evec / evec_phase
+    F = np.array(file['setup_mats/F'])
+    Finv = np.linalg.inv(F)
+    # F_KE = np.array(file['setup_mats/F_KE'])
+    # F_ME = np.array(file['setup_mats/F_ME'])
+    R = np.array(file['setup_mats/R'])
+    Q = np.array(file['setup_mats/Q'])
+    pre_right = np.array(file['setup_mats/pre_right'])
+    ts_LOP = np.array(file['scales/ts'])
+    Nz = np.array(file['scales/Nz'])[()]
+    Lz = np.array(file['scales/Lz'])[()]
+    kx = np.array(file['scales/kx'])[()]
+    # ky = np.array(file['scales/ky'])[()]
+    LOPs = []
+    Gs = np.zeros_like(ts_LOP)
+    E_test = np.zeros_like(ts_LOP)
+    # KE_test = np.zeros_like(ts_LOP)
+    # ME_test = np.zeros_like(ts_LOP)
+    v1_test = np.array(file['ti_{}/Vh'.format(test_ind)]).conj()[0]
+    # for tind, t in enumerate(ts_LOP[1:], 1):
+    for tind, t in enumerate(ts_LOP):
+        # K = np.array(file['ti_{}/K'.format(tind)])
+        propagator = np.array(file['ti_{}/propagator'.format(tind)])  # F @ K @ Finv
+        E_test[tind] = np.sum(np.abs(propagator @ v1_test) ** 2.0)
+        # KE_test[tind] = np.sum(np.abs(F_KE @ Finv @ propagator @ v1_test) ** 2.0)
+        # ME_test[tind] = np.sum(np.abs(F_ME @ Finv @ propagator @ v1_test) ** 2.0)
+        # U = np.array(file['ti_{}/U'.format(tind)])
+        Vh = np.array(file['ti_{}/Vh'.format(tind)])
+        s = np.array(file['ti_{}/s'.format(tind)])
+        Gs[tind] = s[0]**2.0
+        v1 = Vh.conj()[0]  # the optimal perturbation in the F'ed and Q'ed basis
+        v1F = Finv @ v1  # change of basis away from the F'ed basis
+        # now I want to say that R is the change-of-basis matrix between the Q and eigenvector bases, and so I should
+        # be doing R^-1, but that doesn't give the right dimensions.
+        # I'm pretty sure that v1F is v1 in the basis of the columns of Q, so I should be able to do Q @ v1F to
+        # get the perturbation in terms of Chebyshev expansion coefficients
+        LOP = Q @ v1F
+        LOP = pre_right @ LOP
+        LOP_phase = LOP[0]/np.abs(LOP[0])
+        LOP = LOP/LOP_phase
+        LOPs.append(LOP)
+
+print('running t = {}'.format(ts_LOP[test_ind]))
+
+z_basis = de.Chebyshev('z', Nz, interval=(-0.5 * Lz, 0.5 * Lz))
+domain = de.Domain([z_basis], grid_dtype=np.complex128)
+probvars = ['u','v','w','p','Ax','Ay','Az','Phi','omega_x','omega_y','Bx','By']
+
+problem = de.IVP(domain, variables=probvars, time='t')
+z = domain.grid(0)
+a = 1.0
+
+nccU = domain.new_field(name='U')
+nccU['g'] = np.tanh(z / a)
+problem.parameters['U'] = nccU
+
+nccDU = domain.new_field(name='DU')
+nccDU['g'] = 1 / (a * np.cosh(z / a) ** 2)
+problem.parameters['DU'] = nccDU
+
+problem.parameters['MA2'] = MA2  # Alfven Mach number squared
+problem.parameters['kx'] = kx
+problem.parameters['ky'] = ky
+problem.parameters['Re'] = Reynolds
+problem.parameters['Rm'] = mReynolds
+problem.substitutions['dx(A)'] = "1.0j*kx*A"
+problem.substitutions['dy(A)'] = "1.0j*ky*A"
+
+problem.substitutions['Bz'] = "dx(Ay) - dy(Ax)"
+problem.substitutions['omega_z'] = "dx(v) - dy(u)"
+
+# Coulumb gauge
+problem.substitutions['Jx'] = "dy(Bz) - dz(By)"
+problem.substitutions['Jy'] = "dz(Bx) - dx(Bz)"
+problem.substitutions['Jz'] = "dx(By) - dy(Bx)"
+
+problem.add_equation("dt(u) + U*dx(u) + w*DU + dx(p)          + (dy(omega_z) - dz(omega_y))/Re = 0")
+problem.add_equation("dt(v) + U*dx(v)        + dy(p) - Jz/MA2 + (dz(omega_x) - dx(omega_z))/Re = 0")
+problem.add_equation("dt(w) + U*dx(w)        + dz(p) + Jy/MA2 + (dx(omega_y) - dy(omega_x))/Re = 0")
+problem.add_equation("dx(u) + dy(v) + dz(w) = 0")
+problem.add_equation("dy(w) - dz(v) - omega_x = 0")
+problem.add_equation("dz(u) - dx(w) - omega_y = 0")
+
+problem.add_equation("dt(Ax) + dx(Phi)             + Jx/Rm = 0")
+problem.add_equation("dt(Ay) + dy(Phi) - w + U*Bz  + Jy/Rm = 0")
+problem.add_equation("dt(Az) + dz(Phi) + v - U*By  + Jz/Rm = 0")
+problem.add_equation("dx(Ax) + dy(Ay) + dz(Az) = 0")
+problem.add_equation("dy(Az) - dz(Ay) - Bx  = 0")
+problem.add_equation("dz(Ax) - dx(Az) - By  = 0")
+
+# no slip
+problem.add_bc("left(u) = 0")
+problem.add_bc("left(v) = 0")
+problem.add_bc("left(w) = 0")
+problem.add_bc("right(u) = 0")
+problem.add_bc("right(v) = 0")
+problem.add_bc("right(w) = 0")
+
+# perfectly conducting boundaries
+problem.add_bc("right(Bz) = 0")
+problem.add_bc("right(dz(Bx)) = 0")
+problem.add_bc("right(dz(By)) = 0")
+problem.add_bc("left(Bz) = 0")
+problem.add_bc("left(dz(Bx)) = 0")
+problem.add_bc("left(dz(By)) = 0")
+
+logger.info("done with BCs")
+
+solver = problem.build_solver(de.timesteppers.RK443)
+solver.stop_sim_time = ts_LOP[-1]
+for i, var in enumerate(probvars):
+    field = solver.state[var]
+    field['c'] = LOPs[test_ind][int(i*len(LOPs[test_ind])/len(probvars)):int((i+1)*len(LOPs[test_ind])/len(probvars))]  # to generalize, 6 should become len(probvars)
+
+
+def energy_norm(X1):
+    u1 = X1['u']
+    v1 = X1['v']
+    w1 = X1['w']
+    bx1 = X1['Bx']
+    by1 = X1['By']
+    bz1 = 1j * kx * X1['Ay'] - 1j * ky * X1['Ax']
+    field = (np.abs(u1) ** 2.0 + np.abs(v1) ** 2.0 + np.abs(w1) ** 2.0 + (1.0 / MA2) * (np.abs(bx1) ** 2.0 + np.abs(by1) ** 2.0 + np.abs(bz1) ** 2.0)).evaluate().integrate()
+    return field['g'][0]
+
+
+def kinetic_energy(X1):
+    u1 = X1['u']
+    v1 = X1['v']
+    w1 = X1['w']
+    field = (np.abs(u1) ** 2.0 + np.abs(v1) ** 2.0 + np.abs(w1) ** 2.0).evaluate().integrate()
+    return field['g'][0]
+
+
+def magnetic_energy(X1):
+    bx1 = X1['Bx']
+    by1 = X1['By']
+    bz1 = 1j * kx * X1['Ay'] - 1j * ky * X1['Ax']
+    field = ((1.0 / MA2) * (np.abs(bx1) ** 2.0 + np.abs(by1) ** 2.0 + np.abs(bz1) ** 2.0)).evaluate().integrate()
+    return field['g'][0]
+
+
+dt = 2e-2
+ts = np.arange(0.0, ts_LOP[-1] + dt, dt)
+energies = np.zeros_like(ts)
+KEs = np.zeros_like(ts)
+MEs = np.zeros_like(ts)
+ti = 0
+while solver.ok:
+    energies[ti] = energy_norm(solver.state)
+    KEs[ti] = kinetic_energy(solver.state)
+    MEs[ti] = magnetic_energy(solver.state)
+    solver.step(dt)
+    if solver.iteration % 100 == 0:
+        log_string = 'Iteration: {:5d}, '.format(solver.iteration)
+        log_string += 'Time: {:8.3e}, '.format(solver.sim_time)
+        log_string += 'Energy: {:8.3e}, '.format(energies[ti])
+        logger.info(log_string)
+    ti += 1
+
+plt.semilogy(ts_LOP, Gs, c='k', label=r'$G(t_0)$')
+plt.semilogy(ts_LOP[test_ind], Gs[test_ind], 'x', c='k')
+plt.semilogy(ts, energies, label=r'$E(t, t_0={:4.2f})$ via IVP'.format(ts_LOP[test_ind]))
+plt.semilogy(ts_LOP, E_test, '--', label=r'$E$ via propagator')
+plt.semilogy(ts, KEs, label=r'$KE(t, t_0={:4.2f})$'.format(ts_LOP[test_ind]))
+# plt.semilogy(ts_LOP, KE_test, '--', label=r'$KE$ via propagator')
+plt.semilogy(ts, MEs, label=r'$ME(t, t_0={:4.2f})$'.format(ts_LOP[test_ind]))
+# plt.semilogy(ts_LOP, ME_test, '--', label=r'$ME$ via propagator')
+plt.xlabel(r'$t, t_0$')
+plt.ylabel(r'$G, E$')
+plt.xlim((ts_LOP[0], ts_LOP[-1]))
+plt.legend()
+plt.tight_layout()
+plt.yscale('linear')
+plt.savefig(plot_name)
+plt.show()
