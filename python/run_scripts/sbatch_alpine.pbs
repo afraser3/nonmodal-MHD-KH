@@ -1,13 +1,13 @@
 #!/bin/bash
 #SBATCH --job-name="LOPs" # Job name
 #SBATCH --partition=amilan
-#SBATCH --output="EIGENTOOLS.o%j" # Name of stdout output file
-#SBATCH --error="EIGENTOOLS.e%j" # Name of stderr error file
-#SBATCH --nodes=2 # Total number of nodes
+#SBATCH --output="EIGENTOOLS-%j.out" # Name of stdout output file
+#SBATCH --error="EIGENTOOLS-%j.err" # Name of stderr error file
+#SBATCH --nodes=1 # Total number of nodes
 #SBATCH --ntasks-per-node=64 # Total number of mpi tasks per node
 #SBATCH -t 01:00:00 # Run time (hh:mm:ss)
 
 source /projects/adfr8554/miniconda3/etc/profile.d/conda.sh
 conda activate dedalus2-test
 
-mpiexec -np 128 python3 scan_linear_optimals_3d.py LOPs_3D/config_files/run_A.cfg
+mpiexec -np 64 python3 scan_linear_optimals_3d.py LOPs_3D/config_files/run_B.cfg

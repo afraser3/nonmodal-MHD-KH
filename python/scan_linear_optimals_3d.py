@@ -209,9 +209,9 @@ for n, index in enumerate(my_indices):
         setup_mats_grp = file.create_group('setup_mats')
         evalues_data = setup_mats_grp.create_dataset('eigenvalues', data=eigenvalues)
         evecs_data = setup_mats_grp.create_dataset('eigenvectors', data=eigenvectors)
-        R_data = setup_mats_grp.create_dataset('R', data=R)
-        Q_data = setup_mats_grp.create_dataset('Q', data=Q)
-        F_data = setup_mats_grp.create_dataset('F', data=F)
+        # R_data = setup_mats_grp.create_dataset('R', data=R)
+        # Q_data = setup_mats_grp.create_dataset('Q', data=Q)
+        # F_data = setup_mats_grp.create_dataset('F', data=F)
         pre_right_data = setup_mats_grp.create_dataset('pre_right', data=pre_right.toarray())
 
         scales_grp = file.create_group(
