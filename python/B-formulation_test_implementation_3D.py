@@ -15,9 +15,9 @@ Reynolds = 50.
 Pm = 1.0
 mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
-kx = 0.2
-ky = 0.1
-MA = 1e1
+kx = 0.4
+ky = 0.
+MA = 50.
 
 k = 100
 dense = False
@@ -66,8 +66,12 @@ problem.add_equation("dx(u) + dy(v) + dz(w) = 0")
 problem.add_equation("dy(w) - dz(v) - omega_x = 0")
 problem.add_equation("dz(u) - dx(w) - omega_y = 0")
 
-problem.add_equation("dt(Bx) - dy(U*By - v) - dz(w - U*Bz) - Lap(Bx, Bx_z)/Rm = 0")
-problem.add_equation("dt(By) - dx(U*By - v) - Lap(By, By_z)/Rm = 0")
+# ucB_x = v*Bz - w*By = 0
+# ucB_y = w*Bx - u*Bz = w - U*Bz
+# ucB_z = u*By - v*Bx = U*By - v
+
+problem.add_equation("dt(Bx) - dy(U*By - v) + dz(w - U*Bz) - Lap(Bx, Bx_z)/Rm = 0")
+problem.add_equation("dt(By) + dx(U*By - v) - Lap(By, By_z)/Rm = 0")
 problem.add_equation("dt(Bz) - dx(w - U*Bz) - Lap(Bz, Bz_z)/Rm = 0")
 problem.add_equation("dz(Bx) - Bx_z = 0")
 problem.add_equation("dz(By) - By_z = 0")
@@ -96,6 +100,14 @@ problem.add_bc("left(By_z) = 0")
 logger.info("done with BCs")
 
 
+def div_B_max(X1):
+    bx1 = X1['Bx']
+    by1 = X1['By']
+    bz_z1 = X1['Bz_z']
+    field = (np.abs(1j*kx * bx1 + 1j*ky * by1 + bz_z1)).evaluate()
+    return np.max(field['g'])
+
+
 def div_B_int(X1):
     bx1 = X1['Bx']
     by1 = X1['By']
@@ -118,6 +130,9 @@ EP = Eigenproblem(problem, grow_func=lambda x: x.real, freq_func=lambda x: x.ima
 pencil = 0
 
 target = 0
-EP.solve(sparse=True, N=k, pencil=pencil, target=target)
+if dense:
+    EP.solve(sparse=False, pencil=pencil)
+else:
+    EP.solve(sparse=True, N=k, pencil=pencil, target=target)
 logger.info(f"sparse MA: {MA},  max eval = {np.max(np.real(EP.evalues))},  num good evals = {len(EP.evalues)}")
 indx = np.argmax(np.real(EP.evalues))
