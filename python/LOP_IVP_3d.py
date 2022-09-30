@@ -199,6 +199,7 @@ while solver.ok:
     ti += 1
 
 plt.semilogy(ts_LOP, Gs, c='k', label=r'$G(t_0)$')
+plt.semilogy(ts_LOP, Gs[0]*np.exp(ts_LOP*2.0*np.max(np.real(eigenvalues[indx])))*Gs[-1]/np.exp(ts_LOP[-1]*2.0*np.max(np.real(eigenvalues[indx]))), '--', c='k', label=r'eigenvalue')
 plt.semilogy(ts_LOP[test_ind], Gs[test_ind], 'x', c='k')
 plt.semilogy(ts, energies, label=r'$E(t, t_0={:4.2f})$ via IVP'.format(ts_LOP[test_ind]))
 plt.semilogy(ts_LOP, E_test, '--', label=r'$E$ via propagator')
