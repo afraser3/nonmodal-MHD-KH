@@ -7,7 +7,7 @@ from dedalus import public as de
 import logging
 logger = logging.getLogger(__name__)
 
-test_ind = 100
+test_ind = 50
 
 Nz = 256  # 128 is definitely not enough for these parameters
 Reynolds = 50.0
@@ -16,21 +16,22 @@ mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
 kx = 0.025
 ky = 0.35
+# MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
 MA = 1.0
 MA2 = MA**2.0
-k = 100
+k = 300
 dense = False
 reject_spurious = True
 
 if dense:
     h5dir = Path("LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
     h5_fname = str(h5dir / 'Nz{}_dense.h5'.format(Nz))
-    plot_name = str(h5dir / 'Nz{}_dense_ti{}.pdf'.format(Nz, test_ind))
+    plot_name = str(h5dir / 'Nz{}_dense_ti{}'.format(Nz, test_ind))
     # out_dir = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_dense/".format(Reynolds, MA, Pm, Nz)
 else:
     h5dir = Path("LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
     h5_fname = str(h5dir / 'Nz{}_k{}.h5'.format(Nz, k))
-    plot_name = str(h5dir / 'Nz{}_k{}_ti{}.pdf'.format(Nz, k, test_ind))
+    plot_name = str(h5dir / 'Nz{}_k{}_ti{}'.format(Nz, k, test_ind))
     # out_dir = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_k{}/".format(Reynolds, MA, Pm, Nz, k)
 
 with h5py.File(h5_fname, mode='r') as file:
@@ -52,11 +53,13 @@ with h5py.File(h5_fname, mode='r') as file:
     kx = np.array(file['scales/kx'])[()]
     # ky = np.array(file['scales/ky'])[()]
     LOPs = []
-    Gs = np.zeros_like(ts_LOP)
+    # Gs = np.zeros_like(ts_LOP)
+    Gs = np.array(file['energies/Gs'])
     E_test = np.zeros_like(ts_LOP)
     # KE_test = np.zeros_like(ts_LOP)
     # ME_test = np.zeros_like(ts_LOP)
-    v1_test = np.array(file['ti_{}/Vh'.format(test_ind)]).conj()[0]
+    # v1_test = np.array(file['ti_{}/Vh'.format(test_ind)]).conj()[0]
+    v1_test = np.array(file['ti_{}/v1'.format(test_ind)])
     # for tind, t in enumerate(ts_LOP[1:], 1):
     for tind, t in enumerate(ts_LOP):
         # K = np.array(file['ti_{}/K'.format(tind)])
@@ -65,19 +68,10 @@ with h5py.File(h5_fname, mode='r') as file:
         # KE_test[tind] = np.sum(np.abs(F_KE @ Finv @ propagator @ v1_test) ** 2.0)
         # ME_test[tind] = np.sum(np.abs(F_ME @ Finv @ propagator @ v1_test) ** 2.0)
         # U = np.array(file['ti_{}/U'.format(tind)])
-        Vh = np.array(file['ti_{}/Vh'.format(tind)])
-        s = np.array(file['ti_{}/s'.format(tind)])
-        Gs[tind] = s[0]**2.0
-        v1 = Vh.conj()[0]  # the optimal perturbation in the F'ed and Q'ed basis
-        v1F = Finv @ v1  # change of basis away from the F'ed basis
-        # now I want to say that R is the change-of-basis matrix between the Q and eigenvector bases, and so I should
-        # be doing R^-1, but that doesn't give the right dimensions.
-        # I'm pretty sure that v1F is v1 in the basis of the columns of Q, so I should be able to do Q @ v1F to
-        # get the perturbation in terms of Chebyshev expansion coefficients
-        LOP = Q @ v1F
-        LOP = pre_right @ LOP
-        LOP_phase = LOP[0]/np.abs(LOP[0])
-        LOP = LOP/LOP_phase
+        # Vh = np.array(file['ti_{}/Vh'.format(tind)])
+        # s = np.array(file['ti_{}/s'.format(tind)])
+        # Gs[tind] = s[0]**2.0
+        LOP = np.array(file['ti_{}/LOP'.format(tind)])
         LOPs.append(LOP)
 
 print('running t = {}'.format(ts_LOP[test_ind]))
@@ -137,12 +131,21 @@ problem.add_bc("right(v) = 0")
 problem.add_bc("right(w) = 0")
 
 # perfectly conducting boundaries
-problem.add_bc("right(Bz) = 0")
-problem.add_bc("right(dz(Bx)) = 0")
-problem.add_bc("right(dz(By)) = 0")
-problem.add_bc("left(Bz) = 0")
-problem.add_bc("left(dz(Bx)) = 0")
-problem.add_bc("left(dz(By)) = 0")
+# problem.add_bc("right(Bz) = 0")
+# problem.add_bc("right(dz(Bx)) = 0")
+# problem.add_bc("right(dz(By)) = 0")
+# problem.add_bc("left(Bz) = 0")
+# problem.add_bc("left(dz(Bx)) = 0")
+# problem.add_bc("left(dz(By)) = 0")
+
+# problem.add_bc("right(Az) = 0")
+problem.add_bc("right(Phi) = 0")
+problem.add_bc("right(Ax) = 0")
+problem.add_bc("right(Ay) = 0")
+# problem.add_bc("left(Az) = 0")
+problem.add_bc("left(Phi) = 0")
+problem.add_bc("left(Ax) = 0")
+problem.add_bc("left(Ay) = 0")
 
 logger.info("done with BCs")
 
@@ -210,8 +213,10 @@ plt.semilogy(ts, MEs, label=r'$ME(t, t_0={:4.2f})$'.format(ts_LOP[test_ind]))
 plt.xlabel(r'$t, t_0$')
 plt.ylabel(r'$G, E$')
 plt.xlim((ts_LOP[0], ts_LOP[-1]))
+plt.yscale('linear')
+plt.ylim(ymin=0)
 plt.legend()
 plt.tight_layout()
-plt.yscale('linear')
-plt.savefig(plot_name)
+plt.savefig(plot_name+'.png')
+plt.savefig(plot_name+'.pdf')
 plt.show()

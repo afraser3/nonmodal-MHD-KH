@@ -19,7 +19,7 @@ ky = 0.35
 # MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
 MA = 1.0
 MA2 = MA**2.0
-k = 100
+k = 300
 dense = False
 reject_spurious = True
 if dense:
@@ -33,7 +33,8 @@ else:
 if not savedir.exists():
     savedir.mkdir(parents=True)
 # ts = np.linspace(0.0, 50.0, 51)
-ts = np.linspace(0.0, 80.0, 200)
+ts = np.linspace(0.0, 200.0, 201)
+# ts = np.linspace(0.0, 1000.0, 501)
 
 
 def energy_norm_general(X1, X2, ma):
@@ -119,12 +120,21 @@ problem.add_bc("right(v) = 0")
 problem.add_bc("right(w) = 0")
 
 # perfectly conducting boundaries
-problem.add_bc("right(Bz) = 0")
-problem.add_bc("right(dz(Bx)) = 0")
-problem.add_bc("right(dz(By)) = 0")
-problem.add_bc("left(Bz) = 0")
-problem.add_bc("left(dz(Bx)) = 0")
-problem.add_bc("left(dz(By)) = 0")
+# problem.add_bc("right(Bz) = 0")
+# problem.add_bc("right(dz(Bx)) = 0")
+# problem.add_bc("right(dz(By)) = 0")
+# problem.add_bc("left(Bz) = 0")
+# problem.add_bc("left(dz(Bx)) = 0")
+# problem.add_bc("left(dz(By)) = 0")
+
+# problem.add_bc("right(Az) = 0")
+problem.add_bc("right(Phi) = 0")
+problem.add_bc("right(Ax) = 0")
+problem.add_bc("right(Ay) = 0")
+# problem.add_bc("left(Az) = 0")
+problem.add_bc("left(Phi) = 0")
+problem.add_bc("left(Ax) = 0")
+problem.add_bc("left(Ay) = 0")
 
 logger.info("done with BCs")
 
@@ -156,11 +166,24 @@ with h5py.File(fname, mode="w-") as file:
     Gs_data = energies_grp.create_dataset('Gs', data=Gs)
 
     for tind, t in enumerate(ts):
+        # if False:
         t_grp = file.create_group('ti_{}'.format(tind))
         K = R @ np.diag(np.exp(eigenvalues * t)) @ np.linalg.inv(R)
         propagator = F @ K @ Finv
         U, s, Vh = scipy.linalg.svd(propagator)
         prop_data = t_grp.create_dataset('propagator', data=propagator)
-        s_data = t_grp.create_dataset('s', data=s)
-        Vh_data = t_grp.create_dataset('Vh', data=Vh)
+        # s_data = t_grp.create_dataset('s', data=s)
+        # Vh_data = t_grp.create_dataset('Vh', data=Vh)
+        v1 = Vh.conj()[0]  # the optimal perturbation in the F'ed and Q'ed basis
+        v1F = Finv @ v1  # change of basis away from the F'ed basis
+        # now I want to say that R is the change-of-basis matrix between the Q and eigenvector bases, and so I should
+        # be doing R^-1, but that doesn't give the right dimensions.
+        # I'm pretty sure that v1F is v1 in the basis of the columns of Q, so I should be able to do Q @ v1F to
+        # get the perturbation in terms of Chebyshev expansion coefficients
+        LOP = Q @ v1F
+        LOP = pre_right @ LOP
+        LOP_phase = LOP[0] / np.abs(LOP[0])
+        LOP = LOP / LOP_phase
+        LOP_data = t_grp.create_dataset('LOP', data=LOP)
+        v1_data = t_grp.create_dataset('v1', data=v1)
 print("done")
