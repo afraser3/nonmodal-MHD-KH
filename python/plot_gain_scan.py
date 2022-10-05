@@ -2,18 +2,113 @@ import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.colors as colors
 import h5py
+from configparser import ConfigParser
+from pathlib import Path
+# import glob
 
-run = "run_A"
+plot_max = False
+logscale = False
+# targets = np.array([1.0, 5.0, 10.0, 15.0, 25.0, 50.0])
+targets = np.array([1.0, 5.0, 25.0, 50.0, 100.0, 200.0])
+run = "run_A2"
+
+# Parse the .cfg filename passed to script
+config_file = Path("LOPs_3D/config_files/{}.cfg".format(run))
+
+# Parse settings from .cfg file and save to variables
+runconfig = ConfigParser()
+runconfig.read(str(config_file))
+
+# data dir that was saved to
+basedir = Path("LOPs_3D") / config_file.stem
+if not basedir.exists():
+    basedir.mkdir(parents=True)
+
+# Parameters
+params = runconfig['parameters']
+MA = params.getfloat('MA')
+MA2 = MA**2.0
+Reynolds = params.getfloat('Reynolds')
+Pm = params.getfloat('Pm')
+mReynolds = Pm*Reynolds
+kx_start = params.getfloat('kx_start')
+kx_stop = params.getfloat('kx_stop')
+kx_num = params.getint('kx_num')
+kx_endpoint = params.getboolean('kx_endpoint')
+ky_start = params.getfloat('ky_start')
+ky_stop = params.getfloat('ky_stop')
+ky_num = params.getint('ky_num')
+ky_endpoint = params.getboolean('ky_endpoint')
+
+t_start = params.getfloat('t_start')
+t_stop = params.getfloat('t_stop')
+t_num = params.getint('t_num')
+t_endpoint = params.getboolean('t_endpoint')
+times = np.linspace(t_start, t_stop, t_num, endpoint=t_endpoint)
+
+k = params.getint('k')
+dense = params.getboolean('dense')
+Nz = params.getint('Nz')
+Lz = params.getfloat('Lz_factor')*np.pi
+
+kys = np.linspace(ky_start, ky_stop, ky_num, endpoint=ky_endpoint)  # the full set of kys to scan over
+kxs = np.linspace(kx_start, kx_stop, kx_num, endpoint=kx_endpoint)  # the full set of kxs to scan over
+kxdirs = [basedir / 'kxi_{:04d}/'.format(kx_i) for kx_i, kx in enumerate(kxs)]
+
 gains_file = "LOPs_3D/{}/gains.h5".format(run)
 with h5py.File(gains_file, mode='r') as file:
-    kxs = np.array(file['ks/kx'])
-    kys = np.array(file['ks/ky'])
+    # kxs = np.array(file['ks/kx'])
+    # kys = np.array(file['ks/ky'])
     Gs = np.array(file['gains/Gs'])
+    # times = np.array(file['scales/ts'])
 
-plt.contourf(kxs, kys, np.amax(Gs, axis=2), norm=colors.LogNorm())
-plt.colorbar()
-plt.xlabel(r'$k_x$')
-plt.ylabel(r'$k_y$')
-# plt.show()
-plt.savefig('LOPs_3D/{}/gains_kscan.png'.format(run))
-plt.savefig('LOPs_3D/{}/gains_kscan.pdf'.format(run))
+plotname = 'LOPs_3D/{}/gains_kscan_'.format(run)
+if plot_max:
+    plotname += 'tmax_'
+    if logscale:
+        plt.pcolormesh(kxs, kys, np.amax(Gs, axis=2), norm=colors.LogNorm())
+    else:
+        plt.pcolormesh(kxs, kys, np.amax(Gs, axis=2))
+    plt.colorbar()
+    plt.xlabel(r'$k_x$')
+    plt.ylabel(r'$k_y$')
+    # plt.show()
+    # plt.savefig('LOPs_3D/{}/gains_tmax_kscan.png'.format(run))
+    # plt.savefig('LOPs_3D/{}/gains_tmax_kscan.pdf'.format(run))
+
+else:
+    plotname += 'tscan_'
+    plt.figure(figsize=(10, 12))
+    for i, t in enumerate(targets):
+        plt.subplot(3, 2, i+1)
+        tind = np.argmin(np.abs(times - t))  # index in times where t occurs
+        if logscale:
+            plt.pcolormesh(kxs, kys, Gs[:, :, tind], norm=colors.LogNorm())
+        else:
+            plt.pcolormesh(kxs, kys, Gs[:, :, tind])
+        plt.colorbar()
+        plt.title(r'$t_0 = {}$'.format(t))
+        if i > 3:
+            plt.xlabel(r'$k_x$')
+        if i % 2 == 0:
+            plt.ylabel(r'$k_y$')
+    # plt.show()
+    # if logscale:
+        # plt.savefig('LOPs_3D/{}/gains_tscan_kscan_{}_log.png'.format(run, run))
+        # plt.savefig('LOPs_3D/{}/gains_tscan_kscan_{}_log.pdf'.format(run, run))
+        # plt.savefig('LOPs_3D/{}/gains_tscan_kscan_MA{}_Re{}_log.png'.format(run, run))
+    # else:
+        # plt.savefig('LOPs_3D/{}/gains_tscan_kscan_{}_lin.png'.format(run, run))
+        # plt.savefig('LOPs_3D/{}/gains_tscan_kscan_{}_lin.pdf'.format(run, run))
+plotname += 'MA{}_Re{}_Pm{}_'.format(MA, Reynolds, Pm)
+if dense:
+    plotname += 'dense_'
+else:
+    plotname += 'k{}_'.format(k)
+if logscale:
+    plotname += 'log'
+else:
+    plotname += 'lin'
+plt.savefig(plotname+'.png')
+plt.savefig(plotname+'.pdf')
+print("done")
