@@ -164,12 +164,21 @@ problem.add_bc("right(v) = 0")
 problem.add_bc("right(w) = 0")
 
 # perfectly conducting boundaries
-problem.add_bc("right(Bz) = 0")
-problem.add_bc("right(dz(Bx)) = 0")
-problem.add_bc("right(dz(By)) = 0")
-problem.add_bc("left(Bz) = 0")
-problem.add_bc("left(dz(Bx)) = 0")
-problem.add_bc("left(dz(By)) = 0")
+# problem.add_bc("right(Bz) = 0")
+# problem.add_bc("right(dz(Bx)) = 0")
+# problem.add_bc("right(dz(By)) = 0")
+# problem.add_bc("left(Bz) = 0")
+# problem.add_bc("left(dz(Bx)) = 0")
+# problem.add_bc("left(dz(By)) = 0")
+
+# problem.add_bc("right(Az) = 0")
+problem.add_bc("right(Phi) = 0")
+problem.add_bc("right(Ax) = 0")
+problem.add_bc("right(Ay) = 0")
+# problem.add_bc("left(Az) = 0")
+problem.add_bc("left(Phi) = 0")
+problem.add_bc("left(Ax) = 0")
+problem.add_bc("left(Ay) = 0")
 
 logger.info("done with BCs")
 
@@ -182,9 +191,10 @@ index = np.arange(np.prod(dims))
 load_indices = np.array_split(index, CW.size)
 my_indices = load_indices[CW.rank]
 
-local_grid = np.zeros((my_indices.size, len(ts)), dtype=np.float64)
+local_Gs = np.zeros((my_indices.size, len(ts)), dtype=np.float64)
 local_kx = np.zeros(my_indices.size, dtype=np.float64)
 local_ky = np.zeros(my_indices.size, dtype=np.float64)
+local_nEVs = np.zeros(my_indices.size, dtype=np.float64)  # should really be int but if it ain't broke don't fix it
 for n, index in enumerate(my_indices):
     logger.info("working on local calculation {}/{}".format(n+1, len(my_indices)))
     unraveled_index = np.unravel_index(index, dims)
@@ -198,15 +208,21 @@ for n, index in enumerate(my_indices):
     local_dir = basedir / 'kxi_{:04d}'.format(kxi) / 'kyi_{:04d}'.format(kyi)
     if not local_dir.exists():
         local_dir.mkdir(parents=True)
-    try:
-        # Gs, eigenvalues, eigenvectors, F, Q, R, pre_right = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_setup_mats=True)
-        # Gs, perturbations, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_perturbations=True)
-        Gs, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k)
-    except ValueError:
-        logger.warning("skipping (kx, ky) = ({}, {}) because no good eigenvalues were found".format(kx, ky))
-        continue  # this means that no .h5 or .png files will be created for this ky, and the code will continue on to the next ky
+    if kx > 0. or ky > 0.:
+        try:
+            # Gs, eigenvalues, eigenvectors, F, Q, R, pre_right = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_setup_mats=True)
+            # Gs, perturbations, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_perturbations=True)
+            Gs, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k)
+        except ValueError:
+            logger.warning("skipping (kx, ky) = ({}, {}) because no good eigenvalues were found".format(kx, ky))
+            local_Gs[n] = np.ones_like(local_Gs[n])*np.nan
+            continue  # this means that no .h5 or .png files will be created for this ky, and the code will continue on to the next ky
+    else:
+        local_Gs[n] = np.ones_like(local_Gs[n])*np.nan
+        continue
     # Gs_local[kx_ind, ky_ind] = Gs
-    local_grid[n] = Gs
+    local_Gs[n] = Gs
+    local_nEVs[n] = len(EP.evalues)
     with h5py.File(str(local_dir / "gains_mats.h5"), mode='w-') as file:
         setup_mats_grp = file.create_group('setup_mats')
         evalues_data = setup_mats_grp.create_dataset('eigenvalues', data=eigenvalues)
@@ -238,27 +254,48 @@ for n, index in enumerate(my_indices):
         plt.savefig(str(local_dir / 'gain.png'))
         plt.close()
 
-data = np.zeros((*dims, len(ts)), dtype=np.float64)
+gathered_Gs = np.zeros((*dims, len(ts)), dtype=np.float64)
 rec_counts = np.array([s.size for s in load_indices])*len(ts)
 displacements = np.cumsum(rec_counts) - rec_counts
-CW.Gatherv(local_grid, [data, rec_counts, displacements, MPI.F_DOUBLE])
+CW.Gatherv(local_Gs, [gathered_Gs, rec_counts, displacements, MPI.F_DOUBLE])
 
 rec_counts_kx = np.array([s.size for s in load_indices])
 displacements_kx = np.cumsum(rec_counts_kx) - rec_counts_kx
-data_kx = np.zeros(dims, dtype=np.float64)
-data_ky = np.zeros(dims, dtype=np.float64)
-CW.Gatherv(local_kx, [data_kx, rec_counts_kx, displacements_kx, MPI.F_DOUBLE])
-CW.Gatherv(local_ky, [data_ky, rec_counts_kx, displacements_kx, MPI.F_DOUBLE])
+gathered_kx = np.zeros(dims, dtype=np.float64)
+gathered_ky = np.zeros(dims, dtype=np.float64)
+gathered_nEVs = np.zeros(dims, dtype=np.float64)
+CW.Gatherv(local_kx, [gathered_kx, rec_counts_kx, displacements_kx, MPI.F_DOUBLE])
+CW.Gatherv(local_ky, [gathered_ky, rec_counts_kx, displacements_kx, MPI.F_DOUBLE])
+CW.Gatherv(local_nEVs, [gathered_nEVs, rec_counts_kx, displacements_kx, MPI.F_DOUBLE])
 # print(CW.rank, rec_counts, displacements)
 # if CW.rank == 0:
     # print(np.shape(data))
-    # print(np.shape(local_grid))
-# print(CW.rank, local_grid)
+    # print(np.shape(local_Gs))
+# print(CW.rank, local_Gs)
 if CW.rank == 0:
     with h5py.File(str(basedir / "gains.h5"), mode='w-') as file:
         gains_grp = file.create_group('gains')
-        Gs_data = gains_grp.create_dataset('Gs', data=data)
+        Gs_data = gains_grp.create_dataset('Gs', data=gathered_Gs)
 
         ks_grp = file.create_group('ks')
-        kxs_data = ks_grp.create_dataset('kx', data=data_kx)
-        kys_data = ks_grp.create_dataset('ky', data=data_ky)
+        kxs_data = ks_grp.create_dataset('kx', data=gathered_kx)
+        kys_data = ks_grp.create_dataset('ky', data=gathered_ky)
+
+        scales_grp = file.create_group('scales')
+        ts_data = scales_grp.create_dataset('ts', data=ts)
+        Nz_data = scales_grp.create_dataset('Nz', data=Nz)
+        Lz_data = scales_grp.create_dataset('Lz', data=Lz)
+        zs_data = scales_grp.create_dataset('z', data=z)
+
+        EVs_grp = file.create_group('EVs')
+        nEVs_data = EVs_grp.create_dataset('nEVs', data=gathered_nEVs)
+
+# fix data saving scheme (ditch the individual .h5's, and include number of good eigenmodes and condition number in saved data)
+# save nans on bad evalues
+# plot number of eigenvalues
+# plot condition number
+# scan from k_x,y = 0.1 to 0.2 to see if we can resolve a ridge
+# for 0.25, 0.26 (where we get 100 good eigenvalues) are the good eigenmodes really sharp? do they get sharper as ky -> kx?
+# in plot_mode, there's a phase-setter that sets a field to real
+# put [specifyable_index] at the end of line 293 in eigenproblem.py
+# check if the block structure moves around if MA changes very slightly
