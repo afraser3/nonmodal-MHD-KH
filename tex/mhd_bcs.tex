@@ -1,0 +1,229 @@
+\documentclass[11pt]{article}
+\usepackage{graphicx}
+\usepackage[letterpaper, centering, top=1in, bottom=1in, left=1in, right=1in]{geometry}
+\usepackage{times}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{xcolor}             % Colors
+\usepackage[bookmarks,colorlinks,breaklinks]{hyperref}  % PDF
+\usepackage{makecell}
+\urlstyle{same}
+\hypersetup{
+  colorlinks,
+  linkcolor=red,
+  urlcolor=olive
+}
+
+\newcommand{\vol}{\mathcal{V}}
+\newcommand{\surf}{\mathcal{S}}
+\newcommand{\norm}{\hat{\mathbf{n}}}
+\title{MHD Boundary Conditions}
+\begin{document}
+\maketitle
+
+While hydrodynamic boundary conditions are usually quite straightforward, being either no-slip
+\begin{equation}
+  \label{eq:no-slip}
+  \mathbf{u} = 0
+\end{equation}
+or stress free,
+\begin{align}
+  \label{eq:stress-free}
+  \mathbf{u} \cdot \norm &= 0\\
+  \frac{\partial \mathbf{u}_\parallel}{\partial z} &= 0
+\end{align}
+for a boundary in the $z$ direction.
+
+However, for MHD, the situation is more complicated.
+In all of what is to follow, we consider a situation where an $N-1$ dimensional boundary separates two regions in $N$ dimensional space.
+All quantities $q^{in}$ are on the ``inside'' of the boundary, in the fluid we are interested in.\ Similarly, $q^{out}$ are on the outside of the boundary.
+We are interested in finding the boundary conditions that describe a given physical situation.
+I will assume the boundary is a Cartesian plane in the $\hat{\mathbf{z}}$ direction, though much of what follows can be easily generalized to an $\hat{\mathbf{r}}$ boundary in spherical coordinates.
+
+\section{Jump Conditions from Maxwell's Equations}
+\label{sec:jump}
+Our story begins, as so many do, with Maxwell's equations,
+\begin{align}
+  \nabla \times \mathbf{B} &= \mu \mathbf{j} \label{eq:curlB}\\
+  \nabla \cdot \mathbf{B} &= 0 \label{eq:divB}\\
+  \nabla \times \mathbf{E} &= -\frac{\partial \mathbf{B}}{\partial t} \label{eq:curlE}\\
+  \nabla \cdot \mathbf{E} &= \frac{\rho_c}{\epsilon} \label{eq:divE},
+\end{align}
+where $\rho_c$ is the charge density.
+We can use these to define \textbf{jump conditions} between the in and outside of the boundary without any reference to any properties on either side.
+I will use square brackets to denote a \emph{jump condition} across the boundary,
+\begin{equation}
+  \label{eq:jump}
+  [q] \equiv q^{out} - q^{in}.
+\end{equation}
+
+From here, it's quite straightforward (that is, it's in Griffiths and every other E\&M textbook) to use Stokes' theorem on equation~(\ref{eq:curlB}),
+\begin{equation}
+  \label{eq:integrate_curlB}
+  \int \nabla \times \mathbf{B}\cdot d\mathbf{S} = \oint \mathbf{B}\cdot d\mathbf{l} = \int \mu \mathbf{j} \cdot d\mathbf{S}.
+\end{equation}
+By choosing a surface orthogonal to the boundary in question, and letting its height $\delta$ above and below go to zero, we see that the only components remain in the line integral are the terms parallel to the surface,
+\begin{equation}
+  \label{eq:B_parallel}
+  \mathbf{B}^{out}_\parallel - \mathbf{B}^{in}_\parallel = \mu \mathbf{j}_S,
+\end{equation}
+where $\mathbf{j}_S$ is the surface current.
+
+The exact same argument applies to equation~(\ref{eq:curlE}), except in this case, we have the right hand side
+\begin{equation}
+  \label{eq:curl_E_RHS}
+  -\frac{\partial}{\partial t} \int \mathbf{B} \cdot d\mathbf{S} = 0,
+\end{equation}
+because we cannot get a surface field $\mathbf{B}$
+Thus, one of our boundary conditions is
+\begin{equation}
+  \label{eq:E_BC}
+  \mathbf{E}^{out}_\parallel = \mathbf{E}^{in}_\parallel,
+\end{equation}
+the parallel components of the electric field are always \emph{continuous}.
+
+Similarly, we can use the divergence theorem on equations~(\ref{eq:divB}) and (\ref{eq:divE}), for example
+\begin{equation}
+  \label{eq:div_thm_E}
+  \int_{\vol} \nabla \cdot \mathbf{E} d\mathbf{x}^3 = \int_{\surf} \mathbf{E}\cdot d\mathbf{A} = \int \frac{\rho_s}{\epsilon} dV = \frac{Q_{total}}{\epsilon}.
+\end{equation}
+Again choosing a volume $\vol$ such that the sides normal to the surface are of height $\delta \to 0$, we see that the integral of $\mathbf{E}$ over $\surf$ reduces to
+\begin{equation}
+  \label{eq:parallel_E}
+  \mathbf{E^{out}} \cdot |dA_\parallel| \norm -   \mathbf{E^{in}} \cdot |dA_\parallel| \norm = \frac{Q_{total}}{\epsilon},
+\end{equation}
+and thus the jump condition
+\begin{equation}
+  \label{eq:parallel_E_jump}
+  [ \norm \cdot \mathbf{E}] = \frac{\rho_{S}}{\epsilon},
+\end{equation}
+where $\rho_{S}$ is the surface charge density.
+You can do the same thing with $\nabla \cdot \mathbf{B} = 0$.
+
+Putting this all together gives a set of four jump conditions, 
+\begin{align}
+  [E_\parallel] &= 0 \label{eq:Epara_jump]}\\
+  [B_\parallel] &= \mu \mathbf{j}_S \label{eq:Bpara_jump]}\\
+  [\norm \cdot E] &= \frac{\rho_{S}}{\epsilon} \label{eq:Enorm_jump}\\
+  [\norm \cdot B] &= 0 \label{eq:Bnorm_jump},
+\end{align}
+none of which make any reference to what the inner and outer materials are.
+As promised it is completely general.
+
+\section{Magnetohydrodynamics}
+\label{sec:mhd}
+
+When we deal with MHD, we do not typically deal with the $\mathbf{E}$ field, and we would like to set boundary conditions on either $\mathbf{B}$ or a vector potential $\mathbf{A}$ such that $\mathbf{B} = \nabla \times \mathbf{A}$.
+Complicating matters, we also typically do not know $\mathbf{j}_s$ or $\rho_s$.
+
+Using Ohm's law and the Galilean transformation from the MHD fluid to the lab frame, we have
+\begin{equation}
+  \label{eq:MHD_E}
+  \mathbf{J} = \sigma (\mathbf{E} + \mathbf{u} \times \mathbf{B}).
+\end{equation}
+In order to proceed, let's find the jump condition on $\mathbf{J}_\parallel$.
+Before proceeding, it's useful to define
+\begin{equation}
+  \label{eq:parallel_cross}
+  \mathbf{X}_\parallel = \norm \times \mathbf{X},
+\end{equation}
+giving us a vector operation to extract the parallel component of any vector $\mathbf{X}$.\
+Using this, we have
+\begin{equation}
+  \label{eq:j_jump}
+  [\frac{\norm \times \mathbf{J}}{\sigma}] = [\norm \times \mathbf{E} +  (\norm \cdot \mathbf{B}) \mathbf{u} -(\norm \cdot \mathbf{u}) \mathbf{B}],
+\end{equation}
+where I've used the double cross product identity.
+
+\subsection{Perfect Conductor}
+\label{sec:perf_cond}
+
+We are now ready to introduce perfect conductor boundary conditions.
+We already have a continuity condition on $\mathbf{B}\cdot \norm$ from equation~(\ref{eq:Bnorm_jump}) as a result of Maxwell's equations.
+A perfect conductor has a frozen magnetic field, which we will typically take to be zero.
+The jump condition gives us our first MHD perfect conductor boundary condition, $B_z = 0$.
+
+In resistive MHD, we need two more boundary conditions.
+We can use equation~(\ref{eq:j_jump}) to get them, and this brings up a complication: the magnetic field boundary conditions depend on the velocity boundary conditions!
+
+Let's assume no-slip, so $\mathbf{u} = 0$ on the boundary, and thus 
+the latter two terms in equation~(\ref{eq:j_jump}) disappear.
+Equation~(\ref{eq:Epara_jump]}) tells us that the first term on the right also disappears.
+Thus, with a bit of algebra, we have
+\begin{equation}
+  \label{eq:j_para_perfc}
+  \norm \times \mathbf{J}^{in} =  \norm \times \mathbf{J}^{out} \frac{\sigma^{in}}{\sigma^{out}} = 0,
+  \end{equation}
+because by definition $\sigma^{out} \to \infty$.
+This gives us two more boundary conditions, $J_x = J_y = 0$.
+
+We can use our first boundary condition along with equation~(\ref{eq:curlB}) to express these in terms of magnetic fields instead of current densities.
+Taking the $x$ component,
+\begin{equation}
+  \label{eq:jx}
+  \mu J_x = \partial_y B_z - \partial_z B_y.
+\end{equation}
+we see that the first term is zero because $B_z = 0$ \emph{everywhere} on the boundary, thus $\partial_x B_z = \partial_y B_z = 0$.
+Doing the same thing for $J_y$, we are left with our final set of perfect conductor boundary conditions,
+\begin{align}
+  \label{eq:B_bc_perfc}
+  B_z &= 0\\
+  \partial_z B_x &= 0\\
+  \partial_z B_y &= 0.
+\end{align}
+
+What about vector potentials?
+% Let's consider the induction equation in the Coulomb gauge,
+% \begin{align}
+%   \label{eq:vector_coulomb}
+%   \partial_t \mathbf{A} + \nabla \phi &= \mathbf{u} \times \mathbf{B} + \eta \nabla^2 \mathbf{A}\\
+%   \nabla \cdot \mathbf{A} &= 0,
+% \end{align}
+% where $\phi$ is the gauge potential.
+
+% It's important to remember that the only job of the $\mathbf{A}$ boundary conditions are to be consistent with the physical boundary conditions on $\mathbf{B}\cdot\norm$ and $\norm \times \mathbf{J}$.
+% By definition, $\mathbf{B} = \nabla \cdot \mathbf{A}$, so
+% \begin{equation}
+%   \label{eq:Ax_Ay}
+%   B_z = \partial_x A_y - \partial_y A_x = 0.
+% \end{equation}
+% If we set $A_x = A_y = 0$ on the boundary, this will enforce $B_z = 0$.
+% Considering the $x$ and $y$ components of equation~(\ref{eq:vector_coulomb}) on the boundaries, we have
+% \begin{align}
+%   \label{eq:B_bc_perfc}
+%   B_z &= 0\\
+%   \partial_z B_x &= 0\\
+%   \partial_z B_y &= 0.
+% \end{align}
+
+% What about vector potentials?
+Let's consider the induction equation in the Coulomb gauge,
+\begin{align}
+  \label{eq:vector_coulomb}
+  \partial_t \mathbf{A} + \nabla \phi &= \mathbf{u} \times \mathbf{B} + \eta \nabla^2 \mathbf{A}\\
+  \nabla \cdot \mathbf{A} &= 0,
+\end{align}
+where $\phi$ is the gauge potential.
+
+It's important to remember that the only job of the $\mathbf{A}$ boundary conditions are to be consistent with the physical boundary conditions on $\mathbf{B}\cdot\norm$ and $\norm \times \mathbf{J}$.
+By definition, $\mathbf{B} = \nabla \cdot \mathbf{A}$, so
+\begin{equation}
+  \label{eq:Ax_Ay}
+  B_z = \partial_x A_y - \partial_y A_x = 0.
+\end{equation}
+If we set $A_x = A_y = 0$ on the boundary, this will enforce $B_z = 0$.
+Considering the $x$ and $y$ components of equation~(\ref{eq:vector_coulomb}) on the boundaries, we have
+\begin{align}
+  \label{eq:Ax}
+  \partial_x \phi &= \nabla^2 A_x\\
+  \partial_y \phi &= \nabla^2 A_y.
+\end{align}
+To complete our boundary conditions, we need only use the double curl identity and the fact that $\mathbf{A}$ is divergence-less in the Coulomb gauge to see that $\mu \mathbf{J} = -\nabla^2 \mathbf{A}$.
+Thus, the boundary conditions on current density are  $J_x = -\partial_x \phi = 0$ and $J_y = -\partial_y \phi = 0$.\ To get these two conditions, we simply set $\phi = 0$ on the boundary.
+So our final set of MHD boundary conditions in the Coulomb gauge are
+\begin{equation}
+  \label{eq:A_BC_perfc}
+  A_x = A_y = \phi = 0.
+\end{equation}
+\end{document}
+% LocalWords:  MHD Griffiths dV dA
