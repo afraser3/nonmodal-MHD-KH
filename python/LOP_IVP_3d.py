@@ -26,13 +26,15 @@ reject_spurious = True
 if dense:
     h5dir = Path("LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
     h5_fname = str(h5dir / 'Nz{}_dense.h5'.format(Nz))
-    plot_name = str(h5dir / 'Nz{}_dense_ti{}'.format(Nz, test_ind))
-    # out_dir = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_dense/".format(Reynolds, MA, Pm, Nz)
+    out_dir = h5dir / 'Nz{}_dense_ti{}'.format(Nz, test_ind)
+    plot_name = str(out_dir / 'energies')
 else:
     h5dir = Path("LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
     h5_fname = str(h5dir / 'Nz{}_k{}.h5'.format(Nz, k))
-    plot_name = str(h5dir / 'Nz{}_k{}_ti{}'.format(Nz, k, test_ind))
-    # out_dir = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_k{}/".format(Reynolds, MA, Pm, Nz, k)
+    out_dir = h5dir / 'Nz{}_k{}_ti{}'.format(Nz, k, test_ind)
+    plot_name = str(out_dir / 'energies')
+if not out_dir.exists():
+    out_dir.mkdir(parents=False)
 
 with h5py.File(h5_fname, mode='r') as file:
     eigenvalues = np.array(file['setup_mats/eigenvalues'])
@@ -131,18 +133,9 @@ problem.add_bc("right(v) = 0")
 problem.add_bc("right(w) = 0")
 
 # perfectly conducting boundaries
-# problem.add_bc("right(Bz) = 0")
-# problem.add_bc("right(dz(Bx)) = 0")
-# problem.add_bc("right(dz(By)) = 0")
-# problem.add_bc("left(Bz) = 0")
-# problem.add_bc("left(dz(Bx)) = 0")
-# problem.add_bc("left(dz(By)) = 0")
-
-# problem.add_bc("right(Az) = 0")
 problem.add_bc("right(Phi) = 0")
 problem.add_bc("right(Ax) = 0")
 problem.add_bc("right(Ay) = 0")
-# problem.add_bc("left(Az) = 0")
 problem.add_bc("left(Phi) = 0")
 problem.add_bc("left(Ax) = 0")
 problem.add_bc("left(Ay) = 0")
@@ -182,6 +175,34 @@ def magnetic_energy(X1):
     field = ((1.0 / MA2) * (np.abs(bx1) ** 2.0 + np.abs(by1) ** 2.0 + np.abs(bz1) ** 2.0)).evaluate().integrate()
     return field['g'][0]
 
+
+scalars = solver.evaluator.add_file_handler(str(out_dir / 'scalars'), iter=1)
+scalars.add_task('sqrt(integ(abs(u)**2))', layout='g', name='u_rms')
+scalars.add_task('sqrt(integ(abs(v)**2))', layout='g', name='v_rms')
+scalars.add_task('sqrt(integ(abs(w)**2))', layout='g', name='w_rms')
+scalars.add_task('sqrt(integ(abs(Bx)**2))', layout='g', name='Bx_rms')
+scalars.add_task('sqrt(integ(abs(By)**2))', layout='g', name='By_rms')
+scalars.add_task('sqrt(integ(abs(Bz)**2))', layout='g', name='Bz_rms')
+# scalars.add_task('integ(-w*u*DU)', layout='g', name='K_shear_prod')
+# scalars.add_task('integ(Bz*Bx*DU)', layout='g', name='M_shear_prod')
+# scalars.add_task('integ(dx(u*Bx + v*By + w*Bz))', layout='g', name='EM_work')
+scalars.add_task('integ(-(w*conj(u) + conj(w)*u)*DU)', layout='g', name='K_shear_prod')
+scalars.add_task('integ((Bz*conj(Bx) + conj(Bz)*Bx)*DU)', layout='g', name='M_shear_prod')
+scalars.add_task('integ(dx(u*conj(Bx) + conj(u)*Bx + v*conj(By) + conj(v)*By + w*conj(Bz) + conj(w)*Bz))', layout='g', name='EM_work')
+
+profiles = solver.evaluator.add_file_handler(str(out_dir / 'profiles'), iter=10)
+profiles.add_task('u', layout='g', name='u')
+profiles.add_task('v', layout='g', name='v')
+profiles.add_task('w', layout='g', name='w')
+profiles.add_task('omega_x', layout='g', name='omega_x')
+profiles.add_task('omega_y', layout='g', name='omega_y')
+profiles.add_task('omega_z', layout='g', name='omega_z')
+profiles.add_task('Bx', layout='g', name='Bx')
+profiles.add_task('By', layout='g', name='By')
+profiles.add_task('Bz', layout='g', name='Bz')
+profiles.add_task('Jx', layout='g', name='Jx')
+profiles.add_task('Jy', layout='g', name='Jy')
+profiles.add_task('Jz', layout='g', name='Jz')
 
 dt = 2e-2
 ts = np.arange(0.0, ts_LOP[-1] + dt, dt)
