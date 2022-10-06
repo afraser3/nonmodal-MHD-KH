@@ -70,6 +70,8 @@ problem.add_equation("dz(u) - dx(w) - omega_y = 0")
 # ucB_y = w*Bx - u*Bz = w - U*Bz
 # ucB_z = u*By - v*Bx = U*By - v
 
+# for future reference, this first equation can be written more simply if you do the vector calc identity that
+# gets you B dot grad u minus u dot grad B
 problem.add_equation("dt(Bx) - dy(U*By - v) + dz(w - U*Bz) - Lap(Bx, Bx_z)/Rm = 0")
 problem.add_equation("dt(By) + dx(U*By - v) - Lap(By, By_z)/Rm = 0")
 problem.add_equation("dt(Bz) - dx(w - U*Bz) - Lap(Bz, Bz_z)/Rm = 0")
