@@ -8,29 +8,38 @@ from pathlib import Path
 
 plot_max = False
 logscale = False
+hydro = False
+targets = np.array([1.0, 5.0, 7.0, 20.0, 25.0, 50.0])
 # targets = np.array([1.0, 5.0, 10.0, 15.0, 25.0, 50.0])
-targets = np.array([1.0, 5.0, 25.0, 50.0, 100.0, 200.0])
-run = "run_A2"
+# targets = np.array([1.0, 5.0, 25.0, 50.0, 100.0, 200.0])
+run = "run_F3"
 
 # Parse the .cfg filename passed to script
-config_file = Path("LOPs_3D/config_files/{}.cfg".format(run))
+if hydro:
+    config_file = Path("hydro/LOPs_3D/config_files/{}.cfg".format(run))
+else:
+    config_file = Path("LOPs_3D/config_files/{}.cfg".format(run))
 
 # Parse settings from .cfg file and save to variables
 runconfig = ConfigParser()
 runconfig.read(str(config_file))
 
 # data dir that was saved to
-basedir = Path("LOPs_3D") / config_file.stem
+if hydro:
+    basedir = Path("hydro/LOPs_3D") / config_file.stem
+else:
+    basedir = Path("LOPs_3D") / config_file.stem
 if not basedir.exists():
     basedir.mkdir(parents=True)
 
 # Parameters
 params = runconfig['parameters']
-MA = params.getfloat('MA')
-MA2 = MA**2.0
 Reynolds = params.getfloat('Reynolds')
-Pm = params.getfloat('Pm')
-mReynolds = Pm*Reynolds
+if not hydro:
+    MA = params.getfloat('MA')
+    MA2 = MA**2.0
+    Pm = params.getfloat('Pm')
+    mReynolds = Pm*Reynolds
 kx_start = params.getfloat('kx_start')
 kx_stop = params.getfloat('kx_stop')
 kx_num = params.getint('kx_num')
@@ -55,14 +64,20 @@ kys = np.linspace(ky_start, ky_stop, ky_num, endpoint=ky_endpoint)  # the full s
 kxs = np.linspace(kx_start, kx_stop, kx_num, endpoint=kx_endpoint)  # the full set of kxs to scan over
 kxdirs = [basedir / 'kxi_{:04d}/'.format(kx_i) for kx_i, kx in enumerate(kxs)]
 
-gains_file = "LOPs_3D/{}/gains.h5".format(run)
+if hydro:
+    gains_file = "hydro/LOPs_3D/{}/gains.h5".format(run)
+else:
+    gains_file = "LOPs_3D/{}/gains.h5".format(run)
 with h5py.File(gains_file, mode='r') as file:
     # kxs = np.array(file['ks/kx'])
     # kys = np.array(file['ks/ky'])
     Gs = np.array(file['gains/Gs'])
     # times = np.array(file['scales/ts'])
 
-plotname = 'LOPs_3D/{}/gains_kscan_'.format(run)
+if hydro:
+    plotname = 'hydro/LOPs_3D/{}/gains_kscan_'.format(run)
+else:
+    plotname = 'LOPs_3D/{}/gains_kscan_'.format(run)
 if plot_max:
     plotname += 'tmax_'
     if logscale:
@@ -100,7 +115,10 @@ else:
     # else:
         # plt.savefig('LOPs_3D/{}/gains_tscan_kscan_{}_lin.png'.format(run, run))
         # plt.savefig('LOPs_3D/{}/gains_tscan_kscan_{}_lin.pdf'.format(run, run))
-plotname += 'MA{}_Re{}_Pm{}_'.format(MA, Reynolds, Pm)
+if hydro:
+    plotname += 'Re{}_'.format(Reynolds)
+else:
+    plotname += 'MA{}_Re{}_Pm{}_'.format(MA, Reynolds, Pm)
 if dense:
     plotname += 'dense_'
 else:
