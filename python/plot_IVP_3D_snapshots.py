@@ -40,7 +40,7 @@ if not plot_dir.exists():
 with h5py.File(str(out_dir) + '/profiles_c/profiles_c_s1/profiles_c_s1_p0.h5', mode='r') as file:
     ts = np.array(file['scales/sim_time'])[::istep]
     field1_data = np.array(file['tasks/{}'.format(field1_name)])[::istep]
-    field2_data = np.array(file['tasks/{}'.format(field1_name)])[::istep]
+    field2_data = np.array(file['tasks/{}'.format(field2_name)])[::istep]
 
 z_basis = de.Chebyshev('z', Nz, interval=(-0.5 * Lz, 0.5 * Lz))
 x_basis = de.Fourier('x', 32, interval=(0.0, 2.0 * np.pi / kx))
