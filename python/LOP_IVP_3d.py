@@ -9,14 +9,13 @@ logger = logging.getLogger(__name__)
 
 test_ind = 50
 
-Nz = 256  # 128 is definitely not enough for these parameters
+Nz = 256
 Reynolds = 50.0
 Pm = 1.0
 mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
-kx = 0.025
-ky = 0.35
-# MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
+kx = 0.2
+ky = 0.025
 MA = 1.0
 MA2 = MA**2.0
 k = 300
@@ -57,7 +56,7 @@ with h5py.File(h5_fname, mode='r') as file:
     LOPs = []
     # Gs = np.zeros_like(ts_LOP)
     Gs = np.array(file['energies/Gs'])
-    E_test = np.zeros_like(ts_LOP)
+    # E_test = np.zeros_like(ts_LOP)
     # KE_test = np.zeros_like(ts_LOP)
     # ME_test = np.zeros_like(ts_LOP)
     # v1_test = np.array(file['ti_{}/Vh'.format(test_ind)]).conj()[0]
@@ -66,7 +65,7 @@ with h5py.File(h5_fname, mode='r') as file:
     for tind, t in enumerate(ts_LOP):
         # K = np.array(file['ti_{}/K'.format(tind)])
         propagator = np.array(file['ti_{}/propagator'.format(tind)])  # F @ K @ Finv
-        E_test[tind] = np.sum(np.abs(propagator @ v1_test) ** 2.0)
+        # E_test[tind] = np.sum(np.abs(propagator @ v1_test) ** 2.0)
         # KE_test[tind] = np.sum(np.abs(F_KE @ Finv @ propagator @ v1_test) ** 2.0)
         # ME_test[tind] = np.sum(np.abs(F_ME @ Finv @ propagator @ v1_test) ** 2.0)
         # U = np.array(file['ti_{}/U'.format(tind)])
@@ -226,8 +225,8 @@ while solver.ok:
 plt.semilogy(ts_LOP, Gs, c='k', label=r'$G(t_0)$')
 plt.semilogy(ts_LOP, Gs[0]*np.exp(ts_LOP*2.0*np.max(np.real(eigenvalues[indx])))*Gs[-1]/np.exp(ts_LOP[-1]*2.0*np.max(np.real(eigenvalues[indx]))), '--', c='k', label=r'eigenvalue')
 plt.semilogy(ts_LOP[test_ind], Gs[test_ind], 'x', c='k')
-plt.semilogy(ts, energies, label=r'$E(t, t_0={:4.2f})$ via IVP'.format(ts_LOP[test_ind]))
-plt.semilogy(ts_LOP, E_test, '--', label=r'$E$ via propagator')
+plt.semilogy(ts, energies, label=r'$E(t, t_0={:4.2f})$'.format(ts_LOP[test_ind]))
+# plt.semilogy(ts_LOP, E_test, '--', label=r'$E$ via propagator')
 plt.semilogy(ts, KEs, label=r'$KE(t, t_0={:4.2f})$'.format(ts_LOP[test_ind]))
 # plt.semilogy(ts_LOP, KE_test, '--', label=r'$KE$ via propagator')
 plt.semilogy(ts, MEs, label=r'$ME(t, t_0={:4.2f})$'.format(ts_LOP[test_ind]))
@@ -235,9 +234,11 @@ plt.semilogy(ts, MEs, label=r'$ME(t, t_0={:4.2f})$'.format(ts_LOP[test_ind]))
 plt.xlabel(r'$t, t_0$')
 plt.ylabel(r'$G, E$')
 plt.xlim((ts_LOP[0], ts_LOP[-1]))
+plt.legend()
+plt.savefig(plot_name+'_log.png')
+plt.savefig(plot_name+'_log.pdf')
 plt.yscale('linear')
 plt.ylim(ymin=0)
-plt.legend()
 plt.tight_layout()
 plt.savefig(plot_name+'.png')
 plt.savefig(plot_name+'.pdf')

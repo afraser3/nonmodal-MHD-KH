@@ -14,8 +14,8 @@ Reynolds = 50.0
 Pm = 1.0
 mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
-kx = 0.025
-ky = 0.35
+kx = 0.2
+ky = 0.025
 # MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
 MA = 1.0
 MA2 = MA**2.0
@@ -171,7 +171,7 @@ with h5py.File(fname, mode="w-") as file:
         K = R @ np.diag(np.exp(eigenvalues * t)) @ np.linalg.inv(R)
         propagator = F @ K @ Finv
         U, s, Vh = scipy.linalg.svd(propagator)
-        prop_data = t_grp.create_dataset('propagator', data=propagator)
+        # prop_data = t_grp.create_dataset('propagator', data=propagator)
         # s_data = t_grp.create_dataset('s', data=s)
         # Vh_data = t_grp.create_dataset('Vh', data=Vh)
         v1 = Vh.conj()[0]  # the optimal perturbation in the F'ed and Q'ed basis
