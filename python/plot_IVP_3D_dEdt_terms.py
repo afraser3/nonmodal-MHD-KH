@@ -5,14 +5,13 @@ from pathlib import Path
 
 test_ind = 50
 
-Nz = 256  # 128 is definitely not enough for these parameters
+Nz = 256
 Reynolds = 50.0
 Pm = 1.0
 mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
-kx = 0.025
-ky = 0.35
-# MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
+kx = 0.2
+ky = 0.025
 MA = 1.0
 MA2 = MA**2.0
 k = 300
@@ -61,14 +60,14 @@ plt.subplot(3, 1, 2)
 plt.plot(ts[:-1], delta_KE, label='d(KE)/dt')
 plt.plot(ts, np.real(K_prod[:, 0]), label='KE shear prod')
 plt.plot(ts, np.real(EM_work[:, 0]), label='EM work')
-plt.legend()
+plt.legend(loc='upper right')
 plt.xlim((ts[0], ts[-1]))
 plt.subplot(3, 1, 3)
 # plt.plot(ts, ME, label='ME')
 plt.plot(ts[:-1], delta_ME, label='d(ME)/dt')
 plt.plot(ts, np.real(M_prod[:, 0]), label='ME shear prod')
 plt.plot(ts, np.real(-EM_work[:, 0]), label='-(EM work)')
-plt.legend()
+plt.legend(loc='upper right')
 plt.xlim((ts[0], ts[-1]))
 plt.savefig(str(out_dir) + '/energies_prods.png')
 plt.savefig(str(out_dir) + '/energies_prods.pdf')
