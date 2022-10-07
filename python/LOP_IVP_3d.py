@@ -14,8 +14,8 @@ Reynolds = 50.0
 Pm = 1.0
 mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
-kx = 0.2
-ky = 0.025
+kx = 0.025  # 0.2
+ky = 0.35  # 0.025
 MA = 1.0
 MA2 = MA**2.0
 k = 300
@@ -203,6 +203,20 @@ profiles.add_task('Bz', layout='g', name='Bz')
 profiles.add_task('Jx', layout='g', name='Jx')
 profiles.add_task('Jy', layout='g', name='Jy')
 profiles.add_task('Jz', layout='g', name='Jz')
+
+profiles_c = solver.evaluator.add_file_handler(str(out_dir / 'profiles_c'), iter=10)
+profiles_c.add_task('u', layout='c', name='u')
+profiles_c.add_task('v', layout='c', name='v')
+profiles_c.add_task('w', layout='c', name='w')
+profiles_c.add_task('omega_x', layout='c', name='omega_x')
+profiles_c.add_task('omega_y', layout='c', name='omega_y')
+profiles_c.add_task('omega_z', layout='c', name='omega_z')
+profiles_c.add_task('Bx', layout='c', name='Bx')
+profiles_c.add_task('By', layout='c', name='By')
+profiles_c.add_task('Bz', layout='c', name='Bz')
+profiles_c.add_task('Jx', layout='c', name='Jx')
+profiles_c.add_task('Jy', layout='c', name='Jy')
+profiles_c.add_task('Jz', layout='c', name='Jz')
 
 dt = 2e-2
 ts = np.arange(0.0, ts_LOP[-1] + dt, dt)
