@@ -64,7 +64,7 @@ with h5py.File(h5_fname, mode='r') as file:
     # for tind, t in enumerate(ts_LOP[1:], 1):
     for tind, t in enumerate(ts_LOP):
         # K = np.array(file['ti_{}/K'.format(tind)])
-        propagator = np.array(file['ti_{}/propagator'.format(tind)])  # F @ K @ Finv
+        # propagator = np.array(file['ti_{}/propagator'.format(tind)])  # F @ K @ Finv
         # E_test[tind] = np.sum(np.abs(propagator @ v1_test) ** 2.0)
         # KE_test[tind] = np.sum(np.abs(F_KE @ Finv @ propagator @ v1_test) ** 2.0)
         # ME_test[tind] = np.sum(np.abs(F_ME @ Finv @ propagator @ v1_test) ** 2.0)
@@ -186,9 +186,9 @@ scalars.add_task('sqrt(integ(abs(Bz)**2))', layout='g', name='Bz_rms')
 # scalars.add_task('integ(Bz*Bx*DU)', layout='g', name='M_shear_prod')
 # scalars.add_task('integ(dx(u*Bx + v*By + w*Bz))', layout='g', name='EM_work')
 scalars.add_task('integ(-(w*conj(u) + conj(w)*u)*DU)', layout='g', name='K_shear_prod')
-scalars.add_task('integ((Bz*conj(Bx) + conj(Bz)*Bx)*DU)', layout='g', name='M_shear_prod')
+scalars.add_task('integ((Bz*conj(Bx) + conj(Bz)*Bx)*DU)/MA2', layout='g', name='M_shear_prod')
 # scalars.add_task('integ(dx(u*conj(Bx) + conj(u)*Bx + v*conj(By) + conj(v)*By + w*conj(Bz) + conj(w)*Bz))', layout='g', name='EM_work')
-scalars.add_task('-integ(Bx*conj(dx(u)) + conj(Bx)*dx(u) + By*conj(dx(v)) + conj(By)*dx(v) + Bz*conj(dx(w)) + conj(Bz)*dx(w))', layout='g', name='EM_work')
+scalars.add_task('-integ(Bx*conj(dx(u)) + conj(Bx)*dx(u) + By*conj(dx(v)) + conj(By)*dx(v) + Bz*conj(dx(w)) + conj(Bz)*dx(w))/MA2', layout='g', name='EM_work')
 
 profiles = solver.evaluator.add_file_handler(str(out_dir / 'profiles'), iter=10)
 profiles.add_task('u', layout='g', name='u')
