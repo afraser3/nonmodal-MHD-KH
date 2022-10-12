@@ -206,8 +206,6 @@ for n, index in enumerate(my_indices):
     local_ky[n] = ky
     kyi = unraveled_index[0]
     local_dir = basedir / 'kxi_{:04d}'.format(kxi) / 'kyi_{:04d}'.format(kyi)
-    if not local_dir.exists():
-        local_dir.mkdir(parents=True)
     if kx > 0. or ky > 0.:
         try:
             # Gs, eigenvalues, eigenvectors, F, Q, R, pre_right = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_setup_mats=True)
@@ -223,6 +221,8 @@ for n, index in enumerate(my_indices):
     # Gs_local[kx_ind, ky_ind] = Gs
     local_Gs[n] = Gs
     local_nEVs[n] = len(EP.evalues)
+    if not local_dir.exists():
+        local_dir.mkdir(parents=True)
     with h5py.File(str(local_dir / "gains_mats.h5"), mode='w-') as file:
         setup_mats_grp = file.create_group('setup_mats')
         evalues_data = setup_mats_grp.create_dataset('eigenvalues', data=eigenvalues)
