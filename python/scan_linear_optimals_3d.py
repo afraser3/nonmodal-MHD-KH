@@ -62,6 +62,7 @@ Nz = params.getint('Nz')
 Lz = params.getfloat('Lz_factor')*np.pi
 reject_spurious = True
 make_plots = params.getboolean('make_plots')
+plot_modes = params.getboolean('plot_modes')
 
 # kx = 0.2
 # ky = 1e-8  # worked for ky=0.1, but 0.2 gives no good eigenvalues, strangely. At Nz=1024 it gave 1 good eigenvalue.
@@ -253,6 +254,15 @@ for n, index in enumerate(my_indices):
         plt.title(r'kx = {}, ky = {}'.format(kx, ky))
         plt.savefig(str(local_dir / 'gain.png'))
         plt.close()
+    if plot_modes:
+        emode_dir = local_dir / 'emode_plots'
+        if not emode_dir.exists():
+            emode_dir.mkdir(parents=True)
+        for ev_ind, ev in enumerate(eigenvalues):
+            fig = EP.plot_mode(ev_ind)
+            fig.suptitle('EV: {}'.format(ev))
+            fig.savefig(str(emode_dir / 'emode_{}.pdf'.format(ev_ind)))
+            plt.close()
 
 gathered_Gs = np.zeros((*dims, len(ts)), dtype=np.float64)
 rec_counts = np.array([s.size for s in load_indices])*len(ts)
