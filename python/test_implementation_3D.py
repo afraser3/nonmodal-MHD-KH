@@ -79,12 +79,21 @@ problem.add_bc("right(v) = 0")
 problem.add_bc("right(w) = 0")
 
 # perfectly conducting boundaries
-problem.add_bc("right(Bz) = 0")
-problem.add_bc("right(dz(Bx)) = 0")
-problem.add_bc("right(dz(By)) = 0")
-problem.add_bc("left(Bz) = 0")
-problem.add_bc("left(dz(Bx)) = 0")
-problem.add_bc("left(dz(By)) = 0")
+# problem.add_bc("right(Bz) = 0")
+# problem.add_bc("right(dz(Bx)) = 0")
+# problem.add_bc("right(dz(By)) = 0")
+# problem.add_bc("left(Bz) = 0")
+# problem.add_bc("left(dz(Bx)) = 0")
+# problem.add_bc("left(dz(By)) = 0")
+
+# problem.add_bc("right(Az) = 0")
+problem.add_bc("right(Phi) = 0")
+problem.add_bc("right(Ax) = 0")
+problem.add_bc("right(Ay) = 0")
+# problem.add_bc("left(Az) = 0")
+problem.add_bc("left(Phi) = 0")
+problem.add_bc("left(Ax) = 0")
+problem.add_bc("left(Ay) = 0")
 
 logger.info("done with BCs")
 
