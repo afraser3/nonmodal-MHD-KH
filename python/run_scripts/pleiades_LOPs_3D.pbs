@@ -1,0 +1,18 @@
+#PBS -S /bin/bash
+#PBS -N LOPs_3D
+#PBS -l select=1:ncpus=24:mpiprocs=24:model=bro
+#PBS -l walltime=8:00:00
+#PBS -j oe
+#PBS -q normal
+
+export dedalus_script=scan_linear_optimals_3d
+export cfg_file=kx-log-scan_Nz256-dense-saveLOPs-saveEvecs
+
+cd $PBS_O_WORKDIR
+
+source ~/miniforge3/bin/activate
+conda activate dedalus-d2
+
+date
+mpiexec_mpt -n 24 python3 $dedalus_script.py LOPs_3D/config_files/run_$cfg_file.cfg > $dedalus_script.$cfg_file.out.$PBS_JOBID
+date
