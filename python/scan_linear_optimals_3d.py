@@ -41,6 +41,7 @@ MA2 = MA**2.0
 Reynolds = params.getfloat('Reynolds')
 Pm = params.getfloat('Pm')
 mReynolds = Pm*Reynolds
+kx_log = params.getboolean('kx_log')
 kx_start = params.getfloat('kx_start')
 kx_stop = params.getfloat('kx_stop')
 kx_num = params.getint('kx_num')
@@ -60,16 +61,22 @@ k = params.getint('k')
 dense = params.getboolean('dense')
 Nz = params.getint('Nz')
 Lz = params.getfloat('Lz_factor')*np.pi
-reject_spurious = True
+reject_spurious = params.getboolean('reject_spurious')
 make_plots = params.getboolean('make_plots')
 plot_modes = params.getboolean('plot_modes')
+save_evecs = params.getboolean('save_evecs')
+save_LOPs = params.getboolean('save_LOPs')
+save_LOPs_istep = params.getint('save_LOPs_istep')
 
 # kx = 0.2
 # ky = 1e-8  # worked for ky=0.1, but 0.2 gives no good eigenvalues, strangely. At Nz=1024 it gave 1 good eigenvalue.
 # MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
 
 ky_global = np.linspace(ky_start, ky_stop, ky_num, endpoint=ky_endpoint)  # the full set of kys to scan over
-kx_global = np.linspace(kx_start, kx_stop, kx_num, endpoint=kx_endpoint)  # the full set of kxs to scan over
+if kx_log:
+    kx_global = np.geomspace(kx_start, kx_stop, kx_num, endpoint=kx_endpoint)  # the full set of kxs to scan over
+else:
+    kx_global = np.linspace(kx_start, kx_stop, kx_num, endpoint=kx_endpoint)  # the full set of kxs to scan over
 kxdirs_global = [basedir / 'kxi_{:04d}/'.format(kx_i) for kx_i, kx in enumerate(kx_global)]
 if CW.rank == 0:
     for kxdir in kxdirs_global:
@@ -211,11 +218,50 @@ for n, index in enumerate(my_indices):
         try:
             # Gs, eigenvalues, eigenvectors, F, Q, R, pre_right = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_setup_mats=True)
             # Gs, perturbations, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_perturbations=True)
-            Gs, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k)
+            if save_LOPs:
+                Gs, perturbations, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_perturbations=True)
+            else:
+                Gs, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k)
         except ValueError:
             logger.warning("skipping (kx, ky) = ({}, {}) because no good eigenvalues were found".format(kx, ky))
             local_Gs[n] = np.ones_like(local_Gs[n])*np.nan
+            if not local_dir.exists():
+                local_dir.mkdir(parents=True)
+            with h5py.File(str(local_dir / "gains_mats.h5"), mode='w-') as file:
+                setup_mats_grp = file.create_group('setup_mats')
+                evalues_data = setup_mats_grp.create_dataset('eigenvalues', data=EP.evalues)
+                evalues_high_data = setup_mats_grp.create_dataset('eigenvalues_high', data=EP.evalues_high)
+                evalues_low_data = setup_mats_grp.create_dataset('eigenvalues_low', data=EP.evalues_low)
+                if save_evecs:
+                    evecs_data = setup_mats_grp.create_dataset('eigenvectors', data=((EP.solver.eigenvectors.T)[EP.evalues_index]).T)
+                scales_grp = file.create_group('scales')
+                ts_data = scales_grp.create_dataset('ts', data=ts)
+                kx_data = scales_grp.create_dataset('kx', data=kx)
+                ky_data = scales_grp.create_dataset('ky', data=ky)
+                Nz_data = scales_grp.create_dataset('Nz', data=Nz)
+                Lz_data = scales_grp.create_dataset('Lz', data=Lz)
+                zs_data = scales_grp.create_dataset('z', data=z)
             continue  # this means that no .h5 or .png files will be created for this ky, and the code will continue on to the next ky
+        except np.linalg.LinAlgError:
+            # If the Cholesky decomposition doesn't work, say so, and dump some data to help diagnose whatever is going on
+            logger.warning("skipping (kx, ky) = ({}, {}) because LinAlgError was returned -- look into this!".format(kx, ky))
+            if not local_dir.exists():
+                local_dir.mkdir(parents=True)
+            with h5py.File(str(local_dir / "gains_mats.h5"), mode='w-') as file:
+                setup_mats_grp = file.create_group('setup_mats')
+                evalues_data = setup_mats_grp.create_dataset('eigenvalues', data=EP.evalues)
+                evalues_high_data = setup_mats_grp.create_dataset('eigenvalues_high', data=EP.evalues_high)
+                evalues_low_data = setup_mats_grp.create_dataset('eigenvalues_low', data=EP.evalues_low)
+                if save_evecs:
+                    evecs_data = setup_mats_grp.create_dataset('eigenvectors', data=((EP.solver.eigenvectors.T)[EP.evalues_index]).T)
+                scales_grp = file.create_group('scales')
+                ts_data = scales_grp.create_dataset('ts', data=ts)
+                kx_data = scales_grp.create_dataset('kx', data=kx)
+                ky_data = scales_grp.create_dataset('ky', data=ky)
+                Nz_data = scales_grp.create_dataset('Nz', data=Nz)
+                Lz_data = scales_grp.create_dataset('Lz', data=Lz)
+                zs_data = scales_grp.create_dataset('z', data=z)
+            continue
     else:
         local_Gs[n] = np.ones_like(local_Gs[n])*np.nan
         continue
@@ -227,7 +273,10 @@ for n, index in enumerate(my_indices):
     with h5py.File(str(local_dir / "gains_mats.h5"), mode='w-') as file:
         setup_mats_grp = file.create_group('setup_mats')
         evalues_data = setup_mats_grp.create_dataset('eigenvalues', data=eigenvalues)
-        # evecs_data = setup_mats_grp.create_dataset('eigenvectors', data=eigenvectors)
+        evalues_high_data = setup_mats_grp.create_dataset('eigenvalues_high', data=EP.evalues_high)
+        evalues_low_data = setup_mats_grp.create_dataset('eigenvalues_low', data=EP.evalues_low)
+        if save_evecs:
+            evecs_data = setup_mats_grp.create_dataset('eigenvectors', data=eigenvectors)
         # R_data = setup_mats_grp.create_dataset('R', data=R)
         # Q_data = setup_mats_grp.create_dataset('Q', data=Q)
         # F_data = setup_mats_grp.create_dataset('F', data=F)
@@ -244,7 +293,8 @@ for n, index in enumerate(my_indices):
 
         gains_grp = file.create_group('gains')
         Gs_data = gains_grp.create_dataset('Gs', data=Gs)
-        # perturbations_data =
+        if save_LOPs:
+            LOPs_data = gains_grp.create_dataset('LOPs', data=perturbations[:, ::save_LOPs_istep])
     if make_plots:
         plt.semilogy(ts, Gs)
         plt.semilogy(ts, Gs[0]*np.exp(ts*2.0*np.max(np.real(eigenvalues)))*Gs[-1]/np.exp(ts[-1]*2.0*np.max(np.real(eigenvalues))), '--')
