@@ -67,6 +67,7 @@ plot_modes = params.getboolean('plot_modes')
 save_evecs = params.getboolean('save_evecs')
 save_LOPs = params.getboolean('save_LOPs')
 save_LOPs_istep = params.getint('save_LOPs_istep')
+save_betas = params.getboolean('save_betas')  # the amplitude of the LOPs expressed in the eigenmode basis
 
 # kx = 0.2
 # ky = 1e-8  # worked for ky=0.1, but 0.2 gives no good eigenvalues, strangely. At Nz=1024 it gave 1 good eigenvalue.
@@ -219,7 +220,10 @@ for n, index in enumerate(my_indices):
             # Gs, eigenvalues, eigenvectors, F, Q, R, pre_right = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_setup_mats=True)
             # Gs, perturbations, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_perturbations=True)
             if save_LOPs:
-                Gs, perturbations, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_perturbations=True)
+                if save_betas:
+                    Gs, perturbations, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_perturbations=True, left=True, normalize_left=False)
+                else:
+                    Gs, perturbations, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_perturbations=True)
             else:
                 Gs, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k)
         except ValueError:
@@ -274,16 +278,31 @@ for n, index in enumerate(my_indices):
         setup_mats_grp = file.create_group('setup_mats')
         evalues_data = setup_mats_grp.create_dataset('eigenvalues', data=eigenvalues)
         evalues_high_data = setup_mats_grp.create_dataset('eigenvalues_high', data=EP.evalues_high)
-        evalues_low_data = setup_mats_grp.create_dataset('eigenvalues_low', data=EP.evalues_low)
+        evals_low = EP.evalues_low
+        if dense:  # this low_order stuff doesn't matter if using dense solve because lefts and rights are in the same order
+            low_order = np.array(range(len(evals_low)))
+        else:
+            low_order = np.argsort(np.imag(evals_low))  # reorder low evals so they match the ordering of the betas, below
+        evalues_low_data = setup_mats_grp.create_dataset('eigenvalues_low', data=evals_low[low_order])
         if save_evecs:
             evecs_data = setup_mats_grp.create_dataset('eigenvectors', data=eigenvectors)
+        if save_betas:
+            # left_order = np.argsort(-np.imag(EP.solver.left_eigenvalues))  # reorder left evals so they match the ordering of the betas, below
+            if dense:
+                left_order = low_order
+            else:
+                left_order = np.zeros_like(low_order)
+                left_evals = EP.solver.left_eigenvalues
+                for i in range(len(left_order)):
+                    left_order[i] = np.argmin(np.abs(np.conj(left_evals) - evals_low[low_order[i]]))
+                left_evalues_data = setup_mats_grp.create_dataset('left_eigenvalues', data=left_evals[left_order])
+            evecs_low_data = setup_mats_grp.create_dataset('eigenvectors_low', data=EP.solver.eigenvectors[:, low_order])  # just for troubleshooting for now
         # R_data = setup_mats_grp.create_dataset('R', data=R)
         # Q_data = setup_mats_grp.create_dataset('Q', data=Q)
         # F_data = setup_mats_grp.create_dataset('F', data=F)
         # pre_right_data = setup_mats_grp.create_dataset('pre_right', data=pre_right.toarray())
 
-        scales_grp = file.create_group(
-            'scales')  # in the spirit of "scales" in d2 h5 files, but this is a bad name for this use case
+        scales_grp = file.create_group('scales')  # in the spirit of "scales" in d2 h5 files, but this is a bad name for this use case
         ts_data = scales_grp.create_dataset('ts', data=ts)
         kx_data = scales_grp.create_dataset('kx', data=kx)
         ky_data = scales_grp.create_dataset('ky', data=ky)
@@ -295,6 +314,21 @@ for n, index in enumerate(my_indices):
         Gs_data = gains_grp.create_dataset('Gs', data=Gs)
         if save_LOPs:
             LOPs_data = gains_grp.create_dataset('LOPs', data=perturbations[:, ::save_LOPs_istep])
+            if save_betas:
+                modified_lefts_data = gains_grp.create_dataset('modified_left_eigenvectors', data=EP.solver.modified_left_eigenvectors)  # just for troubleshooting for now
+                modified_lefts = EP.solver.modified_left_eigenvectors
+                # Ideally would like to normalize the modified left eigenvectors such that they are orthoNORMAL, not
+                # just orthogonal, to the right eigenvectors. Doing that requires first making sure that the left and
+                # right eigenvectors are arranged in the same order. This assumes that the left and right eigenvalues
+                # are indeed the same just not arranged in the same order -- might be worth raising a warning if they
+                # aren't actually the same
+                evecs_low_reorder = EP.solver.eigenvectors[:, low_order]  # reordered right eigenvectors
+                modified_left_evecs_reorder = modified_lefts[:, left_order]  # reordered modified left evecs
+                # next, normalize the left evecs
+                modified_left_evecs_reorder_norm = modified_left_evecs_reorder / np.conjugate(np.diag(modified_left_evecs_reorder.T.conj() @ evecs_low_reorder))
+                # betas = np.matmul(np.conjugate(EP.solver.modified_left_eigenvectors.T), perturbations[:, ::save_LOPs_istep])
+                betas = modified_left_evecs_reorder_norm.T.conj() @ perturbations[:, ::save_LOPs_istep]
+                betas_data = gains_grp.create_dataset('betas', data=betas)
     if make_plots:
         plt.semilogy(ts, Gs)
         plt.semilogy(ts, Gs[0]*np.exp(ts*2.0*np.max(np.real(eigenvalues)))*Gs[-1]/np.exp(ts[-1]*2.0*np.max(np.real(eigenvalues))), '--')
