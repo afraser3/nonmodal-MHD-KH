@@ -8,7 +8,7 @@ from pathlib import Path
 from configparser import ConfigParser
 # import glob
 
-run_name = 'run_kx-log-scan-saveLOPs'
+run_name = 'run_kx-log-scan_Nz256-dense-newscipy-saveLOPs-saveEvecs-saveBetas'
 basedir = Path("LOPs_3D") / run_name
 config_file = Path("LOPs_3D/config_files/"+run_name+'.cfg')
 # gains_files = glob.glob(str(basedir)+'/kxi*/kyi*/gains_mats.h5')
@@ -67,8 +67,13 @@ with PdfPages(str(basedir / 'evals_kxscan.pdf')) as pdf:
             kx = np.array(file['scales/kx'])
             ky = np.array(file['scales/ky'])
             evals = np.array(file['setup_mats/eigenvalues'])
+            evals_low = np.array(file['setup_mats/eigenvalues_low'])
+            # left_evals = np.array(file['setup_mats/left_eigenvalues'])
 
-        plt.plot(np.real(evals), np.imag(evals), '.')
+        # plt.plot(np.real(evals_low), np.imag(evals_low), 'x', label='right evals (unfiltered)')
+        # plt.plot(np.real(left_evals), -np.imag(left_evals), '+', label='left evals')
+        plt.plot(np.real(evals), np.imag(evals), '.', label='right evals (filtered)')
+        plt.legend()
         plt.title(r'$k_x={:1.2e}$'.format(kx))
         plt.tight_layout()
         # plt.show()
