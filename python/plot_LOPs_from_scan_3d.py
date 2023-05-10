@@ -8,7 +8,9 @@ from pathlib import Path
 from configparser import ConfigParser
 # import glob
 
-run_name = 'run_kx-log-scan-saveLOPs'
+# run_name = 'run_kx-log-scan-saveLOPs-saveEvecs-saveBetas'
+run_name = 'run_kx-log-scan-MA40_Nz256-dense-newscipy-saveLOPs-saveEvecs-saveBetas'
+sparse = False
 basedir = Path("LOPs_3D") / run_name
 config_file = Path("LOPs_3D/config_files/"+run_name+'.cfg')
 # gains_files = glob.glob(str(basedir)+'/kxi*/kyi*/gains_mats.h5')
@@ -62,6 +64,7 @@ LOP_ts = ts[::save_LOPs_istep]
 # for gains_file in gains_files:
 tind = 2
 with PdfPages(str(basedir / 'LOPs_kxscan.pdf')) as pdf:
+    # for kydir in kydirs[-2::-1]:  # for this one case, skip this one ky because it's not behaving well
     for kydir in kydirs[::-1]:
         print('starting: ', kydir)
         gains_file = str(kydir / 'gains_mats.h5')
@@ -69,6 +72,11 @@ with PdfPages(str(basedir / 'LOPs_kxscan.pdf')) as pdf:
             kx = np.array(file['scales/kx'])
             ky = np.array(file['scales/ky'])
             LOPs = np.array(file['gains/LOPs'])
+            if sparse:
+                left_evals = np.array(file['setup_mats/left_eigenvalues'])
+            evals = np.array(file['setup_mats/eigenvalues'])
+            evals_low = np.array(file['setup_mats/eigenvalues_low'])
+            betas = np.array(file['gains/betas'])
             # loop over the t axis of the LOPs array and shift the complex phase of the LOPs
             # (this can certainly be vectorized)
             for ti in range(np.shape(LOPs)[-1]):
@@ -76,6 +84,7 @@ with PdfPages(str(basedir / 'LOPs_kxscan.pdf')) as pdf:
                 LOPs[:, ti] = LOPs[:, ti]/LOP_phase
 
         LOP = LOPs[:, tind]  # for testing
+        betas = betas[:, tind]  # for testing
 
         z_basis = de.Chebyshev('z', Nz, interval=(-0.5 * Lz, 0.5 * Lz))
         x_basis = de.Fourier('x', 32, interval=(0.0, 2.0 * np.pi / kx))
@@ -95,45 +104,56 @@ with PdfPages(str(basedir / 'LOPs_kxscan.pdf')) as pdf:
         Bz['c'] = 1j*kx*LOP_fields[5]['c'] - 1j*ky*LOP_fields[4]['c']  # Bz = dx(Ay) - dy(Ax)
 
         yind = 0  # where in y to slice)
+        scale = 0.8
+        fig = plt.figure(figsize=(scale*16, scale*10))
 
-        plt.subplot(2, 3, 1)
+        plt.subplot(2, 4, 1)
         plt.pcolormesh(x, z, LOP_fields[0]['g'][:, yind, :].T, rasterized=True)
         # plt.title(r'$u$, $t={}$'.format(LOP_ts[tind]))
         plt.title(r'$u$')
         plt.ylabel(r'$z$')
         plt.colorbar()
 
-        plt.subplot(2, 3, 2)
+        plt.subplot(2, 4, 2)
         plt.pcolormesh(x, z, LOP_fields[1]['g'][:, yind, :].T, rasterized=True)
         plt.title(r'$v$')
         # plt.ylabel(r'$z$')
         plt.colorbar()
 
-        plt.subplot(2, 3, 3)
+        plt.subplot(2, 4, 3)
         plt.pcolormesh(x, z, LOP_fields[2]['g'][:, yind, :].T, rasterized=True)
         plt.title(r'$w$')
         # plt.ylabel(r'$z$')
         plt.colorbar()
 
-        plt.subplot(2, 3, 4)
+        plt.subplot(2, 4, 5)
         plt.pcolormesh(x, z, LOP_fields[10]['g'][:, yind, :].T, rasterized=True)
         plt.title(r'$B_x$')
         plt.ylabel(r'$z$')
         plt.xlabel(r'$x$')
         plt.colorbar()
 
-        plt.subplot(2, 3, 5)
+        plt.subplot(2, 4, 6)
         plt.pcolormesh(x, z, LOP_fields[11]['g'][:, yind, :].T, rasterized=True)
         plt.title(r'$B_y$')
         # plt.ylabel(r'$z$')
         plt.xlabel(r'$x$')
         plt.colorbar()
 
-        plt.subplot(2, 3, 6)
+        plt.subplot(2, 4, 7)
         plt.pcolormesh(x, z, Bz['g'][:, yind, :].T, rasterized=True)
         plt.title(r'$B_z$')
         # plt.ylabel(r'$z$')
         plt.xlabel(r'$x$')
+        plt.colorbar()
+
+        plt.subplot(2, 4, 4)
+        # plt.plot(np.real(evals), np.imag(evals), 'x')
+        beta_order = np.argsort(np.abs(betas))
+        if sparse:
+            plt.scatter(np.real(left_evals[beta_order]), -np.imag(left_evals[beta_order]), marker='.', c=np.abs(betas[beta_order]))
+        else:
+            plt.scatter(np.real(evals_low[beta_order]), -np.imag(evals_low[beta_order]), marker='.', c=np.abs(betas[beta_order]))
         plt.colorbar()
 
         plt.suptitle(r'$k_x={:1.2e}$, $t={}$'.format(kx, LOP_ts[tind]))
