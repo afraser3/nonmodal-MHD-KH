@@ -6,11 +6,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def LOP_setup_mats(EP, parameters, norm, pencil=0, dense=True, k=100):
+def LOP_setup_mats(EP, parameters, norm, pencil=0, dense=True, k=100, left=False, normalize_left=False):
     if dense:
-        EP.solve(sparse=False, pencil=pencil, parameters=parameters)
+        EP.solve(sparse=False, pencil=pencil, parameters=parameters, left=left, normalize_left=normalize_left)
     else:
-        EP.solve(sparse=True, N=k, pencil=pencil, parameters=parameters)
+        EP.solve(sparse=True, N=k, pencil=pencil, parameters=parameters, left=left, normalize_left=normalize_left, raise_on_mismatch=False)
     if len(EP.evalues_good) == 0:
         raise ValueError("No good eigenvalues for these parameters")
     pre_right = EP.solver.pencils[pencil].pre_right  # right-preconditioner for the matrix pencil, call it PR
@@ -32,10 +32,10 @@ def LOP_setup_mats(EP, parameters, norm, pencil=0, dense=True, k=100):
     return eigenvalues, eigenvectors, F, Q, R, pre_right
 
 
-def LOP(EP, times, parameters, norm, pencil=0, dense=True, k=100, return_setup_mats=False, return_perturbations=False):
+def LOP(EP, times, parameters, norm, pencil=0, dense=True, k=100, return_setup_mats=False, return_perturbations=False, left=False, normalize_left=False):
 
     Gs = np.zeros_like(times)
-    eigenvalues, eigenvectors, F, Q, R, pre_right = LOP_setup_mats(EP, parameters, norm, pencil=pencil, dense=dense, k=k)
+    eigenvalues, eigenvectors, F, Q, R, pre_right = LOP_setup_mats(EP, parameters, norm, pencil=pencil, dense=dense, k=k, left=left, normalize_left=normalize_left)
     Finv = np.linalg.inv(F)
     for tind, t in enumerate(times):
         K = R @ np.diag(np.exp(eigenvalues * t)) @ np.linalg.inv(R)
