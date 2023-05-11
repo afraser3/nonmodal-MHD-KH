@@ -61,6 +61,7 @@ k = params.getint('k')
 dense = params.getboolean('dense')
 Nz = params.getint('Nz')
 Lz = params.getfloat('Lz_factor')*np.pi
+Legendre = params.getboolean('Legendre')
 reject_spurious = params.getboolean('reject_spurious')
 make_plots = params.getboolean('make_plots')
 plot_modes = params.getboolean('plot_modes')
@@ -117,7 +118,10 @@ def energy_norm_general(X1, X2, kx, ky):
     return field['g'][0]
 
 
-z_basis = de.Chebyshev('z', Nz, interval=(-0.5 * Lz, 0.5 * Lz))
+if Legendre:
+    z_basis = de.Legendre('z', Nz, interval=(-0.5 * Lz, 0.5 * Lz))
+else:
+    z_basis = de.Chebyshev('z', Nz, interval=(-0.5 * Lz, 0.5 * Lz))
 domain = de.Domain([z_basis], grid_dtype=np.complex128, comm=MPI.COMM_SELF)
 probvars = ['u', 'v', 'w', 'p', 'Ax', 'Ay', 'Az', 'Phi', 'omega_x', 'omega_y', 'Bx', 'By']
 

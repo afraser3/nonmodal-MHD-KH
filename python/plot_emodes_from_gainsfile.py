@@ -10,6 +10,7 @@ import h5py
 from dedalus import public as de
 
 basedir = 'LOPs_3D/run_kx-log-scan-saveLOPs-saveEvecs/kxi_0015/kyi_0000/'
+Legendre = False  # should fix this to be read from the config file or something
 gainsfile = basedir+'gains_mats.h5'
 with h5py.File(gainsfile, mode='r') as file:
     kx = np.array(file['scales/kx'])
@@ -21,7 +22,10 @@ with h5py.File(gainsfile, mode='r') as file:
     evecs = np.array(file['setup_mats/eigenvectors'])
 
 with PdfPages(basedir + 'evecs.pdf') as pdf:
-    z_basis = de.Chebyshev('z', Nz, interval=(-0.5 * Lz, 0.5 * Lz))
+    if Legendre:
+        z_basis = de.Legendre('z', Nz, interval=(-0.5 * Lz, 0.5 * Lz))
+    else:
+        z_basis = de.Chebyshev('z', Nz, interval=(-0.5 * Lz, 0.5 * Lz))
     x_basis = de.Fourier('x', 32, interval=(0.0, 2.0 * np.pi / kx))
     y_basis = de.Fourier('x', 32, interval=(0.0, 2.0 * np.pi / ky))
     domain = de.Domain([x_basis, y_basis, z_basis], grid_dtype=np.float64)

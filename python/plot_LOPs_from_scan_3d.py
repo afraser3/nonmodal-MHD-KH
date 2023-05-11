@@ -54,6 +54,7 @@ k = params.getint('k')
 dense = params.getboolean('dense')
 Nz = params.getint('Nz')
 Lz = params.getfloat('Lz_factor')*np.pi
+Legendre = params.getboolean('Legendre')
 make_plots = params.getboolean('make_plots')
 plot_modes = params.getboolean('plot_modes')
 save_LOPs = params.getboolean('save_LOPs')
@@ -86,7 +87,10 @@ with PdfPages(str(basedir / 'LOPs_kxscan.pdf')) as pdf:
         LOP = LOPs[:, tind]  # for testing
         betas = betas[:, tind]  # for testing
 
-        z_basis = de.Chebyshev('z', Nz, interval=(-0.5 * Lz, 0.5 * Lz))
+        if Legendre:
+            z_basis = de.Legendre('z', Nz, interval=(-0.5 * Lz, 0.5 * Lz))
+        else:
+            z_basis = de.Chebyshev('z', Nz, interval=(-0.5 * Lz, 0.5 * Lz))
         x_basis = de.Fourier('x', 32, interval=(0.0, 2.0 * np.pi / kx))
         y_basis = de.Fourier('x', 32, interval=(0.0, 2.0 * np.pi / ky))
         domain = de.Domain([x_basis, y_basis, z_basis], grid_dtype=np.float64)
