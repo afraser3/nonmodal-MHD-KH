@@ -6,10 +6,26 @@ import h5py
 from dedalus import public as de
 from pathlib import Path
 from configparser import ConfigParser
-# import glob
+import glob
+import re
+
+
+def natural_sort(iterable, reverse=False):
+    """
+    Sort alphanumeric strings naturally, i.e. with "1" before "10".
+    Based on http://stackoverflow.com/a/4836734.
+
+    Actually, just copy+pasted from dedalus
+    """
+
+    convert = lambda sub: int(sub) if sub.isdigit() else sub.lower()
+    key = lambda item: [convert(sub) for sub in re.split('([0-9]+)', str(item))]
+
+    return sorted(iterable, key=key, reverse=reverse)
+
 
 # run_name = 'run_kx-log-scan-saveLOPs-saveEvecs-saveBetas'
-run_name = 'run_kx-log-scan-MA40_Nz256-dense-newscipy-saveLOPs-saveEvecs-saveBetas'
+run_name = "run_kx-log-scan_Nz512-dense-newscipy-saveLOPs-saveEvecs-saveBetas"
 sparse = False
 basedir = Path("LOPs_3D") / run_name
 config_file = Path("LOPs_3D/config_files/"+run_name+'.cfg')
@@ -42,7 +58,10 @@ if kx_log:
 else:
     kxs = np.linspace(kx_start, kx_stop, kx_num, endpoint=kx_endpoint)  # the full set of kxs to scan over
 kxdirs = [basedir / 'kxi_{:04d}/'.format(kx_i) for kx_i, kx in enumerate(kxs)]
-kydirs = [kxdir / 'kyi_0000/' for kxdir in kxdirs]
+# kydirs = [kxdir / 'kyi_0000/' for kxdir in kxdirs]
+# print(kydirs)
+# print([Path(kydir) for kydir in natural_sort(glob.glob('LOPs_3D/run_kx-log-scan_Nz512-dense-newscipy-saveLOPs-saveEvecs-saveBetas/kxi_*/kyi_0000'))])
+kydirs = [Path(kydir) for kydir in natural_sort(glob.glob('LOPs_3D/run_kx-log-scan_Nz512-dense-newscipy-saveLOPs-saveEvecs-saveBetas/kxi_*/kyi_0000'))]
 
 t_start = params.getfloat('t_start')
 t_stop = params.getfloat('t_stop')
@@ -64,7 +83,17 @@ LOP_ts = ts[::save_LOPs_istep]
 # with h5py.File('LOPs_3D/run_kx-log-scan-saveLOPs/kxi_0001/kyi_0000/gains_mats.h5', mode='r') as file:
 # for gains_file in gains_files:
 tind = 2
-with PdfPages(str(basedir / 'LOPs_kxscan.pdf')) as pdf:
+target_time = LOP_ts[tind]
+if params.getboolean('dense'):
+    solver = 'dense'
+else:
+    solver = 'k{}'.format(params['k'])
+if params.getboolean('Legendre'):
+    basis = 'Legendre'
+else:
+    basis = 'Chebyshev'
+plotname = 'nEVs_Gs-vs-kx_MA{}_t{}_Nz{}_{}_{}.pdf'.format(params['MA'], target_time, params['Nz'], solver, basis)
+with PdfPages(str(basedir) + '/' + plotname) as pdf:
     # for kydir in kydirs[-2::-1]:  # for this one case, skip this one ky because it's not behaving well
     for kydir in kydirs[::-1]:
         print('starting: ', kydir)
@@ -72,7 +101,10 @@ with PdfPages(str(basedir / 'LOPs_kxscan.pdf')) as pdf:
         with h5py.File(gains_file, mode='r') as file:
             kx = np.array(file['scales/kx'])
             ky = np.array(file['scales/ky'])
-            LOPs = np.array(file['gains/LOPs'])
+            try:
+                LOPs = np.array(file['gains/LOPs'])
+            except KeyError:
+                continue
             if sparse:
                 left_evals = np.array(file['setup_mats/left_eigenvalues'])
             evals = np.array(file['setup_mats/eigenvalues'])
