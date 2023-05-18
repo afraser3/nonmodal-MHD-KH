@@ -92,7 +92,7 @@ if params.getboolean('Legendre'):
     basis = 'Legendre'
 else:
     basis = 'Chebyshev'
-plotname = 'nEVs_Gs-vs-kx_MA{}_t{}_Nz{}_{}_{}.pdf'.format(params['MA'], target_time, params['Nz'], solver, basis)
+plotname = 'LOPs-vs-kx_MA{}_t{}_Nz{}_{}_{}.pdf'.format(params['MA'], target_time, params['Nz'], solver, basis)
 with PdfPages(str(basedir) + '/' + plotname) as pdf:
     # for kydir in kydirs[-2::-1]:  # for this one case, skip this one ky because it's not behaving well
     for kydir in kydirs[::-1]:
