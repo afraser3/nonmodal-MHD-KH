@@ -46,6 +46,7 @@ kx_start = params.getfloat('kx_start')
 kx_stop = params.getfloat('kx_stop')
 kx_num = params.getint('kx_num')
 kx_endpoint = params.getboolean('kx_endpoint')
+add_kx_zero = params.getboolean('add_kx_zero')  # this is ugly but a lazy way to add kx=0 to log scans!
 ky_start = params.getfloat('ky_start')
 ky_stop = params.getfloat('ky_stop')
 ky_num = params.getint('ky_num')
@@ -79,6 +80,8 @@ if kx_log:
     kx_global = np.geomspace(kx_start, kx_stop, kx_num, endpoint=kx_endpoint)  # the full set of kxs to scan over
 else:
     kx_global = np.linspace(kx_start, kx_stop, kx_num, endpoint=kx_endpoint)  # the full set of kxs to scan over
+if add_kx_zero and kx_global[0] != 0:
+    kx_global = np.insert(kx_global, 0, 0.0)
 kxdirs_global = [basedir / 'kxi_{:04d}/'.format(kx_i) for kx_i, kx in enumerate(kx_global)]
 if CW.rank == 0:
     for kxdir in kxdirs_global:
