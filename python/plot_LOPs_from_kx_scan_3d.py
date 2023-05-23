@@ -25,7 +25,7 @@ def natural_sort(iterable, reverse=False):
 
 
 # run_name = 'run_kx-log-scan-saveLOPs-saveEvecs-saveBetas'
-run_name = "run_kx-log-scan_Nz512-dense-newscipy-saveLOPs-saveEvecs-saveBetas"
+run_name = "run_kx-log-scan_Nz256-dense-newscipy-saveLOPs-saveEvecs-saveBetas"
 sparse = False
 basedir = Path("LOPs_3D") / run_name
 config_file = Path("LOPs_3D/config_files/"+run_name+'.cfg')
@@ -61,7 +61,7 @@ kxdirs = [basedir / 'kxi_{:04d}/'.format(kx_i) for kx_i, kx in enumerate(kxs)]
 # kydirs = [kxdir / 'kyi_0000/' for kxdir in kxdirs]
 # print(kydirs)
 # print([Path(kydir) for kydir in natural_sort(glob.glob('LOPs_3D/run_kx-log-scan_Nz512-dense-newscipy-saveLOPs-saveEvecs-saveBetas/kxi_*/kyi_0000'))])
-kydirs = [Path(kydir) for kydir in natural_sort(glob.glob('LOPs_3D/run_kx-log-scan_Nz512-dense-newscipy-saveLOPs-saveEvecs-saveBetas/kxi_*/kyi_0000'))]
+kydirs = [Path(kydir) for kydir in natural_sort(glob.glob('LOPs_3D/{}/kxi_*/kyi_0000'.format(run_name)))]
 
 t_start = params.getfloat('t_start')
 t_stop = params.getfloat('t_stop')
