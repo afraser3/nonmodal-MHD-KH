@@ -27,14 +27,14 @@ def natural_sort(iterable, reverse=False):
     return sorted(iterable, key=key, reverse=reverse)
 
 
-def get_data_from_bad_kxs(run_name, runconfig):
+def get_data_from_bad_kxs(run_name, params):
     # Parse settings from .cfg file and save to variables
     # If I wrote this better I wouldn't have to pass runconfig as well as run_name...
     # config_file = Path("LOPs_3D/config_files/" + run_name + '.cfg')
     # runconfig = ConfigParser()
     # runconfig.read(str(config_file))
     # Parameters
-    params = runconfig['parameters']
+    # params = runconfig['parameters']
 
     if params.getboolean('kx_log'):
         kx_global = np.geomspace(params.getfloat('kx_start'), params.getfloat('kx_stop'), params.getint('kx_num'), endpoint=params.getboolean('kx_endpoint'))  # the full set of kxs that was attempted
@@ -71,27 +71,30 @@ def get_data_from_bad_kxs(run_name, runconfig):
 # basedir = Path("LOPs_3D/run_kx-log-scan-MA40_Nz256-dense-newscipy-saveLOPs-saveEvecs-saveBetas")
 # basedir2 = Path("LOPs_3D/run_kx-log-scan_Nz256-dense-newscipy-saveLOPs-saveEvecs-saveBetas")
 # basedir = Path("LOPs_3D/run_kx-log-scan_Nz512-k600")
-run_name = "run_kx-log-scan_Nz512-dense-Legendre-saveLOPs-saveEvecs-saveBetas"
-compare = True
-run_name2 = "run_kx-log-scan_Nz512-dense-newscipy-saveLOPs-saveEvecs-saveBetas"
+# run_name = "run_kx-log-scan-zero_Re100-Nz256-dense-saveLOPs-saveEvecs-saveBetas"
+run_name = "run_kx-log-scan_Nz256-dense-newscipy-saveLOPs-saveEvecs-saveBetas"
+compare = False
+run_name2 = "run_kx-log-scan-zero_Nz256-dense-saveLOPs-saveEvecs-saveBetas"
 
 basedir = Path("LOPs_3D") / run_name
+config_file = Path("LOPs_3D/config_files/" + run_name + '.cfg')
+runconfig = ConfigParser()
+runconfig.read(str(config_file))
+params = runconfig['parameters']
 
 if compare:
     basedir2 = Path("LOPs_3D") / run_name2
 
-bad_kxs = True  # workaround in case the main gains.h5 file doesn't exist -- go through all the individual kxi folders
+bad_kxs = False  # workaround in case the main gains.h5 file doesn't exist -- go through all the individual kxi folders
 
 if bad_kxs:
-    config_file = Path("LOPs_3D/config_files/" + run_name + '.cfg')
-    runconfig = ConfigParser()
-    runconfig.read(str(config_file))
-    kxs, ts, Gs, nEVs = get_data_from_bad_kxs(run_name, runconfig)
+    kxs, ts, Gs, nEVs = get_data_from_bad_kxs(run_name, params)
     if compare:
         config_file2 = Path("LOPs_3D/config_files/" + run_name2 + '.cfg')
         runconfig2 = ConfigParser()
         runconfig2.read(str(config_file2))
-        kxs2, ts2, Gs2, nEVs2 = get_data_from_bad_kxs(run_name2, runconfig2)
+        params2 = runconfig2['parameters']
+        kxs2, ts2, Gs2, nEVs2 = get_data_from_bad_kxs(run_name2, params2)
 
 
 else:
@@ -114,19 +117,30 @@ plt.semilogx(kxs[0], nEVs[0], c='k')
 if compare:
     plt.semilogx(kxs2[0], nEVs2[0], c='grey', ls='--')
 plt.title('n good EVs')
+plt.xlim(xmin=1e-6)
 
 colors = ['C0', 'C1', 'C2']
 colors2 = ['C1', 'C2', 'C0']
-tinds = [10, 33, 100]
+tinds = [10, 100, -1]
 for i, color in enumerate(colors):
     plt.subplot(4, 1, 2+i)
     plt.semilogx(kxs[0], Gs[0, :, tinds[i]], c=color)
     if compare:
         plt.semilogx(kxs2[0], Gs2[0, :, tinds[i]], c=colors2[i], ls='--')
     plt.title(r'$G(kx, t={:.2e})$'.format(ts[tinds[i]]))
+    plt.xlim(xmin=1e-6)
 plt.xlabel(r'$k_x$')
 
 plt.tight_layout()
 # plt.show()
-plt.savefig(basedir/'nEVs_Gs-vs-kx.pdf')
-plt.savefig(basedir/'nEVs_Gs-vs-kx.png')
+if params.getboolean('dense'):
+    solver = 'dense'
+else:
+    solver = 'k{}'.format(params['k'])
+if params.getboolean('Legendre'):
+    basis = 'Legendre'
+else:
+    basis = 'Chebyshev'
+plotname = 'nEVs_Gs-vs-kx_MA{}_Nz{}_{}_{}_2'.format(params['MA'], params['Nz'], solver, basis)
+plt.savefig(str(basedir/plotname)+'.pdf')
+plt.savefig(str(basedir/plotname)+'.png')
