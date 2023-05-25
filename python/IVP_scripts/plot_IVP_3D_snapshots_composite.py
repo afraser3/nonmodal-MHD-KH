@@ -25,12 +25,12 @@ field_names = ['u', 'v', 'w', 'Bx', 'By', 'Bz']
 istep = 1500
 
 if dense:
-    h5dir = Path("LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
+    h5dir = Path("../LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
     h5_fname = str(h5dir / 'Nz{}_dense.h5'.format(Nz))
     out_dir = h5dir / 'Nz{}_dense_ti{}'.format(Nz, test_ind)
     plot_dir = out_dir / 'snapshots_composite'
 else:
-    h5dir = Path("LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
+    h5dir = Path("../LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
     h5_fname = str(h5dir / 'Nz{}_k{}.h5'.format(Nz, k))
     out_dir = h5dir / 'Nz{}_k{}_ti{}'.format(Nz, k, test_ind)
     plot_dir = out_dir / 'snapshots_composite'

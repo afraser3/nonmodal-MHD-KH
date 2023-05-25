@@ -3,27 +3,27 @@ from matplotlib import pyplot as plt
 import h5py
 from pathlib import Path
 
-test_ind = 50
+test_ind = 287
 
-Nz = 256
-Reynolds = 50.0
+Nz = 512
+Reynolds = 250.0
 Pm = 1.0
 mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
-kx = 0.2
-ky = 0.025
-MA = 1.0
+kx = 0.025
+ky = 0.375
+MA = 0.25
 MA2 = MA**2.0
 k = 300
 dense = False
 
 if dense:
-    h5dir = Path("LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
+    h5dir = Path("../LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
     h5_fname = str(h5dir / 'Nz{}_dense.h5'.format(Nz))
     out_dir = h5dir / 'Nz{}_dense_ti{}'.format(Nz, test_ind)
     plot_name = str(out_dir / 'energies')
 else:
-    h5dir = Path("LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
+    h5dir = Path("../LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
     h5_fname = str(h5dir / 'Nz{}_k{}.h5'.format(Nz, k))
     out_dir = h5dir / 'Nz{}_k{}_ti{}'.format(Nz, k, test_ind)
     plot_name = str(out_dir / 'energies')

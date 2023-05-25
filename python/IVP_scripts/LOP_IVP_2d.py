@@ -20,13 +20,13 @@ k = 100
 dense = False
 reject_spurious = True
 if dense:
-    fname = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_dense.h5".format(Reynolds, MA, Pm, Nz)
-    plot_name = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_dense.pdf".format(Reynolds, MA, Pm, Nz)
-    out_dir = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_dense/".format(Reynolds, MA, Pm, Nz)
+    fname = "../LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_dense.h5".format(Reynolds, MA, Pm, Nz)
+    plot_name = "../LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_dense.pdf".format(Reynolds, MA, Pm, Nz)
+    out_dir = "../LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_dense/".format(Reynolds, MA, Pm, Nz)
 else:
-    fname = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_k{}.h5".format(Reynolds, MA, Pm, Nz, k)
-    plot_name = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_k{}.pdf".format(Reynolds, MA, Pm, Nz, k)
-    out_dir = "LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_k{}/".format(Reynolds, MA, Pm, Nz, k)
+    fname = "../LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_k{}.h5".format(Reynolds, MA, Pm, Nz, k)
+    plot_name = "../LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_k{}.pdf".format(Reynolds, MA, Pm, Nz, k)
+    out_dir = "../LOPs/Re{}/MA{}/Pm{}/2d/Nz{}_k{}/".format(Reynolds, MA, Pm, Nz, k)
 
 with h5py.File(fname, mode='r') as file:
     eigenvalues = np.array(file['setup_mats/eigenvalues'])

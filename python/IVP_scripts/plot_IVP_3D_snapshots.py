@@ -6,16 +6,16 @@ from dedalus import public as de
 import logging
 logger = logging.getLogger(__name__)
 
-test_ind = 5
+test_ind = 158
 
-Nz = 256
-Reynolds = 50.0
+Nz = 512
+Reynolds = 250.0
 Pm = 1.0
 mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
-kx = 0.5
-ky = 1.0
-MA = 50.0
+kx = 0.025
+ky = 0.6
+MA = 0.25
 MA2 = MA**2.0
 k = 300
 dense = False
@@ -27,12 +27,12 @@ istep = 2
 
 def read_plot_and_save_fields(f1_name, f2_name):
     if dense:
-        h5dir = Path("LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
+        h5dir = Path("../LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
         h5_fname = str(h5dir / 'Nz{}_dense.h5'.format(Nz))
         out_dir = h5dir / 'Nz{}_dense_ti{}'.format(Nz, test_ind)
         plot_dir = out_dir / 'snapshots_{}_{}'.format(f1_name, f2_name)
     else:
-        h5dir = Path("LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
+        h5dir = Path("../LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
         h5_fname = str(h5dir / 'Nz{}_k{}.h5'.format(Nz, k))
         out_dir = h5dir / 'Nz{}_k{}_ti{}'.format(Nz, k, test_ind)
         plot_dir = out_dir / 'snapshots_{}_{}'.format(f1_name, f2_name)

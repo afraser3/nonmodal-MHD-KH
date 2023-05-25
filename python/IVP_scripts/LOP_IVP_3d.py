@@ -7,15 +7,15 @@ from dedalus import public as de
 import logging
 logger = logging.getLogger(__name__)
 
-test_ind = 50
+test_ind = 100
 
 Nz = 256
 Reynolds = 50.0
 Pm = 1.0
 mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
-kx = 0.025  # 0.2
-ky = 0.35  # 0.025
+kx = 0.0
+ky = 0.425
 MA = 1.0
 MA2 = MA**2.0
 k = 300
@@ -23,12 +23,12 @@ dense = False
 reject_spurious = True
 
 if dense:
-    h5dir = Path("LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
+    h5dir = Path("../LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
     h5_fname = str(h5dir / 'Nz{}_dense.h5'.format(Nz))
     out_dir = h5dir / 'Nz{}_dense_ti{}'.format(Nz, test_ind)
     plot_name = str(out_dir / 'energies')
 else:
-    h5dir = Path("LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
+    h5dir = Path("../LOPs_3D/individual/Re{}/MA{}/Pm{}/kx{}/ky{}".format(Reynolds, MA, Pm, kx, ky))
     h5_fname = str(h5dir / 'Nz{}_k{}.h5'.format(Nz, k))
     out_dir = h5dir / 'Nz{}_k{}_ti{}'.format(Nz, k, test_ind)
     plot_name = str(out_dir / 'energies')
