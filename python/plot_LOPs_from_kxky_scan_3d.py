@@ -25,7 +25,8 @@ def natural_sort(iterable, reverse=False):
 
 
 # run_name = 'run_kx-log-scan-saveLOPs-saveEvecs-saveBetas'
-run_name = "run_kx-log-ky-lin_MA0.25_Re50_Nz256-k300-saveLOPs"
+run_name = "run_kx-log-ky-lin_MA1.1_Re50_kxmin1e-3_Nz256-k300-saveLOPs"
+# run_name = "run_kx-lin-ky-lin_MA1_Re250_kmin0.1_Nz512-k600-saveLOPs"
 sparse = False
 basedir = Path("LOPs_3D") / run_name
 config_file = Path("LOPs_3D/config_files/"+run_name+'.cfg')
@@ -53,6 +54,8 @@ ky_stop = params.getfloat('ky_stop')
 ky_num = params.getint('ky_num')
 ky_endpoint = params.getboolean('ky_endpoint')
 kys = np.linspace(ky_start, ky_stop, ky_num, endpoint=ky_endpoint)  # the full set of kys to scan over
+# TODO: need to figure out what to do if kxs[0] == 0, since the rest of this script assumes finite kx
+# I guess the same goes for ky
 if kx_log:
     kxs = np.geomspace(kx_start, kx_stop, kx_num, endpoint=kx_endpoint)  # the full set of kxs to scan over
 else:
@@ -135,7 +138,10 @@ with PdfPages(str(basedir) + '/' + plotname) as pdf:
         else:
             z_basis = de.Chebyshev('z', Nz, interval=(-0.5 * Lz, 0.5 * Lz))
         x_basis = de.Fourier('x', 32, interval=(0.0, 2.0 * np.pi / kx))
-        y_basis = de.Fourier('x', 32, interval=(0.0, 2.0 * np.pi / ky))
+        if ky > 0:
+            y_basis = de.Fourier('x', 32, interval=(0.0, 2.0 * np.pi / ky))
+        else:
+            y_basis = de.Fourier('x', 4, interval=(0.0, 2.0 * np.pi / kx))
         domain = de.Domain([x_basis, y_basis, z_basis], grid_dtype=np.float64)
         x = domain.grid(0)[:, 0, 0]
         y = domain.grid(1)[0, :, 0]
@@ -146,11 +152,14 @@ with PdfPages(str(basedir) + '/' + plotname) as pdf:
             # select the part of the array that corresponds to each field
             slice_start = int(ind*len(LOP)/len(probvars))
             slice_stop = int((ind+1)*len(LOP)/len(probvars))
-            field['c'][1, 1, :] = LOP[slice_start:slice_stop]
+            if ky > 0:
+                field['c'][1, 1, :] = LOP[slice_start:slice_stop]
+            else:
+                field['c'][1, 0, :] = LOP[slice_start:slice_stop]
         Bz = domain.new_field(name='Bz')
         Bz['c'] = 1j*kx*LOP_fields[5]['c'] - 1j*ky*LOP_fields[4]['c']  # Bz = dx(Ay) - dy(Ax)
 
-        yind = 0  # where in y to slice)
+        yind = 0  # where in y to slice
         scale = 0.8
         fig = plt.figure(figsize=(scale*16, scale*10))
 
