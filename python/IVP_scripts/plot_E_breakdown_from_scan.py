@@ -4,8 +4,8 @@ import h5py
 from configparser import ConfigParser
 from pathlib import Path
 
-run = "run_kx-lin-ky-lin_MA1_Re250_kmin0.1_Nz512-k600-saveLOPs"
-LOP_t0_ind = 20
+run = "run_kx-log-ky-lin_MA1_Re50_kxmin1e-3_Nz256-k300-saveLOPs"
+LOP_t0_ind = 8
 kxi = None
 kyi = None
 
@@ -107,7 +107,8 @@ plt.subplot(2, 2, 2)
 plt.loglog(ts, np.real(urms[:, 0]), label='u_rms')
 plt.loglog(ts, np.real(vrms[:, 0]), label='v_rms')
 plt.loglog(ts, np.real(wrms[:, 0]), label='w_rms')
-plt.xlim(xmax=20)
+# plt.xlim(xmax=20)
+plt.loglog([ts[10], ts[-1]], [ts[10]*urms[10, 0], ts[-1]*urms[10, 0]], '--', c='k')
 plt.legend()
 plt.title(r'log-log')
 
@@ -115,7 +116,8 @@ plt.subplot(2, 2, 4)
 plt.loglog(ts, np.real(bxrms[:, 0]), label='bx_rms')
 plt.loglog(ts, np.real(byrms[:, 0]), label='by_rms')
 plt.loglog(ts, np.real(bzrms[:, 0]), label='bz_rms')
-plt.xlim(xmax=20)
+# plt.xlim(xmax=20)
+plt.loglog([ts[10], ts[-1]], [ts[10]*bxrms[10, 0], ts[-1]*bxrms[10, 0]], '--', c='k')
 # plt.legend(loc='upper right')
 plt.legend()
 plt.xlabel(r'$t$')
