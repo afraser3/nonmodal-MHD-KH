@@ -13,8 +13,8 @@ from dedalus import public as de
 import logging
 logger = logging.getLogger(__name__)
 
-run = "run_kx-lin-ky-lin_MA1_Re250_kmin0.1_Nz512-k600-saveLOPs"
-LOP_t0_ind = 20
+run = "run_kx-log-ky-lin_MA1_Re50_kxmin1e-4_Nz256-k300-saveLOPs"
+LOP_t0_ind = 17
 kxi = None
 kyi = None
 
@@ -39,24 +39,6 @@ MA2 = MA**2.0
 Pm = params.getfloat('Pm')
 mReynolds = Pm*Reynolds
 
-# kx_log = params.getboolean('kx_log')
-# kx_start = params.getfloat('kx_start')
-# kx_stop = params.getfloat('kx_stop')
-# kx_num = params.getint('kx_num')
-# kx_endpoint = params.getboolean('kx_endpoint')
-# add_kx_zero = params.getboolean('add_kx_zero')
-# ky_start = params.getfloat('ky_start')
-# ky_stop = params.getfloat('ky_stop')
-# ky_num = params.getint('ky_num')
-# ky_endpoint = params.getboolean('ky_endpoint')
-# kys = np.linspace(ky_start, ky_stop, ky_num, endpoint=ky_endpoint)  # the full set of kys to scan over
-# if kx_log:
-#     kxs = np.geomspace(kx_start, kx_stop, kx_num, endpoint=kx_endpoint)  # the full set of kxs to scan over
-# else:
-#     kxs = np.linspace(kx_start, kx_stop, kx_num, endpoint=kx_endpoint)  # the full set of kxs to scan over
-# if add_kx_zero and kxs[0] != 0:
-#     kx_global = np.insert(kxs, 0, 0.0)
-
 t_start = params.getfloat('t_start')
 t_stop = params.getfloat('t_stop')
 t_num = params.getint('t_num')
@@ -80,7 +62,6 @@ with h5py.File(gains_file, mode='r') as file:
     Gs = Gs_global[:, :, ::save_LOPs_istep]
     # times = np.array(file['scales/ts'])
 
-# kxdirs = [basedir / 'kxi_{:04d}/'.format(kx_i) for kx_i, kx in enumerate(kxs)]  # proooobably don't need this
 if get_max_ks:
     Gs_flat = Gs.reshape((-1, Gs.shape[-1]))  # flatten into a 2D array of shape (Gs.shape[0]*Gs.shape[1], Gs.shape[2])
     ind_flat = Gs_flat.argmax(axis=0)  # get the index where Gs_flat is maximized for each t
@@ -100,11 +81,6 @@ if not out_dir.exists():
     out_dir.mkdir(parents=False)
 
 with h5py.File(str(kxky_dir / 'gains_mats.h5'), mode='r') as file:
-    # kx = np.array(file['scales/kx'])[()]
-    # ky = np.array(file['scales/ky'])[()]
-    # print(kx, kxs[kxind[LOP_t0_ind]])
-    # print(ky, kys[kyind[LOP_t0_ind]])
-    # the above sanity check worked
     Gs_local = np.array(file['gains/Gs'])
     LOP = np.array(file['gains/LOPs'])[:, LOP_t0_ind]
     eigenvalues = np.array(file['setup_mats/eigenvalues'])
@@ -268,6 +244,9 @@ while solver.ok:
         log_string += 'Energy: {:8.3e}, '.format(energies[ti])
         logger.info(log_string)
     ti += 1
+energies[-1] = energy_norm(solver.state)
+KEs[-1] = kinetic_energy(solver.state)
+MEs[-1] = magnetic_energy(solver.state)
 
 plt.plot(times, np.amax(Gs_global, axis=(0, 1)), c='k', label=r'$G(t_0)$ maxed over kx/ky')
 plt.plot(times, Gs_local, c='k', ls='--', label=r'$G(t_0)$ for this kx/ky')
