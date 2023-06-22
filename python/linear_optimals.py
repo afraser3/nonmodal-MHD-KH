@@ -62,7 +62,7 @@ def LOP(EP, times, parameters, norm, pencil=0, dense=True, k=100, return_setup_m
                 LOP_evolved = Q @ v1F_evolved
                 LOP_evolved = pre_right @ LOP_evolved
                 LOP_evolved_phase = LOP_evolved[0] / np.abs(LOP_evolved[0])
-                LOP_evolved = LOP / LOP_evolved_phase
+                LOP_evolved = LOP_evolved / LOP_evolved_phase
                 if tind == 0:
                     evolved_states = np.zeros_like(perturbations)
                 evolved_states[:, tind] = LOP_evolved
