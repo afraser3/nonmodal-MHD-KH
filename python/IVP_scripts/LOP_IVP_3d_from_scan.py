@@ -13,8 +13,8 @@ from dedalus import public as de
 import logging
 logger = logging.getLogger(__name__)
 
-run = "run_kx-log-ky-lin_MA1_Re50_kxmin1e-4_Nz256-k300-saveLOPs"
-LOP_t0_ind = 17
+run = "run_kx-log-ky-lin_MA0.5_Re50_kxmin1e-3_T3tA_Nz256-k300-saveLOPs"
+LOP_t0_ind = 11
 kxi = None
 kyi = None
 
@@ -76,7 +76,10 @@ else:
     kxky_dir = basedir / 'kxi_{:04d}/kyi_{:04d}/'.format(kxi, kyi)
     kx = kxs[kxi]
     ky = kys[kyi]
-out_dir = basedir / 'IVP_kxi{:04d}_kyi{:04d}_t0i{:03d}'.format(kxi, kyi, LOP_t0_ind)
+if get_max_ks:
+    out_dir = basedir / 'IVP_kxi{:04d}_kyi{:04d}_t0i{:03d}'.format(kxi, kyi, LOP_t0_ind)
+else:
+    out_dir = basedir / 'IVP_specific_kxi{:04d}_kyi{:04d}_t0i{:03d}'.format(kxi, kyi, LOP_t0_ind)
 if not out_dir.exists():
     out_dir.mkdir(parents=False)
 
@@ -199,7 +202,7 @@ scalars.add_task('integ((Bz*conj(Bx) + conj(Bz)*Bx)*DU)/MA2', layout='g', name='
 # scalars.add_task('integ(dx(u*conj(Bx) + conj(u)*Bx + v*conj(By) + conj(v)*By + w*conj(Bz) + conj(w)*Bz))', layout='g', name='EM_work')
 scalars.add_task('-integ(Bx*conj(dx(u)) + conj(Bx)*dx(u) + By*conj(dx(v)) + conj(By)*dx(v) + Bz*conj(dx(w)) + conj(Bz)*dx(w))/MA2', layout='g', name='EM_work')
 
-profiles = solver.evaluator.add_file_handler(str(out_dir / 'profiles'), iter=10)
+profiles = solver.evaluator.add_file_handler(str(out_dir / 'profiles'), iter=1)
 profiles.add_task('u', layout='g', name='u')
 profiles.add_task('v', layout='g', name='v')
 profiles.add_task('w', layout='g', name='w')
@@ -213,7 +216,7 @@ profiles.add_task('Jx', layout='g', name='Jx')
 profiles.add_task('Jy', layout='g', name='Jy')
 profiles.add_task('Jz', layout='g', name='Jz')
 
-profiles_c = solver.evaluator.add_file_handler(str(out_dir / 'profiles_c'), iter=10)
+profiles_c = solver.evaluator.add_file_handler(str(out_dir / 'profiles_c'), iter=1)
 profiles_c.add_task('u', layout='c', name='u')
 profiles_c.add_task('v', layout='c', name='v')
 profiles_c.add_task('w', layout='c', name='w')
@@ -227,7 +230,11 @@ profiles_c.add_task('Jx', layout='c', name='Jx')
 profiles_c.add_task('Jy', layout='c', name='Jy')
 profiles_c.add_task('Jz', layout='c', name='Jz')
 
-dt = 2e-2
+# should probably make dt min(1, 1/omega_Alfven) or something
+# I think omega_Alfven is k_x/MA
+# dt = 1e-1  # 2.0  # 2e-2
+dt = min(1.0, MA/kx)
+print('dt: ', dt)
 ts = np.arange(0.0, t_stop + dt, dt)
 energies = np.zeros_like(ts)
 KEs = np.zeros_like(ts)
