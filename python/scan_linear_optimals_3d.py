@@ -211,6 +211,7 @@ local_Gs = np.zeros((my_indices.size, len(ts)), dtype=np.float64)
 local_kx = np.zeros(my_indices.size, dtype=np.float64)
 local_ky = np.zeros(my_indices.size, dtype=np.float64)
 local_nEVs = np.zeros(my_indices.size, dtype=np.float64)  # should really be int but if it ain't broke don't fix it
+local_cond = np.zeros_like(local_nEVs)
 for n, index in enumerate(my_indices):
     logger.info("working on local calculation {}/{}".format(n+1, len(my_indices)))
     unraveled_index = np.unravel_index(index, dims)
@@ -279,6 +280,7 @@ for n, index in enumerate(my_indices):
     # Gs_local[kx_ind, ky_ind] = Gs
     local_Gs[n] = Gs
     local_nEVs[n] = len(EP.evalues)
+    local_cond[n] = np.linalg.cond(EP.solver.pencils[pencil].L_exp.toarray())
     if not local_dir.exists():
         local_dir.mkdir(parents=True)
     with h5py.File(str(local_dir / "gains_mats.h5"), mode='w-') as file:
@@ -365,9 +367,11 @@ displacements_kx = np.cumsum(rec_counts_kx) - rec_counts_kx
 gathered_kx = np.zeros(dims, dtype=np.float64)
 gathered_ky = np.zeros(dims, dtype=np.float64)
 gathered_nEVs = np.zeros(dims, dtype=np.float64)
+gathered_cond = np.zeros(dims, dtype=np.float64)
 CW.Gatherv(local_kx, [gathered_kx, rec_counts_kx, displacements_kx, MPI.F_DOUBLE])
 CW.Gatherv(local_ky, [gathered_ky, rec_counts_kx, displacements_kx, MPI.F_DOUBLE])
 CW.Gatherv(local_nEVs, [gathered_nEVs, rec_counts_kx, displacements_kx, MPI.F_DOUBLE])
+CW.Gatherv(local_cond, [gathered_cond, rec_counts_kx, displacements_kx, MPI.F_DOUBLE])
 # print(CW.rank, rec_counts, displacements)
 # if CW.rank == 0:
     # print(np.shape(data))
@@ -390,6 +394,7 @@ if CW.rank == 0:
 
         EVs_grp = file.create_group('EVs')
         nEVs_data = EVs_grp.create_dataset('nEVs', data=gathered_nEVs)
+        cond_data = EVs_grp.create_dataset('cond', data=gathered_cond)
 
 # fix data saving scheme (ditch the individual .h5's, and include number of good eigenmodes and condition number in saved data)
 # save nans on bad evalues
