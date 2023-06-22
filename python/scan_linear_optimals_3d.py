@@ -69,6 +69,7 @@ plot_modes = params.getboolean('plot_modes')
 save_evecs = params.getboolean('save_evecs')
 save_LOPs = params.getboolean('save_LOPs')
 save_LOPs_istep = params.getint('save_LOPs_istep')
+save_evolved_state = params.getboolean('save_evolved_state')
 save_betas = params.getboolean('save_betas')  # the amplitude of the LOPs expressed in the eigenmode basis
 
 # kx = 0.2
@@ -228,10 +229,16 @@ for n, index in enumerate(my_indices):
             # Gs, eigenvalues, eigenvectors, F, Q, R, pre_right = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_setup_mats=True)
             # Gs, perturbations, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_perturbations=True)
             if save_LOPs:
-                if save_betas:
-                    Gs, perturbations, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_perturbations=True, left=True, normalize_left=False)
+                if save_evolved_state:
+                    if save_betas:
+                        Gs, perturbations, evolved_states, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_perturbations=True, return_evolved_state=True, left=True, normalize_left=False)
+                    else:
+                        Gs, perturbations, evolved_states, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_perturbations=True, return_evolved_state=True)
                 else:
-                    Gs, perturbations, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_perturbations=True)
+                    if save_betas:
+                        Gs, perturbations, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_perturbations=True, left=True, normalize_left=False)
+                    else:
+                        Gs, perturbations, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k, return_perturbations=True)
             else:
                 Gs, eigenvalues, eigenvectors = LOP(EP, ts, {'kx': kx, 'ky': ky}, lambda x1, x2: energy_norm_general(x1, x2, kx, ky), pencil=pencil, dense=dense, k=k)
         except ValueError:
@@ -323,6 +330,8 @@ for n, index in enumerate(my_indices):
         Gs_data = gains_grp.create_dataset('Gs', data=Gs)
         if save_LOPs:
             LOPs_data = gains_grp.create_dataset('LOPs', data=perturbations[:, ::save_LOPs_istep])
+            if save_evolved_state:
+                evolved_states_data = gains_grp.create_dataset('evolved_states', data=evolved_states[:, ::save_LOPs_istep])
             if save_betas:
                 modified_lefts_data = gains_grp.create_dataset('modified_left_eigenvectors', data=EP.solver.modified_left_eigenvectors)  # just for troubleshooting for now
                 modified_lefts = EP.solver.modified_left_eigenvectors

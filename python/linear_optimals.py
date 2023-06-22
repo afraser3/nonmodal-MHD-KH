@@ -32,8 +32,9 @@ def LOP_setup_mats(EP, parameters, norm, pencil=0, dense=True, k=100, left=False
     return eigenvalues, eigenvectors, F, Q, R, pre_right
 
 
-def LOP(EP, times, parameters, norm, pencil=0, dense=True, k=100, return_setup_mats=False, return_perturbations=False, left=False, normalize_left=False):
-
+def LOP(EP, times, parameters, norm, pencil=0, dense=True, k=100, return_setup_mats=False, return_perturbations=False, return_evolved_state=False, left=False, normalize_left=False):
+    if return_evolved_state and not return_perturbations:
+        raise NotImplementedError("Currently coded up assuming that returned_evolved_state is true only if return_perturbations is true")
     Gs = np.zeros_like(times)
     eigenvalues, eigenvectors, F, Q, R, pre_right = LOP_setup_mats(EP, parameters, norm, pencil=pencil, dense=dense, k=k, left=left, normalize_left=normalize_left)
     Finv = np.linalg.inv(F)
@@ -53,6 +54,18 @@ def LOP(EP, times, parameters, norm, pencil=0, dense=True, k=100, return_setup_m
             if tind == 0:
                 perturbations = np.zeros((len(LOP), len(times)), dtype=np.complex128)
             perturbations[:, tind] = LOP
+
+            if return_evolved_state:
+                # Now do all the same steps but to the evolved state
+                v1_evolved = propagator @ v1
+                v1F_evolved = Finv @ v1_evolved
+                LOP_evolved = Q @ v1F_evolved
+                LOP_evolved = pre_right @ LOP_evolved
+                LOP_evolved_phase = LOP_evolved[0] / np.abs(LOP_evolved[0])
+                LOP_evolved = LOP / LOP_evolved_phase
+                if tind == 0:
+                    evolved_states = np.zeros_like(perturbations)
+                evolved_states[:, tind] = LOP_evolved
         else:
             s_vals = scipy.linalg.svdvals(propagator)
         Gs[tind] = s_vals[0]
@@ -60,12 +73,18 @@ def LOP(EP, times, parameters, norm, pencil=0, dense=True, k=100, return_setup_m
 
     if return_setup_mats:
         if return_perturbations:
-            return Gs, perturbations, eigenvalues, eigenvectors, F, Q, R, pre_right
+            if return_evolved_state:
+                return Gs, perturbations, evolved_states, eigenvalues, eigenvectors, F, Q, R, pre_right
+            else:
+                return Gs, perturbations, eigenvalues, eigenvectors, F, Q, R, pre_right
         else:
             return Gs, eigenvalues, eigenvectors, F, Q, R, pre_right
     else:
         if return_perturbations:
-            return Gs, perturbations, eigenvalues, eigenvectors
+            if return_evolved_state:
+                return Gs, perturbations, evolved_states, eigenvalues, eigenvectors
+            else:
+                return Gs, perturbations, eigenvalues, eigenvectors
         else:
             return Gs, eigenvalues, eigenvectors
 
