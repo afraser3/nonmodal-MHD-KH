@@ -7,8 +7,8 @@ from dedalus import public as de
 import logging
 logger = logging.getLogger(__name__)
 
-run = "run_kx-log-ky-lin_MA0.25_Re50_kxmin1e-3_T3tA_Nz256-k300-saveLOPs"
-# run = "run_kx-lin-ky-lin_MA1_Re50_kxmin0.1_T20_Nz256-k300-saveLOPs"
+# run = "run_kx-log-ky-lin_MA0.1_Re50_kxmin1e-3_T3tA_Nz256-k300-saveLOPsAndEvolved"
+run = "run_kx-lin-ky-lin_MA1_Re50_kxmin0.1_Nz256-k300-saveLOPsAndEvolved"
 kxi = None
 kyi = None
 
@@ -40,6 +40,7 @@ t_endpoint = params.getboolean('t_endpoint')
 times = np.linspace(t_start, t_stop, t_num, endpoint=t_endpoint)
 save_LOPs_istep = params.getint('save_LOPs_istep')
 LOP_ts = times[::save_LOPs_istep]
+save_evolved_state = params.getboolean('save_evolved_state')
 
 k = params.getint('k')
 dense = params.getboolean('dense')
@@ -72,11 +73,17 @@ if get_max_ks:
             if LOP_t0_ind == 0:
                 LOPs = np.zeros_like(np.array(file['gains/LOPs']))
             LOPs[:, LOP_t0_ind] = np.array(file['gains/LOPs'])[:, LOP_t0_ind]
+            if save_evolved_state:
+                if LOP_t0_ind == 0:
+                    evolved_states = np.zeros_like(np.array(file['gains/evolved_states']))
+                evolved_states[:, LOP_t0_ind] = np.array(file['gains/evolved_states'])[:, LOP_t0_ind]
 else:
     kxky_dir = basedir / 'kxi_{:04d}/kyi_{:04d}/'.format(kxi, kyi)
     with h5py.File(str(kxky_dir / 'gains_mats.h5'), mode='r') as file:
         # Gs_local = np.array(file['gains/Gs'])
         LOPs = np.array(file['gains/LOPs'])
+        if save_evolved_state:
+            evolved_states = np.array(file['gains/evolved_states'])
     kx = kxs[kxi]
     ky = kys[kyi]
 
@@ -89,6 +96,7 @@ Bz = de.Field(domain, name='Bz')
 generic_field = de.Field(domain, name='f')
 int_of_field = z_basis.Integrate(generic_field)
 energy_components = np.zeros((6, len(LOP_ts)), dtype=np.float64)
+evolved_energy_components = np.zeros_like(energy_components)
 
 for t0_ind in range(len(LOP_ts)):
     if get_max_ks:
@@ -105,20 +113,54 @@ for t0_ind in range(len(LOP_ts)):
     Bz['c'] = 1j*kx*fields[5]['c'] - 1j*ky*fields[4]['c']  # Bz = dx(Ay) - dy(Ax)
     generic_field['g'] = np.abs(Bz['g'])**2.0 / MA2
     energy_components[-1, t0_ind] = int_of_field.evaluate()['g'][0]
+    if save_evolved_state:
+        for i, var in enumerate(probvars):
+            fields[i]['c'] = evolved_states[:, t0_ind][int(i * len(evolved_states[:, t0_ind]) / len(probvars)):int(
+                (i + 1) * len(evolved_states[:, t0_ind]) / len(probvars))]
+        for out_i, field_i in enumerate(
+                [0, 1, 2, -2, -1]):  # indices in meansquares vs probvars corresponding to u_i and b_i
+            if out_i < 3:
+                generic_field['g'] = np.abs(fields[field_i]['g']) ** 2.0
+            else:  # for bx, by, bz, make sure to divide by MA^2
+                generic_field['g'] = np.abs(fields[field_i]['g']) ** 2.0 / MA2
+            evolved_energy_components[out_i, t0_ind] = int_of_field.evaluate()['g'][0]
+        Bz['c'] = 1j * kx * fields[5]['c'] - 1j * ky * fields[4]['c']  # Bz = dx(Ay) - dy(Ax)
+        generic_field['g'] = np.abs(Bz['g']) ** 2.0 / MA2
+        evolved_energy_components[-1, t0_ind] = int_of_field.evaluate()['g'][0]
 
 energy_cumsum = np.cumsum(energy_components, axis=0)
 colors = ['lightcoral', 'brown', 'red', 'skyblue', 'navy', 'blue']
 names = ['u', 'v', 'w', 'bx', 'by', 'bz']
+
+if save_evolved_state:
+    evolved_energy_cumsum = np.cumsum(evolved_energy_components, axis=0)
+    evolved_energy_cumsum[:, 1:] = evolved_energy_cumsum[:, 1:]/evolved_energy_cumsum[-1, 1:]  # normalize it to 1
+    plt.subplot(2, 1, 2)
+    for i in range(6)[::-1]:
+        plt.plot(LOP_ts[1:], evolved_energy_cumsum[i, 1:], ls='--', c=colors[i], label=names[i])
+        if i == 0:
+            plt.fill_between(LOP_ts[1:], evolved_energy_cumsum[i, 1:], color=colors[i])
+        else:
+            plt.fill_between(LOP_ts[1:], evolved_energy_cumsum[i, 1:], evolved_energy_cumsum[i - 1, 1:], color=colors[i])
+    plt.legend()
+    plt.xlim((0, LOP_ts[-1]))
+    plt.ylim((0, 1))
+    plt.ylabel(r'Evolved state')
+    plt.xlabel(r'$t=t_0$')
+    plt.subplot(2, 1, 1)
 for i in range(6)[::-1]:
     plt.plot(LOP_ts[1:], energy_cumsum[i, 1:], ls='--', c=colors[i], label=names[i])
     if i == 0:
         plt.fill_between(LOP_ts[1:], energy_cumsum[i, 1:], color=colors[i])
     else:
         plt.fill_between(LOP_ts[1:], energy_cumsum[i, 1:], energy_cumsum[i-1, 1:], color=colors[i])
-plt.legend()
+if not save_evolved_state:
+    plt.legend()
 plt.xlim((0, LOP_ts[-1]))
 plt.ylim((0, 1))
 plt.xlabel(r'$t_0$')
-plt.ylabel(r'Contribution to energy by different fields')
-plt.savefig(str(basedir / 'LOP_Ebreakdown_{}.png'.format(run[4:])))
-plt.savefig(str(basedir / 'LOP_Ebreakdown_{}.pdf'.format(run[4:])))
+plt.title(r'Contribution to energy by different fields')
+plt.ylabel('LOP')
+plt.tight_layout()
+plt.savefig(str(basedir / 'LOP_Ebreakdown_{}.png'.format(run)))
+plt.savefig(str(basedir / 'LOP_Ebreakdown_{}.pdf'.format(run)))
