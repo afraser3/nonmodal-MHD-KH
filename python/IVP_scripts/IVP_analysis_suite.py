@@ -77,8 +77,6 @@ if get_max_ks:
     out_dir = basedir / 'IVP_kxi{:04d}_kyi{:04d}_t0i{:03d}'.format(kxi, kyi, LOP_t0_ind)
 else:
     out_dir = basedir / 'IVP_specific_kxi{:04d}_kyi{:04d}_t0i{:03d}'.format(kxi, kyi, LOP_t0_ind)
-if not out_dir.exists():
-    out_dir.mkdir(parents=False)
 
 with h5py.File(str(kxky_dir / 'gains_mats.h5'), mode='r') as file:
     Gs_local = np.array(file['gains/Gs'])
@@ -139,10 +137,10 @@ with PdfPages(str(out_dir) + '/' + plotname) as pdf:
         plt.subplot(2, 2, 3)
         Gs_global_flat = Gs_global.reshape((-1, Gs_global.shape[-1]))  # flatten into a 2D array of shape (Gs_global.shape[0]*Gs_global.shape[1], Gs_global.shape[2])
         ind_flat = Gs_global_flat.argmax(axis=0)  # get the index where Gs_global_flat is maximized for each t
-        kyind, kxind = np.unravel_index(ind_flat,
+        kyind_Gs, kxind_Gs = np.unravel_index(ind_flat,
                                         Gs_global.shape[:2])  # unflatten/unravel those indices back into their kx, ky shape
-        plt.plot(times, kxs[kxind], label=r'$k_{x, max}$')
-        plt.plot(times, kys[kyind], label=r'$k_{y, max}$')
+        plt.plot(times, kxs[kxind_Gs], label=r'$k_{x, max}$')
+        plt.plot(times, kys[kyind_Gs], label=r'$k_{y, max}$')
         plt.axvline(LOP_ts[LOP_t0_ind], c='grey', lw=1.0)
         plt.axhline(kxs[0], c='C0', ls='--')
         plt.axhline(kxs[-1], c='C0', ls='--')
@@ -155,8 +153,8 @@ with PdfPages(str(out_dir) + '/' + plotname) as pdf:
         plt.xlim((times[0], times[-1]))
 
         plt.subplot(2, 2, 4)
-        plt.semilogy(times, kxs[kxind], label=r'$k_{x, max}$')
-        plt.semilogy(times, kys[kyind], label=r'$k_{y, max}$')
+        plt.semilogy(times, kxs[kxind_Gs], label=r'$k_{x, max}$')
+        plt.semilogy(times, kys[kyind_Gs], label=r'$k_{y, max}$')
         if kxs[0] > 0:
             plt.axhline(kxs[0], c='C0', ls='--')
         else:
