@@ -111,6 +111,28 @@ else:
 # z = domain.grid(2)[0, 0]
 
 field = domain.new_field(name='field')
+
+field_data_g = {}
+for fi, fname in enumerate(field_names):
+    for tind, t in enumerate(ts):
+        field.set_scales(1, keep_data=False)
+        if ky > 0:
+            field['c'][1, 1, :] = field_data[fname][tind]
+        else:
+            field['c'][1, :] = field_data[fname][tind]
+        field.set_scales(16, keep_data=True)
+        # field_out = field['g']
+        if tind == 0:
+            if ky > 0:
+                field_data_g[fname] = np.zeros((len(ts), *field['g'][:, 0, :].shape), dtype=np.float64)
+            else:
+                field_data_g[fname] = np.zeros((len(ts), *field['g'].shape), dtype=np.float64)
+        if ky > 0:
+            field_data_g[fname][tind] = field['g'][:, 0, :]
+        else:
+            field_data_g[fname][tind] = field['g']
+
+
 scale = 1.0
 
 for tind, t in enumerate(ts):
@@ -122,18 +144,19 @@ for tind, t in enumerate(ts):
         gs0_subs += [gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs0[fi])]
         ax1 = fig.add_subplot(gs0_subs[-1][0, 0])
 
-        field.set_scales(1, keep_data=False)
-        if ky > 0:
-            field['c'][1, 1, :] = field_data[fname][tind]
-        else:
-            field['c'][1, :] = field_data[fname][tind]
-        field.set_scales(16, keep_data=True)
-        field_out = field['g']
+        # field.set_scales(1, keep_data=False)
+        # if ky > 0:
+        #     field['c'][1, 1, :] = field_data[fname][tind]
+        # else:
+        #     field['c'][1, :] = field_data[fname][tind]
+        # field.set_scales(16, keep_data=True)
+        # field_out = field['g']
 
-        if ky > 0:
-            pmesh1 = ax1.pcolormesh(x16, z16, field_out[:-1, 0, :-1].T, shading='flat')
-        else:
-            pmesh1 = ax1.pcolormesh(x16, z16, field_out[:-1, :-1].T, shading='flat')
+        # if ky > 0:
+        #     pmesh1 = ax1.pcolormesh(x16, z16, field_out[:-1, 0, :-1].T, shading='flat')
+        # else:
+        #     pmesh1 = ax1.pcolormesh(x16, z16, field_out[:-1, :-1].T, shading='flat')
+        pmesh1 = ax1.pcolormesh(x16, z16, field_data_g[fname][tind][:-1, :-1].T, shading='flat')
         fig.colorbar(mappable=pmesh1, ax=ax1)
         ax1.set_title(fname+', $y=0$')
         if fi == 0 or fi == 3:
