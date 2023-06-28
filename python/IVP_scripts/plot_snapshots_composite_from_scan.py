@@ -12,6 +12,7 @@ run = "run_kx-lin-ky-lin_MA1_Re50_kxmin0.2_Nz256-k300-saveLOPsAndEvolved"
 LOP_t0_ind = 10
 kxi = None
 kyi = None
+fix_cbar = True
 
 istep = 3
 field_names = ['u', 'v', 'w', 'Bx', 'By', 'Bz']
@@ -81,7 +82,10 @@ if get_max_ks:
     out_dir = basedir / 'IVP_kxi{:04d}_kyi{:04d}_t0i{:03d}'.format(kxi, kyi, LOP_t0_ind)
 else:
     out_dir = basedir / 'IVP_specific_kxi{:04d}_kyi{:04d}_t0i{:03d}'.format(kxi, kyi, LOP_t0_ind)
-plot_dir = out_dir / 'snapshots_composite_flat'
+if fix_cbar:
+    plot_dir = out_dir / 'snapshots_composite_flat_fixed-cbar'
+else:
+    plot_dir = out_dir / 'snapshots_composite_flat'
 if not plot_dir.exists():
     plot_dir.mkdir(parents=False)
 
@@ -156,7 +160,11 @@ for tind, t in enumerate(ts):
         #     pmesh1 = ax1.pcolormesh(x16, z16, field_out[:-1, 0, :-1].T, shading='flat')
         # else:
         #     pmesh1 = ax1.pcolormesh(x16, z16, field_out[:-1, :-1].T, shading='flat')
-        pmesh1 = ax1.pcolormesh(x16, z16, field_data_g[fname][tind][:-1, :-1].T, shading='flat')
+        if fix_cbar:
+            field_max = np.max(np.abs(field_data_g[fname][:, :-1, :-1]))
+            pmesh1 = ax1.pcolormesh(x16, z16, field_data_g[fname][tind][:-1, :-1].T, shading='flat', vmin=-field_max, vmax=field_max)
+        else:
+            pmesh1 = ax1.pcolormesh(x16, z16, field_data_g[fname][tind][:-1, :-1].T, shading='flat')
         fig.colorbar(mappable=pmesh1, ax=ax1)
         ax1.set_title(fname+', $y=0$')
         if fi == 0 or fi == 3:
