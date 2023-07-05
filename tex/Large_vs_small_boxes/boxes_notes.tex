@@ -1,0 +1,126 @@
+% ****** Start of file apssamp.tex ******
+%
+%   This file is part of the APS files in the REVTeX 4.2 distribution.
+%   Version 4.2a of REVTeX, December 2014
+%
+%   Copyright (c) 2014 The American Physical Society.
+%
+%   See the REVTeX 4 README file for restrictions and more information.
+%
+% TeX'ing this file requires that you have AMS-LaTeX 2.0 installed
+% as well as the rest of the prerequisites for REVTeX 4.2
+%
+% See the REVTeX 4 README file
+% It also requires running BibTeX. The commands are as follows:
+%
+%  1)  latex apssamp.tex
+%  2)  bibtex apssamp
+%  3)  latex apssamp.tex
+%  4)  latex apssamp.tex
+%
+\documentclass[%
+ reprint,
+%superscriptaddress,
+%groupedaddress,
+%unsortedaddress,
+%runinaddress,
+%frontmatterverbose, 
+%preprint,
+%preprintnumbers,
+%nofootinbib,
+%nobibnotes,
+%bibnotes,
+ amsmath,amssymb,
+ aps,
+%pra,
+%prb,
+%rmp,
+%prstab,
+%prstper,
+%floatfix,
+]{revtex4-2}
+
+\usepackage{graphicx}% Include figure files
+\graphicspath{{figures/}} % Location of the graphics files
+\usepackage{dcolumn}% Align table columns on decimal point
+\usepackage{bm}% bold math
+%\usepackage{hyperref}% add hypertext capabilities
+%\usepackage[mathlines]{lineno}% Enable numbering of text and display math
+%\linenumbers\relax % Commence numbering lines
+
+%\usepackage[showframe,%Uncomment any one of the following lines to test 
+%%scale=0.7, marginratio={1:1, 2:3}, ignoreall,% default settings
+%%text={7in,10in},centering,
+%%margin=1.5in,
+%%total={6.5in,8.75in}, top=1.2in, left=0.9in, includefoot,
+%%height=10in,a5paper,hmargin={3cm,0.8in},
+%]{geometry}
+
+\newcommand{\Bzero}{\mathbf{B}_0}
+\newcommand{\Uzero}{\mathbf{U}_0}
+\newcommand{\vecpot}{\mathbf{A}}
+\newcommand{\linop}{\mathcal{L}}
+\renewcommand{\Re}{\mathrm{Re}}
+
+\begin{document}
+
+\preprint{APS/123-QED}
+
+\title{Notes on big vs small boxes because slack is getting messy}
+
+%\author{Adrian Fraser}
+%\email{adrian_fraser@colorado.edu}
+%\affiliation{%
+%Department of Astrophysical and Planetary Sciences, University of Colorado, Boulder, CO
+%}%
+
+%\author{Alexis K. Kaminski}
+%\affiliation{
+%Department of Mechanical Engineering, University of California, Berkeley, Berkeley, CA
+%}%
+%\author{Jeffrey S. Oishi}
+%\affiliation{
+%Department of Physics and Astronomy, Bates College, Lewiston, ME
+%}%
+
+%\date{\today}% It is always \today, today,
+             %  but any date may be explicitly specified
+
+%\begin{abstract}
+%Shear layers, MHD, optimal perturbations.
+%\end{abstract}
+
+%\keywords{Suggested keywords}%Use showkeys class option if keyword
+                              %display desired
+\maketitle
+
+%\tableofcontents
+Below, I'll start with a section on what we've figured out for small boxes, then what we've figured out for big boxes. I'll break each section up into examples of what happens at different Alfv\'{e}n Mach numbers, and I guess at different Reynolds numbers once I get there.
+
+As a reminder, note that the Alfv\'{e}n Mach number is defined as the ratio of the flow speed to the Alfv\'{e}n speed, so the important thing is that it scales like $U_0/B_0$, i.e.,
+\begin{equation}
+    M_A \equiv \frac{U_0}{v_A} \propto \frac{U_0}{B_0}.
+\end{equation}
+So a stronger field corresponds to a smaller $M_A$. The system is \textbf{stable} for $M_A \leq M_{A, \mathrm{crit}}$, where
+\begin{equation}
+M_{A, \mathrm{crit}} \approx 1.05
+\end{equation}
+(for $\mathrm{Pm} = 1$ anyway, which is all we've looked at). 
+Thus, whenever I show results for $M_A = 1$, that means the system is barely stable. 
+Note also that, in our non-dimensionalization where we're measuring flow speeds in units of $U_0$, the Alfv\'{e}n speed becomes $1/M_A$, so the frequency of an Alfv\'{e}n wave in the absence of any background flow becomes
+\begin{equation}
+    \omega_A = \frac{k_x}{M_A}.
+\end{equation}
+\section{Small boxes}
+The following small box runs are scanned over $k_x$ and $k_y$ where $k_y$ is allowed to be zero or positive, $k_x$ is strictly positive, and the minimum nonzero value of $k_x$ and $k_y$ is $0.1$, corresponding to a ``small" box size of $20\pi$.
+
+\subsection{$M_A = 1$}
+
+
+%\begin{acknowledgments}
+%\end{acknowledgments}
+
+
+%\bibliography{mhd_linopt}% Produces the bibliography via BibTeX.
+
+\end{document}

@@ -1,0 +1,308 @@
+% ****** Start of file apssamp.tex ******
+%
+%   This file is part of the APS files in the REVTeX 4.2 distribution.
+%   Version 4.2a of REVTeX, December 2014
+%
+%   Copyright (c) 2014 The American Physical Society.
+%
+%   See the REVTeX 4 README file for restrictions and more information.
+%
+% TeX'ing this file requires that you have AMS-LaTeX 2.0 installed
+% as well as the rest of the prerequisites for REVTeX 4.2
+%
+% See the REVTeX 4 README file
+% It also requires running BibTeX. The commands are as follows:
+%
+%  1)  latex apssamp.tex
+%  2)  bibtex apssamp
+%  3)  latex apssamp.tex
+%  4)  latex apssamp.tex
+%
+\documentclass[%
+ reprint,
+%superscriptaddress,
+%groupedaddress,
+%unsortedaddress,
+%runinaddress,
+%frontmatterverbose, 
+%preprint,
+%preprintnumbers,
+%nofootinbib,
+%nobibnotes,
+%bibnotes,
+ amsmath,amssymb,
+ aps,
+%pra,
+%prb,
+%rmp,
+%prstab,
+%prstper,
+%floatfix,
+]{revtex4-2}
+
+\usepackage{graphicx}% Include figure files
+\graphicspath{{figures/}} % Location of the graphics files
+\usepackage{dcolumn}% Align table columns on decimal point
+\usepackage{bm}% bold math
+%\usepackage{hyperref}% add hypertext capabilities
+%\usepackage[mathlines]{lineno}% Enable numbering of text and display math
+%\linenumbers\relax % Commence numbering lines
+
+%\usepackage[showframe,%Uncomment any one of the following lines to test 
+%%scale=0.7, marginratio={1:1, 2:3}, ignoreall,% default settings
+%%text={7in,10in},centering,
+%%margin=1.5in,
+%%total={6.5in,8.75in}, top=1.2in, left=0.9in, includefoot,
+%%height=10in,a5paper,hmargin={3cm,0.8in},
+%]{geometry}
+
+\newcommand{\Bzero}{\mathbf{B}_0}
+\newcommand{\Uzero}{\mathbf{U}_0}
+\newcommand{\vecpot}{\mathbf{A}}
+\newcommand{\linop}{\mathcal{L}}
+\renewcommand{\Re}{\mathrm{Re}}
+
+\begin{document}
+
+\preprint{APS/123-QED}
+
+\title{Non-modal growth and optimal perturbations in magnetohydrodynamic shear flows}
+
+\author{Adrian Fraser}
+\email{adrian_fraser@colorado.edu}
+\affiliation{%
+Department of Astrophysical and Planetary Sciences, University of Colorado, Boulder, CO
+}%
+
+\author{Alexis K. Kaminski}
+\affiliation{
+Department of Mechanical Engineering, University of California, Berkeley, Berkeley, CA
+}%
+\author{Jeffrey S. Oishi}
+\affiliation{
+Department of Physics and Astronomy, Bates College, Lewiston, ME
+}%
+
+\date{\today}% It is always \today, today,
+             %  but any date may be explicitly specified
+
+\begin{abstract}
+Shear layers, MHD, optimal perturbations.
+\end{abstract}
+
+%\keywords{Suggested keywords}%Use showkeys class option if keyword
+                              %display desired
+\maketitle
+
+%\tableofcontents
+Shear layers are of paramount importance in numerous magnetohydrodynamic flows, in both astrophysical (cite) and fusion (cite) settings. The stability and transition to turbulence of such configurations has attracted considerable attention. In such flows, the linear operator $\linop$ is non-normal, leading to the possibility that a given perturbation can undergo significant amplification even when the flow is linearly stable. This behavior is well known in the hydrodynamics community, where it plays a pivotal role in the transition to turbulence in both canonical flows (e.g. pipe flow) and in more complex applications (e.g. oceanic mixing). While there  have been some prior studies incorporating non-modal growth in MHD flows (cite Squire, others), 
+
+Here, we consider the linear dynamics of a simplified shear layer with a stabilizing magnetic field $\Bzero$. This system can be unstable to Kelvin-Helmholtz instabilities at weak field strength. However, even when the field is strong enough stabilize the flow, the non-modal character of the linear operator leads to significant transient growth. We compute the optimal linear perturbations that maximize that growth.
+
+\section{Methods}
+\textbf{NB: We can cut this for space if needed.}
+
+We solve the resistive MHD equations linearized about a background field $\Bzero$ and a background shear profile $\Uzero$, cast in terms of magnetic vector potential $\vecpot$ in the Coulomb gauge,
+\textbf{TODO: put these in linearized form about $\Uzero$ and $\Bzero$. }
+\begin{equation}
+\rho_0 \left( \frac{\partial}{\partial t} + \mathbf{v} \cdot \nabla \right) \mathbf{v} = -\nabla p + \frac{1}{c} \mathbf{J} \times \mathbf{B} + \rho_0 \nu \nabla^2 \mathbf{v}
+\end{equation}
+\begin{equation}
+\frac{\partial}{\partial t} \mathbf{A} + \nabla \phi = \mathbf{v} \times \mathbf{B} + \eta \nabla^2 \mathbf{A}
+\end{equation}
+\begin{equation}
+\nabla \cdot \mathbf{v} = 0
+\end{equation}
+\begin{equation}
+\nabla \cdot \mathbf{A} = 0.
+\end{equation}
+We solve the system using Dedalus \cite{2020PhRvR...2b3068B} and its companion package, eigentools \cite{2021JOSS....6.3079O}.
+
+\section{Non-modal Growth}
+Figure~\ref{fig:pseudospec} shows contours of the pseudospectrum for run N.
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{pseudospec_020.pdf}
+\caption{This is from run N. \label{fig:pseudospec}}
+\end{figure}
+\section{Linear Optimals}
+Consider the linear system
+\begin{equation}
+\frac{\partial U}{\partial t} = \mathcal{L} U,
+\label{eq:simplest_system}
+\end{equation}
+where $U(t)$ is the system state and $\mathcal{L}$ is a time-independent linear differential operator.  
+%(Squire \& Bhattacharjee consider the case where $\mathcal{L}$ is time-dependent, but we're not interested in that so I won't consider it here). 
+Then the general solution is given by the propagator acting on the initial condition:
+\begin{equation}
+U(t) = \mathcal{K}(t) U(0),
+\label{eq:simplest_solution}
+\end{equation}
+where
+\begin{equation}
+\mathcal{K}(t) = \exp(\mathcal{L} t).
+\label{eq:simplest_propagator}
+\end{equation}
+Then, the maximum amplification in terms of some norm $|| \cdot ||_\chi^2$ by time $T$ is
+\begin{equation}
+G_\chi(T) = \max_{U(0)} \frac{|| \mathcal{K}(T) U(0) ||_\chi^2}{||U(0)||_\chi^2}.
+\end{equation}
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{LOP_MA_scan_Nz256_k100_Pm1.0.pdf}
+\caption{Here are some fun gains.
+\label{fig:gains}}
+\end{figure}
+
+\subsection{3D scans}
+Here I'll drop various results from our 3D scans.
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{gains_kmax_MA1.0_Re50.0_Pm1.0_k300_lin.pdf}
+\caption{Gains for LOPs at $M_A = 1$, $\Re = 50$. Left panel shows $G(T)$ where, at each T, a max is taken over $k_x$ and $k_y$. The right panel shows how that max $k_x$ and $k_y$ varies over time.
+\label{fig:Gmax_MA1}}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{gains_kscan_tscan_MA1.0_Re50.0_Pm1.0_k300_lin.pdf}
+\caption{Gains for LOPs at $M_A = 1$, $\Re = 50$. Each panel shows $G$ as a function of $k_x$, $k_y$ for a different time.
+\label{fig:Gmax_kscan_MA1}}
+\end{figure}
+
+Figure \ref{fig:Gmax_MA1} shows the time-dependence of $G(T)$ maximized over $k_x$ and $k_y$, as well as the $k_x$ and $k_y$ where that max occurs, for $M_A = 1$ and $\Re = 50$, which is linearly stable (just barely). Very quickly the LOPs latch onto modes with the smallest possible $k_x$, which are 2D in the opposite sense of what one would expect from Squire's theorem (which doesn't formally hold in MHD but is still usually a good first guess). Figure \ref{fig:Gmax_kscan_MA1} shows the full $k_x$, $k_y$ data for a few different times just to illustrate how peaked the gains are at low $k_x$.
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{gains_kmax_MA50.0_Re50.0_Pm1.0_k300_log.pdf}
+\caption{Gains for LOPs at $M_A = 50$, $\Re = 50$. Left panel shows $G(T)$ where, at each T, a max is taken over $k_x$ and $k_y$. The right panel shows how that max $k_x$ and $k_y$ varies over time.
+\label{fig:Gmax_MA50}}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{gains_kscan_tscan_MA50.0_Re50.0_Pm1.0_k300_lin.pdf}
+\caption{Gains for LOPs at $M_A = 50$, $\Re = 50$. Each panel shows $G$ as a function of $k_x$, $k_y$ for a different time. Note that the range on the x and y axes are not the same as in Fig.~\ref{fig:Gmax_kscan_MA1}. 
+\label{fig:Gmax_kscan_MA50}}
+\end{figure}
+
+The same kinds of plots but for $M_A = 50$ (basically hydro) are shown in Fig.~\ref{fig:Gmax_MA50} and \ref{fig:Gmax_kscan_MA50}. Here things are very unstable so unsurprisingly the asymptotics very quickly latch onto what you expect from modal stability: exponential growth, with $k_y = 0$ modes growing the fastest (again, Squire's theorem doesn't hold, but is still a useful first guess).
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{gains_kmax_MA0.75_Re50.0_Pm1.0_k300_lin.pdf}
+\caption{Gains for LOPs at $M_A = 0.75$, $\Re = 50$. Left panel shows $G(T)$ where, at each T, a max is taken over $k_x$ and $k_y$. The right panel shows how that max $k_x$ and $k_y$ varies over time.
+\label{fig:Gmax_MA0.75}}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{gains_kmax_MA0.5_Re50.0_Pm1.0_k300_lin.pdf}
+\caption{Gains for LOPs at $M_A = 0.5$, $\Re = 50$. Left panel shows $G(T)$ where, at each T, a max is taken over $k_x$ and $k_y$. The right panel shows how that max $k_x$ and $k_y$ varies over time.
+\label{fig:Gmax_MA0.5}}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{gains_kmax_MA0.25_Re50.0_Pm1.0_k300_lin.pdf}
+\caption{Gains for LOPs at $M_A = 0.25$, $\Re = 50$. Left panel shows $G(T)$ where, at each T, a max is taken over $k_x$ and $k_y$. The right panel shows how that max $k_x$ and $k_y$ varies over time.
+\label{fig:Gmax_MA0.25}}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{gains_kmax_MA0.125_Re50.0_Pm1.0_k300_lin.pdf}
+\caption{Gains for LOPs at $M_A = 0.125$, $\Re = 50$. Left panel shows $G(T)$ where, at each T, a max is taken over $k_x$ and $k_y$. The right panel shows how that max $k_x$ and $k_y$ varies over time.
+\label{fig:Gmax_MA0.125}}
+\end{figure}
+
+I've made plots like Fig.~\ref{fig:Gmax_kscan_MA1} for $M_A = 0.75$, $0.5$, $0.25$, and $0.125$ and they're all basically the same qualitative features, except that the gains die down at late times for low $M_A$ and so the narrow peak at low $k_x$ starts to fade into the background. But the equivalent versions of Fig.~\ref{fig:Gmax_MA1} are actually quite interesting: see Figs.~\ref{fig:Gmax_MA0.75}-\ref{fig:Gmax_MA0.125}. Check out those oscillations! What's up with that? Is it mode hopping? To find out, I took the LOPs corresponding to the peaks and troughs in Fig.~\ref{fig:Gmax_MA0.75} and used them as the initial conditions in some IVPs. I didn't learn much.
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{energies_log_MA0.75_kx0.025_ky0.35_ti46.pdf}
+\caption{Energy vs time for a linear IVP where the initial condition and wavenumbers are taken as the LOP at $t = 46$ in Fig.~\ref{fig:Gmax_MA0.75}. The solid black curve shows the gain $G(t_0)$ for this $k_x$, $k_y$, the dashed black curve shows the asymptotic time-dependence according to the least stable eigenvalue, and the blue, orange, and green curves show total, kinetic, and magnetic energy, respectively, for the perturbation as it evolves in time in the IVP.
+\label{fig:LOP_IVP_Elog_MA0.75_ti46}}
+\end{figure}
+
+Figure \ref{fig:LOP_IVP_Elog_MA0.75_ti46} shows gains and energies vs time for a linear IVP where the initial condition is taken as the LOP at $t = 46$ in Fig.~\ref{fig:Gmax_MA0.75}, and the $k_x$, $k_y$ are the wavenumbers for which the gain peaks at this time (i.e.~I used the values shown at $t_0 = 46$ in the right panel of Fig.~\ref{fig:Gmax_MA0.75}). The solid black curve shows the gain $G(t_0)$ for these wavenumbers -- note this won't agree with the left panel of Fig.~\ref{fig:Gmax_MA0.75} because that scans over wavenumbers, whereas this is the gain at a fixed wavenumber. The dashed black curve shows the asymptotic time-dependence according to the least stable eigenvalue; the fact that the solid black curve isn't yet trending towards the dashed one by $t_0=200$ tells us that it hasn't reached the asymptotic behavior yet. Blue, orange, and green curves show total, kinetic, and magnetic energy, respectively, for the perturbation as it evolves in time in the IVP. Despite the low $M_A$, there's very little magnetic activity at early times as the system reaches its peak in energy. Much later on, there appear to be some maybe-Alfv\'{e}nic oscillations between KE and ME.
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{energies_breakdown_MA0.75_kx0.025_ky0.35_ti46.pdf}
+\caption{Different components of energy vs time for the same IVP as in fig.~\ref{fig:LOP_IVP_Elog_MA0.75_ti46}. The huge growth in $u$ fluctuations vs time is consistent with Alexis' predictions based on the linear lift-up mechanism.
+\label{fig:LOP_IVP_Ecomp_MA0.75_ti46}}
+\end{figure}
+
+The kinetic and magnetic energies are broken up into their contributions from individual cartesian components of the flow and field in Fig.~\ref{fig:LOP_IVP_Ecomp_MA0.75_ti46}. The main thing this figure demonstrates to me is that Alexis is onto something in her linear lift-up notes. And this explains why the $k_x \to 0$ perturbations appear to get plenty of nonmodal growth no matter how strong the magnetic field is!
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{energies_prods_MA0.75_kx0.025_ky0.35_ti46.pdf}
+\caption{Top row shows kinetic and magnetic energy vs time for the same IVP as in fig.~\ref{fig:LOP_IVP_Elog_MA0.75_ti46}. Middle row shows the two (inviscid) terms that contribute to $d(\mathrm{KE})/dt$ alongside $d(\mathrm{KE})/dt$, bottom row does the same but for ME. Note that the EM work term works against the KE shear production term to transfer energy to ME where it is put back into the background via the ME shear production term.
+\label{fig:LOP_IVP_Eprods_MA0.75_ti46}}
+\end{figure}
+
+Figure \ref{fig:LOP_IVP_Eprods_MA0.75_ti46} shows the energy production terms, as derived in \texttt{tex/equations.tex}. What I see is that the EM work term, which represents the conservative transfer of energy from fluctuation KE to fluctuation ME, basically works against the KE shear production term to move energy to ME, where the ME shear production term then dumps it back in the background. The two shear production terms are basically just integrals of the Reynolds and Maxwell stresses multiplied by $U'$, so this makes me suspect that the Reynolds and Maxwell stresses are working against each other here. If so, that would be interesting because it's completely different from what one sees in the modal case or in typical nonlinear simulations, as discussed in my 2021 PoP paper: the unstable eigenmodes gain energy from both the Reynolds and the Maxwell stresses (see fig.~3 of that paper), and in the nonlinear evolution, the low-$k_x$ fluctuations either gain energy from the Maxwell stress or contribute almost nothing depending on which $k_x$ and time you sample (see fig.~14 of that paper).
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{energies_log_MA0.75_kx0.025_ky0.225_ti144.pdf}
+\caption{Same as fig.~\ref{fig:LOP_IVP_Elog_MA0.75_ti46} but for the LOP at $t_0 = 144$. 
+\label{fig:LOP_IVP_Elog_MA0.75_ti144}}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{tex/manuscript/figures/energies_breakdown_MA0.75_kx0.025_ky0.225_ti144.pdf}
+\caption{Same as fig.~\ref{fig:LOP_IVP_Ecomp_MA0.75_ti46} but for the LOP at $t_0 = 144$. 
+\label{fig:LOP_IVP_Ecomp_MA0.75_ti144}}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{tex/manuscript/figures/energies_prods_MA0.75_kx0.025_ky0.225_ti144.pdf}
+\caption{Same as fig.~\ref{fig:LOP_IVP_Eprods_MA0.75_ti46} but for the LOP at $t_0 = 144$. 
+\label{fig:LOP_IVP_Eprods_MA0.75_ti144}}
+\end{figure}
+
+Figures \ref{fig:LOP_IVP_Elog_MA0.75_ti144}-\ref{fig:LOP_IVP_Eprods_MA0.75_ti144} are the same plots but for the LOP at $t_0=144$, the first trough in Fig.~\ref{fig:Gmax_MA0.75}. It's a little interesting that the global maximum in energy vs $t$ in Fig.~\ref{fig:LOP_IVP_Elog_MA0.75_ti144} happens before the target time. Also, the $y$ and $z$ fluctuations appear to be pretty Alfvénic. The KE and ME shear production terms are no longer perfectly out of sync, particularly not early on around $t \lesssim 50$, but are again somewhat out of sync around $100 \lesssim t \lesssim 200$.
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{energies_log_MA0.75_kx0.025_ky0.125_ti186.pdf}
+\caption{Same as fig.~\ref{fig:LOP_IVP_Elog_MA0.75_ti46} but for the LOP at $t_0 = 186$. 
+\label{fig:LOP_IVP_Elog_MA0.75_ti186}}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{tex/manuscript/figures/energies_breakdown_MA0.75_kx0.025_ky0.125_ti186.pdf}
+\caption{Same as fig.~\ref{fig:LOP_IVP_Ecomp_MA0.75_ti46} but for the LOP at $t_0 = 186$. 
+\label{fig:LOP_IVP_Ecomp_MA0.75_ti186}}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{tex/manuscript/figures/energies_prods_MA0.75_kx0.025_ky0.125_ti186.pdf}
+\caption{Same as fig.~\ref{fig:LOP_IVP_Eprods_MA0.75_ti46} but for the LOP at $t_0 = 186$. 
+\label{fig:LOP_IVP_Eprods_MA0.75_ti186}}
+\end{figure}
+
+Figures \ref{fig:LOP_IVP_Elog_MA0.75_ti186}-\ref{fig:LOP_IVP_Eprods_MA0.75_ti186} correspond to the LOP at $t_0 = 186$. Not much new to say here except that the shear production terms are again nicely opposing each other.
+
+\section{Discussion}
+Exploiting similarities between stratified shear flows and magnetized ones. Importing idea of linear optimal perturbations to MHD/plasmas. Note that this is beginning of a generalizable idea/method. Can incorporate more ``realistic'' plasma models to see additional physics. Understanding role of subcritical effects, particularly transient growth, on tokamak edge physics is the first step toward understanding optimal control of perturbations. The ability to control perturbations, and thus shear layer dynamics, could prove pivotal in constructing reliable, efficient fusion power. \textbf{Preceding sentence might be a bit much.}
+
+
+\begin{acknowledgments}
+We wish to acknowledge people and grants and clusters. Things/people to make sure we acknowledge: the Lux and Alpine clusters; Daniel, Keaton, Bindesh; Pascale's grants as well as Hale/HTMS
+\end{acknowledgments}
+
+
+\bibliography{mhd_linopt}% Produces the bibliography via BibTeX.
+
+\end{document}
+%
+% ****** End of file apssamp.tex ******
