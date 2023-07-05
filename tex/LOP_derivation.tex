@@ -158,10 +158,31 @@ Then if we do $\mathbf{W}_Q = \mathbf{F}^\dagger_Q \mathbf{F}_Q$, we should have
 %\end{equation}
 
 Putting this all together, I claim that I should be able to get $G_E$ by taking the largest singular value of
-\begin{equation}
+\begin{equation} \label{FQR_propagator}
 \mathbf{F}_Q \mathbf{R} \exp(\mathbf{D} t) \mathbf{R}^{-1} \mathbf{F_Q}^{-1}.
 \end{equation}
 Unfortunately, this isn't giving me a reasonable result for parameters where the system is stable.
 
 \textit{[Update: turns out this last equation was absolutely correct, and I was just missing a factor of $i$ in my code!]}
+
+\section{Obtaining the perturbations themselves}
+Setting aside all this mess from $\mathbf{R}$ and $\mathbf{F}$ for a moment, suppose we have $\mathbf{K}$, the matrix representation of the propagator $\mathcal{K}$ in some basis. 
+Then the gain is given by the square of the largest singular value of $\mathbf{K}$, and we also get the optimal perturbation from the SVD of $\mathbf{K}$. 
+Specifically, taking the SVD,
+\begin{equation}
+    \mathbf{K} = \mathbf{U} \mathbf{\Sigma} \mathbf{V}^\dagger,
+\end{equation}
+where $\mathbf{\Sigma}$ is a diagonal matrix whose entries are the ordered singular values $\sigma_j$ of $\mathbf{K}$ (so the gain is given by $\sigma_1^2$), and $\mathbf{U}$ and $\mathbf{V}$ are unitary, the optimal perturbation that achieves this gain is given by $\vec{v}_1$, the first column of $\mathbf{V}$, or the conjugate-transpose of the first row of $\mathbf{V}^\dagger$. 
+Notice that
+\begin{equation}
+    ||\mathbf{K} \vec{v}_1|| = ||\mathbf{U} \mathbf{\Sigma} \mathbf{V}^\dagger \vec{v}_1|| = ||\mathbf{U} \sigma_1 \vec{e}_1|| = |\sigma_1|
+\end{equation}
+where $\vec{e}_1$ is the vector $(1, 0, 0, ...)^T$, and the second and third equality used the fact that $\mathbf{U}$ and $\mathbf{V}$ are unitary.
+This shows that the propagator $\mathbf{K}$ evolves an initial state vector $\vec{v}_1$ of length 1 (since $\mathbf{V}$ is unitary) to one of length $\sigma_1$ -- which is exactly what we're after.
+
+I'm having a bit of trouble applying this to the system where both $\mathbf{R}$ and $\mathbf{F}_Q$ are involved. 
+I guess Eq.~\eqref{FQR_propagator} is $\mathcal{K}$ expressed in the basis of $\mathbf{Q}$ (the orthonormalized set of eigenvectors we care about) and then re-weighted so that 2-norms turn into energy norms. 
+So doing an SVD of that and then taking the first column of $\mathbf{V}$ gives the optimal perturbation expressed in that funny basis. 
+To get the perturbation in a more meaningful basis, we need to do some changes of basis.
+Applying $\mathbf{F}_Q^{-1}$ should get the vector simply in the basis of $\mathbf{Q}$.
 \end{document}

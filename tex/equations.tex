@@ -90,4 +90,68 @@ Breaking these into component form, and returning to non-dimensional form, we ar
     \partial_x A_x + \partial_y A_y + A_zz &= 0,
 \end{align}
 not including the first order reduction variables $uz, vz,A_xz, A_yz,$
+
+\section{Energy production/conversion terms}
+I'm going to start from the B formulation of the MHD equations since it's what I'm most familiar with. 
+The nonlinear equations are
+\begin{equation}
+	\left( \frac{\partial}{\partial t} + \mathbf{v} \cdot \nabla \right) \mathbf{v} = -\nabla p + \frac{1}{M_A^2} \mathbf{J} \times \mathbf{B} + \frac{1}{\Re} \nabla^2 \mathbf{v}
+\end{equation}
+	and
+\begin{equation}
+	\frac{\partial}{\partial t} \mathbf{B} = \nabla \times (\mathbf{v} \times \mathbf{B}) + \frac{1}{\Rm} \nabla^2 \mathbf{B},
+\end{equation}
+where $\mathbf{J} \equiv \nabla \times \mathbf{B}$. 
+%The second equation can be rewritten as
+%\begin{equation}
+	%\frac{\partial}{\partial t} \mathbf{B} = (\mathbf{B} \cdot \nabla) \mathbf{v} - (\mathbf{v} \cdot \nabla) \mathbf{B} + \frac{1}{\Rm} \nabla^2 \mathbf{B},
+%\end{equation}
+If you take the first equation, dot it into $\mathbf{v}$, and integrate over the domain, and compare it to what happens if you take the second equation, dot it into $\mathbf{B}$, integrate over the domain, divide it by $M_A^2$, and add these two resulting equations, you get that the $\mathbf{J} \times \mathbf{B}$ term in the first equation cancels the $\nabla \times (\mathbf{v} \times \mathbf{B})$ term in the second equation. 
+It's tedious to show, but I find it's most easily shown by first using vector calc identities to turn $\mathbf{J} \times \mathbf{B}$ into $\mathbf{B} \cdot \nabla \mathbf{B} - \frac{1}{2} \nabla |\mathbf{B}|^2$, and similarly writing $\nabla \times ( \mathbf{v} \times \mathbf{B} ) = (\mathbf{B} \cdot \nabla) \mathbf{v} - (\mathbf{v} \cdot \nabla) \mathbf{B}$. \textit{[Note: I have checked that these nonlinearities do cancel for our choice of BCs. Requires using div thm and $B_z = 0$ at boundaries.]}
+Anyway, this shows that energy conserved by the nonlinearities is
+\begin{equation}
+    E = \int d^3x \left[ |\mathbf{v}|^2 + \frac{1}{M_A^2} |\mathbf{B}|^2 \right],
+\end{equation}
+which can be separated into kinetic energy $K$ and magnetic energy $M$. 
+This also demonstrates that the conversion of energy between $K$ and $M$ is given by
+\begin{equation}
+    \frac{1}{M_A^2} \int d^3x \mathbf{v} \cdot [ (\nabla \times \mathbf{B}) \times \mathbf{B} ] = - \frac{1}{M_A^2} \int d^3x \mathbf{B} \cdot [ \nabla \times (\mathbf{v} \times \mathbf{B}) ].
+\end{equation}
+(Really I should have put a factor of $1/2$ in front of both energies in order for it to be consistent with the standard definition, but that doesn't really matter in this system. 
+Also this way it's consistent with the energy norm we defined in all our scripts.)
+Now let's look at the linearized equations.
+
+Linearizing about our background flow and field to get $\mathbf{v} = U(z) \hat{\mathbf{x}} + \mathbf{u}$ and $\mathbf{B} = \hat{\mathbf{x}} + \mathbf{b}$ yields
+\begin{equation}
+	\frac{\partial}{\partial t} \mathbf{u} + U \frac{\partial}{\partial x} \mathbf{u} + w U' \hat{\mathbf{x}} = -\nabla p + \frac{1}{M_A^2} \left( \nabla \times \mathbf{b} \right) \times \hat{\mathbf{x}} + \frac{1}{\Re} \nabla^2 \mathbf{u},
+\end{equation}
+or
+\begin{equation}
+	\frac{\partial}{\partial t} \mathbf{u} + U \frac{\partial}{\partial x} \mathbf{u} + w U' \hat{\mathbf{x}} = -\nabla p + \frac{1}{M_A^2} \left( J_z \hat{\mathbf{y}} - J_y \hat{\mathbf{z}} \right) + \frac{1}{\Re} \nabla^2 \mathbf{u}
+\end{equation}
+for the momentum equation, and 
+\begin{equation}
+	\frac{\partial}{\partial t} \mathbf{b} = \nabla \times (U \hat{\mathbf{x}} \times \mathbf{b}) + \nabla \times (\mathbf{u} \times \hat{\mathbf{x}}) + \frac{1}{\Rm} \nabla^2 \mathbf{b},
+\end{equation}
+or, using one of the vector calc identities mentioned above,
+\begin{equation}
+	\frac{\partial}{\partial t} \mathbf{b} = b_z U' \hat{\mathbf{x}} + \frac{\partial}{\partial x} \mathbf{u} - U \frac{\partial}{\partial x} \mathbf{b} + \frac{1}{\Rm} \nabla^2 \mathbf{b}.
+\end{equation}
+
+Dotting the momentum equation into $\mathbf{u}$ and integrating yields
+\begin{equation}
+    \frac{\partial}{\partial t} K = \int d^3x \left[ -U \mathbf{u} \cdot \frac{\partial}{\partial x} \mathbf{u} - wuU' + \frac{1}{M_A^2} ( vJ_z - wJ_y ) + \frac{1}{\mathrm{Re}} \mathbf{u} \cdot \nabla^2 \mathbf{u} \right],
+\end{equation}
+where now $K$ refers to just the contribution from $|\mathbf{u}|^2$. 
+\textit{[The pressure term drops out by div thm plus $u_z=0$ BC. Normally the viscous term gets turned into the square of the vorticity but from what I recall that only holds for some BCs, gotta verify that holds here. Even if it doesn't, I think you can still write it as $(\nabla \mathbf{u})^2$ which is still non-negative.]} 
+The $U \mathbf{u} \cdot \partial_x \mathbf{u}$ term drops out (a few ways to show that, but I think you can show it by absorbing the first $\mathbf{u}$ into the $\partial_x$, and then using the fundamental theorem of calculus to rewrite the $x$ integral of this expression then note the periodic boundary conditions in $x$). 
+The second term is the same thing that's seen in Eqs. 3.1 a and b in Alexis' paper, except that here I'm finding that an overbar should be over all of $uwU'$, whereas in her paper the overbar only goes over the $uw$ part.
+Using the same vector calc identities I rambled about in the first paragraph of this section, the $1/M_A^2$ part of this equation can be written a bunch of different ways. 
+If I did my math right, I think one way of writing it is $-b_x \partial_x u - b_y \partial_x v - b_z \partial_x w$.
+
+Likewise, the induction equation can be made to yield
+\begin{equation}
+    \frac{\partial}{\partial t} M = \frac{1}{M_A^2}\int d^3x \left[ b_x b_z U' + \mathbf{b} \cdot \frac{\partial}{\partial x} \mathbf{u} - U \mathbf{b} \cdot \frac{\partial}{\partial x} \mathbf{b} + \frac{1}{\mathrm{Rm}} \mathbf{b} \cdot \nabla^2 \mathbf{b} \right].
+\end{equation}
+The second term matches the $1/M_A^2$ term in the $\partial_t K$ equation, and the third term goes to zero. Looks like the first term says something about energy transferred from background shear into perturbation $M$.
 \end{document}
