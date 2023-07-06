@@ -140,13 +140,70 @@ For $M_A = 1$, the wave period is $T_A = 2\pi / \omega_A = 2\pi M_A/k_x = 2\pi \
 \begin{figure}
 \centering
 \includegraphics[width=\columnwidth]{energies_breakdown_run_kx-log-ky-lin_MA1_Re250_kxmin1e-3_T3tA_Nz512-k600-saveLOPsAndEvolved_t03.77e+02.pdf}
-\caption{Energy breakdown of an IVP for $M_A = 1$, $\Re = 250$, with a big box and $t_0 \approx 377$.
+\caption{Field breakdown of an IVP for $M_A = 1$, $\Re = 250$, with a big box and $t_0 \approx 377$.
 \label{fig:IVP_Ebreakdown_MA1_bigbox_tind1}}
 \end{figure}
 
-Figures \ref{fig:Gvst0_MA1_bigbox} and \ref{fig:Ebreakdown_MA1_bigbox} show the gains, optimal wavenumbers, and energy breakdowns for this run. We see that gains reach larger than $2 \times 10^4$ provided sufficiently long times and a big enough $L_x$. For short target times up until roughly the peak in $G(t_0)$, most of the energy is concentrated in kinetic energy (for $\mathrm{Re} = 50$ it was actually kinetic energy -- \textbf{not sure why}). At later target times, the final optimal state has roughly an equipartition between KE and ME, with a slight preference for one over the other that oscillates back and forth on an Alfv\'{e}nic timescale. Interestingly, the energy breakdown for the LOP itself doesn't really show these oscillations in in this later stage (\textbf{not sure why} -- maybe this and the oscillations in the bottom panel are because the LOP includes some sort of standing Alfv\'en wave that doesn't change much with $t_0$, but has slightly more KE or ME at $t=t_0$ depending on the phase of the wave). 
+Figures \ref{fig:Gvst0_MA1_bigbox} and \ref{fig:Ebreakdown_MA1_bigbox} show the gains, optimal wavenumbers, and energy breakdowns for this run. We see that gains reach larger than $2 \times 10^4$ provided sufficiently long times and a big enough $L_x$. For short target times up until roughly the peak in $G(t_0)$, most of the energy is concentrated in kinetic energy (for $\mathrm{Re} = 50$ it was actually magnetic energy -- \textbf{not sure why}). At later target times, the final optimal state has roughly an equipartition between KE and ME, with a slight preference for one over the other that oscillates back and forth on an Alfv\'{e}nic timescale. Interestingly, the energy breakdown for the LOP itself doesn't really show these oscillations in in this later stage (\textbf{not sure why} -- maybe this and the oscillations in the bottom panel are because the LOP includes some sort of standing Alfv\'en wave that doesn't change much with $t_0$, but has slightly more KE or ME at $t=t_0$ depending on the phase of the wave). 
 
-We're pretty convinced that most of what we're seeing here is the ordinary lift-up combined with this new magneto-lift-up effect. This is backed up by Fig.~\ref{fig:IVP_Ebreakdown_MA1_bigbox_tind1}, which shows how each energy component evolves vs time for an IVP given the $t_0 \approx 377$ LOP. Note from the top-center and top-right panels that $u_\mathrm{rms}$ seems to grow almost linearly.
+We're pretty convinced that most of what we're seeing here is the ordinary lift-up effect, maybe with a little bit of this new magneto-lift-up effect too. This is backed up by Fig.~\ref{fig:IVP_Ebreakdown_MA1_bigbox_tind1}, which shows how each energy component evolves vs time for an IVP given the $t_0 \approx 377$ LOP. Note from the top-center and top-right panels that $u_\mathrm{rms}$ seems to grow almost linearly.
+
+\subsection{$M_A < 1$}
+For smaller $M_A$, we see both hydro and magnetic lift-up effects mattering, with the dominant effect varying with $t_0$. I'm a little surprised by this just because I would expect magneto-lift-up to be dominant as $M_A$ shrinks. I'll use $M_A = 0.5$ to demonstrate this, but I see the same overall trends at $M_A = 0.25$ and $0.1$.
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{gains_kmax_run_kx-log-ky-lin_MA0.5_Re250_kxmin1e-3_T3tA_Nz512-k600-saveLOPsAndEvolved.pdf}
+\caption{Gains for LOPs at $M_A = 0.5$, $\Re = 250$, with a big box.
+\label{fig:Gvst0_MA0.5_bigbox}}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{LOP_Ebreakdown_run_kx-log-ky-lin_MA0.5_Re250_kxmin1e-3_T3tA_Nz512-k600-saveLOPsAndEvolved.pdf}
+\caption{Energy breakdown for $M_A = 0.5$, $\Re = 250$, with a big box. 
+\label{fig:Ebreakdown_MA0.5_bigbox}}
+\end{figure}
+
+Figures \ref{fig:Gvst0_MA0.5_bigbox} and \ref{fig:Ebreakdown_MA0.5_bigbox} give an overview for what's going on with $M_A=0.5$, $\mathrm{Re} = 250$, and a big box. Notice that KE still dominates at the smallest $t_0$, but now the LOP's energy breakdown actually changes significantly at later target times.
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{energies_breakdown_run_kx-log-ky-lin_MA0.5_Re250_kxmin1e-3_T3tA_Nz512-k600-saveLOPsAndEvolved_t01.88e+02.pdf}
+\caption{Field breakdown of an IVP for $M_A = 0.5$, $\Re = 250$, with a big box and $t_0 \approx 188$ (indicated by the black vertical line).
+\label{fig:IVP_Ebreakdown_MA0.5_bigbox_tind1}}
+\end{figure}
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{energies_prods_run_kx-log-ky-lin_MA0.5_Re250_kxmin1e-3_T3tA_Nz512-k600-saveLOPsAndEvolved_t01.88e+02.pdf}
+\caption{Energy production terms for an IVP for $M_A = 0.5$, $\Re = 250$, with a big box and $t_0 \approx 188$ (indicated by the black vertical line).
+\label{fig:IVP_Eprods_MA0.5_bigbox_tind1}}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{energies_breakdown_run_kx-log-ky-lin_MA0.5_Re250_kxmin1e-3_T3tA_Nz512-k600-saveLOPsAndEvolved_t02.07e+03.pdf}
+\caption{Field breakdown of an IVP for $M_A = 0.5$, $\Re = 250$, with a big box and $t_0 \approx 2070$ (indicated by the black vertical line).
+\label{fig:IVP_Ebreakdown_MA0.5_bigbox_tind11}}
+\end{figure}
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{energies_prods_run_kx-log-ky-lin_MA0.5_Re250_kxmin1e-3_T3tA_Nz512-k600-saveLOPsAndEvolved_t02.07e+03.pdf}
+\caption{Energy production terms for an IVP for $M_A = 0.5$, $\Re = 250$, with a big box and $t_0 \approx 2070$ (indicated by the black vertical line).
+\label{fig:IVP_Eprods_MA0.5_bigbox_tind11}}
+\end{figure}
+
+Figures \ref{fig:IVP_Ebreakdown_MA0.5_bigbox_tind1} and \ref{fig:IVP_Eprods_MA0.5_bigbox_tind1} show the energy breakdown and energy production terms for $t_0 \approx 188$. Notice that $u$ grows roughly like one might expect for lift-up-driven dynamics, and its growth all comes from KE shear production. By contrast, Figs.~\ref{fig:IVP_Ebreakdown_MA0.5_bigbox_tind11} and \ref{fig:IVP_Eprods_MA0.5_bigbox_tind11} show the same plots for a later $t_0$ where ME dominates over KE in the LOP and evolved state. Here, there seems to be a lot of magnet-lift-up. The shear production terms show that you do have some KE shear production being converted to ME by the EM work term, but the dominant contributor to the total energy is ME shear production.
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
 
 \section{Small boxes}
 The following small box runs are scanned over $k_x$ and $k_y$ where $k_y$ is allowed to be zero or positive, $k_x$ is strictly positive, and the minimum nonzero value of $k_x$ and $k_y$ is $0.1$, corresponding to a ``small" box size of $20\pi$.
