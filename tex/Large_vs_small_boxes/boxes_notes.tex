@@ -19,7 +19,7 @@
 %  4)  latex apssamp.tex
 %
 \documentclass[%
- reprint,
+ preprint,
 %superscriptaddress,
 %groupedaddress,
 %unsortedaddress,
@@ -95,7 +95,7 @@
 \maketitle
 
 %\tableofcontents
-Below, I'll start with a section on what we've figured out for small boxes, then what we've figured out for big boxes. I'll break each section up into examples of what happens at different Alfv\'{e}n Mach numbers, and I guess at different Reynolds numbers once I get there.
+Below, I'll start with a section on what we've figured out for big boxes, then what we've figured out for small boxes. I'll break each section up into examples of what happens at different Alfv\'{e}n Mach numbers, and maybe different Reynolds numbers since I have results for $\mathrm{Re}=50$ and $250$.
 
 As a reminder, note that the Alfv\'{e}n Mach number is defined as the ratio of the flow speed to the Alfv\'{e}n speed, so the important thing is that it scales like $U_0/B_0$, i.e.,
 \begin{equation}
@@ -111,6 +111,43 @@ Note also that, in our non-dimensionalization where we're measuring flow speeds 
 \begin{equation}
     \omega_A = \frac{k_x}{M_A}.
 \end{equation}
+
+\section{Lift-up in MHD}
+First, a note about what we've found regarding lift-up in MHD. For $k_x = 0$ and assuming ideal MHD (meaning no viscosity or resistivity), the magnetic field totally decouples from the momentum equation, so that the ordinary lift-up effect is completely recovered with $u = u(t=0) - wU't$. One can similarly show that magnetic fields can grow as $b_x = b_x(t=0) + b_zU't$. Note that we never actually reach $k_x = 0$ and always include viscosity and resistivity, so we don't expect exactly this behavior. Nonzero $k_x$ means there will be nonzero magnetic tension in the momentum equation. And in the hydro case, the viscous lift-up effect looks a lot like inviscid lift-up up until some time (that grows with $\mathrm{Re}$) after which everything decays. For these two reasons, we should expect slightly-less-than-linear growth in our calculations. And since energy goes like $\int d^3x [ |u|^2 + |b|^2/M_A^2]$, we might expect the hydro lift-up to matter more at larger $M_A$, and the magneto-lift-up more at smaller $M_A$.
+
+[Add derivation here]
+
+\section{Big boxes}
+Big box runs are scanned over $k_x$ and $k_y$ where the $k_x$ scan is logarithmically spaced over $10^{-3} \leq k_x \leq 1$, and the $k_y$ scan is linearly spaced over $0 \leq k_y \leq 0.775$. For $M_A < M_{A, \mathrm{crit}}$, I tried to calculate out to a target time that's three times the Alfv\'{e}n wave period assuming a wave with $k_x = 10^{-3}$.
+
+\subsection{$M_A = 1$}
+For $M_A = 1$, the wave period is $T_A = 2\pi / \omega_A = 2\pi M_A/k_x = 2\pi \times 10^3$.
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{gains_kmax_run_kx-log-ky-lin_MA1_Re250_kxmin1e-3_T3tA_Nz512-k600-saveLOPsAndEvolved.pdf}
+\caption{Gains for LOPs at $M_A = 1$, $\Re = 250$, with a big box. Top row shows $G(t_0)$ at the optimal wavenumbers $k_{x, \mathrm{opt}}$ and $k_{y, \mathrm{opt}}$, and bottom row shows how these wavenumbers vary vs $t_0$, with dashed curves indicating the max and min of the scanned wavenumbers.
+\label{fig:Gvst0_MA1_bigbox}}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{LOP_Ebreakdown_run_kx-log-ky-lin_MA1_Re250_kxmin1e-3_T3tA_Nz512-k600-saveLOPsAndEvolved.pdf}
+\caption{Energy breakdown for $M_A = 1$, $\Re = 250$, with a big box. Top row shows, for each $t_0$, how much each component of $\vec{u}$ and $\vec{b}$ contributes to the LOP, while the bottom row shows how much each component contributes to the evolved state, i.e., the perturbation when $t$ reaches $t_0$.
+\label{fig:Ebreakdown_MA1_bigbox}}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{energies_breakdown_run_kx-log-ky-lin_MA1_Re250_kxmin1e-3_T3tA_Nz512-k600-saveLOPsAndEvolved_t03.77e+02.pdf}
+\caption{Energy breakdown of an IVP for $M_A = 1$, $\Re = 250$, with a big box and $t_0 \approx 377$.
+\label{fig:IVP_Ebreakdown_MA1_bigbox_tind1}}
+\end{figure}
+
+Figures \ref{fig:Gvst0_MA1_bigbox} and \ref{fig:Ebreakdown_MA1_bigbox} show the gains, optimal wavenumbers, and energy breakdowns for this run. We see that gains reach larger than $2 \times 10^4$ provided sufficiently long times and a big enough $L_x$. For short target times up until roughly the peak in $G(t_0)$, most of the energy is concentrated in kinetic energy (for $\mathrm{Re} = 50$ it was actually kinetic energy -- \textbf{not sure why}). At later target times, the final optimal state has roughly an equipartition between KE and ME, with a slight preference for one over the other that oscillates back and forth on an Alfv\'{e}nic timescale. Interestingly, the energy breakdown for the LOP itself doesn't really show these oscillations in in this later stage (\textbf{not sure why} -- maybe this and the oscillations in the bottom panel are because the LOP includes some sort of standing Alfv\'en wave that doesn't change much with $t_0$, but has slightly more KE or ME at $t=t_0$ depending on the phase of the wave). 
+
+We're pretty convinced that most of what we're seeing here is the ordinary lift-up combined with this new magneto-lift-up effect. This is backed up by Fig.~\ref{fig:IVP_Ebreakdown_MA1_bigbox_tind1}, which shows how each energy component evolves vs time for an IVP given the $t_0 \approx 377$ LOP. Note from the top-center and top-right panels that $u_\mathrm{rms}$ seems to grow almost linearly.
+
 \section{Small boxes}
 The following small box runs are scanned over $k_x$ and $k_y$ where $k_y$ is allowed to be zero or positive, $k_x$ is strictly positive, and the minimum nonzero value of $k_x$ and $k_y$ is $0.1$, corresponding to a ``small" box size of $20\pi$.
 
