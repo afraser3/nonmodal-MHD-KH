@@ -1,0 +1,149 @@
+%\documentclass{jfm}
+\documentclass{article} 
+\usepackage{fullpage}
+\usepackage{setspace}
+%\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+%\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[authoryear]{natbib}
+%\setcitestyle{authoryear,round}%Setting citation style. Changing braces to ()
+\usepackage{abraces}
+\usepackage{xcolor} 
+\usepackage{ulem}
+\definecolor{highlight}{rgb}{0, 0.2, .9}%{0.5, 0, 0.6}
+\definecolor{darkblue}{rgb}{0.0, 0.0, 0.5}%{0.5, 0, 0.6}
+\definecolor{lpur}{rgb}{0.8, 0.8, 0.95}
+\definecolor{lyel}{rgb}{1.0, 1.0, 0.0}
+\definecolor{gicol}{rgb}{1, 0.5, 0.0}
+\definecolor{lgreen}{rgb}{0.5, 0.9, 0.7}
+
+
+
+\usepackage[bottom]{footmisc}
+
+\onehalfspacing
+
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+\newcommand{\difft}{\frac{\partial}{\partial t} } 
+\newcommand{\diffz}{\frac{\partial}{\partial z} } 
+% For partial derivatives
+\newcommand{\pderiv}[2]{\frac{\partial #2}{\partial #1} }
+\newcommand{\deriv}[2]{\frac{\mathrm{d}#2}{\mathrm{d} #1} }
+\newcommand{\offseteriv}[2]{\frac{\mathrm{d}^2 #2}{\mathrm{d} #1 ^2} }
+% Integral dx
+\newcommand{\dx}{\mathrm{d}x}
+\newcommand{\dy}{\mathrm{d}y}
+\newcommand{\dA}{\mathrm{d}x \ \mathrm{d}y}
+\newcommand{\dV}{\mathrm{d}x \ \mathrm{d}y\ \mathrm{d}z}
+\newcommand{\dz}{\ \hbox{d}z}
+
+%% Non-dim parameters 
+\newcommand{\Rey}{\hbox{Re}}
+\newcommand{\Ri}{\hbox{Ri}_b}
+\newcommand{\R}{\mathfrak{R}}
+\newcommand{\offset}{a}
+\newcommand{\Rt}{\mathbf{R}}
+\newcommand{\at}{\mathbf{a}}
+
+\newcommand{\ZOB}{z_{0,b}}
+\newcommand{\ZOU}{z_{0,u}}
+
+
+%%% Common Quantities 
+\newcommand{\TKE}{\hbox{TKE}}
+
+
+
+
+\begin{document}
+\title{Some literature review on viscous and stratified transient growth}
+\author{}
+\date{}
+\maketitle
+
+%\begin{abstract}
+%\end{abstract}
+
+\section{Viscosity and transient growth}
+
+\subsection{Inviscid growth mechanisms}
+
+There are two canonical mechanisms for inviscid non-normal perturbation growth in unstratified (hydrodynamic) shear flows. The first is the Orr mechanism, by which perturbations in the form of rolls tilted against the mean shear are able to grow over finite times as they are rotated to an approximately vertical orientation by the mean shear (and then subsequently decay as they continue to be tilted over) \citep{Orr1907a}. If we denote our streamwise direction by $x$, our vertical by $z$, and our spanwise direction by $y$ (so that our mean shear is $U(z)$), then the structures that grow the most by the Orr mechanism are two-dimensional in the $x$-$z$ plane (``2Dxz''), consistent with previous intuition from Squire's theorem and normal-mode shear instabilities. 
+
+The second transient growth mechanism is the lift-up mechanism. \citet{Ellingsen1975} considered inviscid perturbations to a shear flow $U(z)$, where the perturbations in question were independent of the $x$ direction (i.e.~two-dimensional in the $y$-$z$ plane, ``2Dyz''). These perturbations take the form of streamwise-aligned rolls (vortices) which ``lift up'' slower moving fluid into regions of faster flow, allowing for overall growth of the perturbation energy. 
+
+\subsection{Effects of viscosity}
+
+Much of the earlier work on transient growth is motivated by the observation that several simple canonical shear flows are observed to transition to turbulence, even when there is no normal-mode instability (as in the case of plane Couette flow) or at Reynolds numbers much lower than the predicted normal-mode instability (as in pipe flow or plane Poiseuille flow). However, real fluids are not inviscid, and so understanding how finite viscosity will affect these transient growth mechanisms a key question. 
+
+\subsubsection{Plane Couette flow, plane Poiseuille flow, and the Blasius boundary layer}
+
+Plane Couette flow is expected to be linearly stable to all normal-mode perturbations, and so any perturbation growth and subsequent transition to turbulence is expected to arise due to non-normal growth, making this flow a useful case to consider for transient growth problems. \citet{Orr1907b} derived a critical Reynolds number of $Re_c=44.3$ for perturbation growth via the Orr mechanism. The resulting growth depends on $Re$, with perturbation growth severely reduced for $Re<10^3$ \citep{Farrell1988}. Extending this analysis to three-dimensional perturbations, \citet{Butler1992} found that in highly viscous flows, the target time for maximum growth increased like $Re$, with maximum energy growth $\propto Re^2$ (a similar statement was later made by \citet{Bakas2001}). This was also demonstrated by \citet{Trefethen1993}. \citet{Butler1992} also maps out the regions of wavenumber space for perturbation growth (their figure~12); at very low $Re$, there are regions of parameter space in which 2Dyz perturbations may grow, while 2Dxz perturbations are stable, and as $Re$ increases, the region of wavenumber space allowing growth also increases. 
+
+By considering three-dimensional perturbations to viscous constant shear flow, \citet{Farrell1993a} found that streamwise rolls dominated for large target times (and that 3D perturbations were able to attain higher growth than strictly 2Dxz perturbations), with a critical Reynolds number $Re_c=19.7$. It should be noted that these critical Reynolds numbers are of a comparable order of magnitude to nonlinear stability estimates in viscous shear flows (discussed by \citet{Farrell1993a}). 
+
+Similar results to the above have also been demonstrated for plane Poiseuille flow and the Blasius boundary layer: streamwise rolls tend to dominate for long target times (i.e.~3D perturbations may grow the most), these perturbations grow at Reynolds numbers far below the critical value for normal-mode instability, and total energy growth depends on the Reynolds number \citep{Butler1992,Trefethen1993}.
+
+\subsubsection{The tanh mixing layer}
+
+In the case of the hyperbolic-tangent mixing layer, the base flow has an inflection point and so normal-mode instability is possible. As such, at long target times we expect that the optimal perturbation structures will approach those of the most-unstable normal modes, which are 2Dxz. \citet{Arratia2013a} showed this to be the case: at short target times, the largest growth was achieved by 3D structures exploiting a combination of Orr and lift-up behaviours, while at long times the optimal structures were the classical shear instability modes. 
+
+In a related study, \citet{Arratia2013b} considered strictly longitudinal (2Dyz) perturbations to several flows, including the plane Couette flow, plane Poiseuille flow, and free shear layers similar to the tanh mixing layer. For perturbations with large $k_y$ (spanwise wavenumber), they found that perturbations localized in a region of width $\sim k_y^{-1/2}$ about the maximum shear. Introducing viscosity into their calculations, at high $Re$, they found that the growth rate was approximately that of the inviscid flow, while at low $Re$ the instantaneous growth rate actually became negative at later times in the optimization interval. Assuming the perturbations had a similar structure to the inviscid case, they argued that viscous perturbations experienced a growth rate reduced by approximately $Re^{-1}k_y^2$. 
+
+\subsection{Implications for our work}
+
+There are a couple of takeaways from these previous studies that may be relevant to our work:
+\begin{itemize}
+	\item For cases with no normal mode instability, optimal structures shift towards 2Dyz structures at long target times, consistent with what we see for our $M_A<1.05$ cases. 
+	\item While the tanh shear layer permits a normal-mode instability, at shorter times the optimal perturbations are 3D and transient. We may imagine that in these cases, similar viscous effects will be at play as in the canonical viscous shear flows described above. That would suggest that while perturbation growth may be expected at $Re\sim50$, it would not be very strong. 
+	
+	For the hydro case, all growth would have to come from velocity structures. However, as the MHD terms become more important and KH instability is shut off, the perturbations may favour an MHD-based mechanism. This would be especially true if we are in a parameter regime where transient growth is weak. Given the sensitivity of Orr and lift-up to Reynolds number at low $Re$, it is maybe not surprising that we see the velocity terms become much more important when comparing $Re=50$ to $Re=250$ -- the actual growth that is possible by Orr and lift-up seems to increase significantly over that range in non-MHD flows!
+	
+	\item Something we may think about: the MHD structures are experiencing a magnetic field throughout the domain, while the velocity structures only experience shear in a localized region. The $Re^{-1}k_y^2$ statement from \citet{Arratia2013b} may give us a hint about how to predict the relative importance of classic lift-up versus magnetic lift-up, if we wanted to go that route. 
+\end{itemize}
+
+\section{Stratification and transient growth}
+
+\subsection{Effects of stratification}
+
+\subsubsection{Linear shear}
+
+Adding stratification to the transient growth problem adds a layer of complexity, as stable stratification will tend to act against vertical velocity and optimal structures may be able to make use of potential energy. 
+
+\citet{Farrell1993b} considered the case of 2Dxz inviscid perturbations to a basic flow with constant shear and constant $N^2$. They found that for short target times, the maximum growth rate $\mathrm{d}(\ln G)/\mathrm{d}t\rightarrow1$ for all $Ri$, while at large target times the perturbation energy gain $G$ was not monotonic but rather exhibited some oscillations with $Ri$. 
+
+Later, \citet{Bakas2001} revisited the problem of stratified unbounded constant shear flow, but allowed for 3D perturbations and included viscosity. The maximum amplification was instead observed at $O(10)$ advective time units and made use of a combination of the Orr and lift-up mechanisms. Consistent with unstratified constant shear flow, they found that streamwise rolls (2Dyz) were optimal at long target times, but with energy $E=O(1/Ri)$ -- that is, with stratification limited the energy growth. They suggested that LOPs at $O(Re)$ target times should be rolls, while at shorter times they should be oblique structures that can use the Orr mechanism. 
+
+Interestingly, \citet{Bakas2001} showed (similar to our discussions) that inviscid 2Dyz perturbations would give oscillatory solutions, and connected this back to the unstratified lift-up problem by noting that as $N^2\rightarrow0$, the internal wave period becomes infinite, so that perturbation growth approaches the linear behaviour described by \citet{Ellingsen1975}. They argue that the maximum energy growth from 2Dyz roll structures is found by perturbing only the density field, given $E_{max}=1+4/Ri$, and that viscosity adds a decay with an e-folding time $Re/(k_y^2+k_z^2)$ (consistent with \citet{Arratia2013b}). 
+
+For linear shear, \citet{Tearle2004} showed that for a given target time, the optimal energy growth attainable varied like $O(1/Ri)$, with a maximum attainable energy growth at target times $\sim O(Ri^{-1/2})$. For flows with low $Ri$, these perturbations would use Orr, while at high $Ri$, the development was ``Orr-like'' but made use of the stratification to exchange KE for PE. 
+
+\subsubsection{Bounded shear}
+
+\citet{Tearle2004} also considered the case of bounded shear, in which was high in only part of the domain rather than a constant value throughout. For a hyperbolic-tangent shear profile and constant $N^2$, he showed that the optimal structures took the form of rolls tilted against the shear, bounded in the vertical over a region of approximately the same depth as the shear layer. The spanwise wavenumber of these structures tended towards $0$ as the optimal time increased for all $Ri$, with 2Dxz structures by when the target time was $O(10)$ advective time units; roll-like solutions were only found for bounded solutions at early target times. His figure~4.6 suggested that roll solutions (2Dyz) gave lower gains than 2Dxz structures. By considering a bounded linear shear profile and varying the width of the shear region, he showed that the structures varied between the tanh-like profile and the uniform shear structures. 
+
+Note that similar results for the tanh shear layer were seen in \citet{Kaminski2014} and \citet{Kaminski2017}. 
+
+\subsection{Implications for our work}
+
+We have discussed quite a bit how the MHD and stratified flows differ, but putting some of these ideas down here:
+\begin{itemize}
+	\item One major difference for the MHD flow is that we can recover the original lift-up expressions exactly for inviscid perturbations with $k_x=0$, as opposed to the wavelike solutions we expect for the stratified problem. Even in the uniform-shear case where roll solutions are preferred for long target times \citep{Farrell1993b,Bakas2001,Tearle2004}, the total perturbation growth is stunted by the stratification, unlike the large gains we see in the MHD system. 
+	\item There is the further complication, highlighted by \citet{Tearle2004}, of how the tanh velocity profile (with its localized shear) impacts the structure of the LOPs. Certainly, in his work and in \citet{Kaminski2014}, we found that lift-up was not the preferred growth mechanism for long target times, while that is apparently not the case for either uniform shear \emph{or} our tanh-shear MHD problem. I am not sure if there is a rigorous explanation for this, except to note that the LOPs only feel shear in a limited part of the domain rather than throughout, which may be enough to prevent lift-up from ``winning'' when combined with the stabilizing effects of stratification. 
+	
+	In terms of the MHD problem, however, we do see some hint that at very long target times, the magnetic terms grow more than the velocity term between $t=0$ and $t=t_0$ for the large boxes. I expect this is more of a Reynolds-number effect than a bounded shear effect, but those two are not totally separable. The small boxes, on the other hand, might be impacted by localization of the perturbation within the domain. This is almost certainly beyond the scope of our own study but is interesting to think about!
+\end{itemize}
+
+
+\bibliographystyle{plainnat}
+\bibliography{REF}
+
+\end{document}
