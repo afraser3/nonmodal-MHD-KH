@@ -95,9 +95,67 @@ Shear layers, MHD, optimal perturbations.
 \maketitle
 
 %\tableofcontents
-Shear layers are of paramount importance in numerous magnetohydrodynamic flows, in both astrophysical (cite) and fusion (cite) settings. The stability and transition to turbulence of such configurations has attracted considerable attention. In such flows, the linear operator $\linop$ is non-normal, leading to the possibility that a given perturbation can undergo significant amplification even when the flow is linearly stable. This behavior is well known in the hydrodynamics community, where it plays a pivotal role in the transition to turbulence in both canonical flows (e.g. pipe flow) and in more complex applications (e.g. oceanic mixing). While there  have been some prior studies incorporating non-modal growth in MHD flows (cite Squire, others), 
+\textbf{[I'm keeping most of the old text for now. But first I'll write down a proposed outline]}
+
+\begin{itemize}
+    \item Introduction
+    \begin{itemize}
+        \item Shear flows are important in astro, space, and fusion plasmas
+        \item In these cases, the system is non-normal, leading to nonmodal effects that have been thoroughly explored in the fluids community and been shown to matter but haven't received as much attention in plasmas
+        \item Maybe mention how both stratification and magnetic fields stabilize KH, to set the stage for contrasting these two systems?
+        \item Maybe mention lift-up and Orr?
+        \item I think we want to find a way to connect to Squire's theorem, and how it's pretty widely invoked in plasmas to motivate 2D studies even though it's been known not to hold in MHD since the 1950's -- we want to set the stage for demonstrating that nonmodal growth is a serious thing that you're leaving out of your calculations when restricting to 2D
+    \end{itemize}
+    \item Methods
+    \begin{itemize}
+        \item Show the 3D incompressible MHD equations and what our energy is
+        \item Define what we mean by LOP and $G(t_0)$
+        \item Broadly summarize that we use the matrix method, cite Squire \& Bhattacharjee, MacTaggart, and I think Reddy
+        \item Explain that the whole calculation is separable in $k_x$ and $k_y$, and perhaps also that small boxes are linearly spaced in $k_x$ while large boxes are logarithmically spaced in $k_x$
+        \item Mention that the matrix becomes poorly-conditioned at tiny $k_x$, so while we can't do $k_x = 0$, we're able to do $k_x = 10^{-3}$ and maybe mention the plateau
+    \end{itemize}
+    \item Nonmodal growth
+    \begin{itemize}
+        \item Possible section giving more detail on different nonmodal mechanisms? I think we want to communicate that uniform magnetic fields allow hydro lift-up to exist without interference (at $k_x = 0$ and without dissipation), and that they introduce their own MHD lift-up. Derivation can go in supplemental material, but we can write down the end results here
+        \item Tie back to stratified KH, since that's what we want to compare our small-box results against
+    \end{itemize}
+    \item Small boxes
+    \begin{itemize}
+        \item Several aspects of the system are similar to shear layers in neutral fluids, stratified or unstratified:
+        \begin{itemize}
+            \item In the unstable case, there's a good amount of 3D nonmodal growth ($M_A = 40$ in particular looks a lot like Arratia et al) before modal growth wins at larger $t_0$ and makes things 2D because those are the most-unstable modes
+            %\item Both the modal and nonmodal stages at $M_A = 40$ are KE-dominated; the nonmodal stage doesn't look like it's just Orr or lift-up alone
+            \item We do get growth even in the stable case! $G \sim 40$ at its peak for $M_A = 1$, $\mathrm{Re} = 250$, for instance
+            \item LOPs pretty broadly have some features that look like eddies tilted against the shear (i.e.~Orr-like)
+            \item In the modally stable cases, waves become more and more excited/present at larger $t_0$'s, and LOPs broaden out at larger $t_0's$
+            \item Gain goes down as the system becomes more stable
+        \end{itemize}
+        \item But a couple things are quite different:
+        \begin{itemize}
+            \item ME shear production is sometimes preferred over KE shear production -- sometimes KE shear production will be important for a while before ME shear production takes over within the same IVP (see Fig 25 in \texttt{Large\_vs\_small\_boxes/boxes\_notes.tex}), sometimes ME shear production leads the charge from the outset (fig 30 in those notes)
+            \item When ME shear production eventually takes over from KE shear production, the phase relationship between $b_x$ and $b_z$ is what you expect from inspecting the energy production terms (see the aside in the MHD Orr scratch notes): while Orr-like KE shear production likes to have $u = -w$, the ME shear production counterpart likes to have $b_x = b_z$ %the t_0=36 IVP for MA=1 is a nice demonstration of this
+            \item Except when modal growth is the dominant growth mechanism, the optimal $k_x$ almost always latches onto the minimum allowed, which did not happen in Alexis' work
+        \end{itemize}
+        \item That last point transitions us into talking about larger boxes...
+    \end{itemize}
+    \item Big boxes
+    \begin{itemize}
+        \item There was no need to check arbitrarily large boxes in the stratified case because the LOPs weren't constantly latching onto the minimum $k_x$ like they are here
+        \item We see that gain gets larger and larger as $k_{x, \mathrm{min}}$ gets smaller up to some plateau (although the plateau gets smaller as $t_0$ gets larger), but we find the matrix gets terribly conditioned as $k_x$ gets smaller
+        \item We restrict ourselves to $k_x \geq 10^{-3}$ which we find to be a good middle-ground
+        \item Even for $M_A \leq 1$ we find HUGE gains in these boxes as long as you're willing to run out to longer $t_0$'s!
+        \item In $M_A \leq 1$: strong preference for 2Dyz modes; the LOP is all $v$/$w$ and/or $b_y$/$b_z$, and then the evolved state is all $u$ and/or $b_x$
+        \item Pretty clear that hydro lift-up is playing a big role when nonmodal growth is important, often joined by magnetic lift-up when $M_A \leq 1$
+        \item Waves are also a pretty big deal here -- as long as it's modally stable, the LOP seems to swing back and forth between ME vs KE dominated on an Alfvenic timescale
+    \end{itemize}
+\end{itemize}
+
+\section{Introduction}
+[The following two paragraphs were written by Jeff, I think, at least a year ago] Shear layers are of paramount importance in numerous magnetohydrodynamic flows, in both astrophysical (cite) and fusion (cite) settings. The stability and transition to turbulence of such configurations has attracted considerable attention. In such flows, the linear operator $\linop$ is non-normal, leading to the possibility that a given perturbation can undergo significant amplification even when the flow is linearly stable. This behavior is well known in the hydrodynamics community, where it plays a pivotal role in the transition to turbulence in both canonical flows (e.g. pipe flow) and in more complex applications (e.g. oceanic mixing). While there  have been some prior studies incorporating non-modal growth in MHD flows (cite Squire, others), 
 
 Here, we consider the linear dynamics of a simplified shear layer with a stabilizing magnetic field $\Bzero$. This system can be unstable to Kelvin-Helmholtz instabilities at weak field strength. However, even when the field is strong enough stabilize the flow, the non-modal character of the linear operator leads to significant transient growth. We compute the optimal linear perturbations that maximize that growth.
+
+For nonzero streamwise wavenumbers that are comparable to those typically used in simulations of stratified and/or magnetized shear flows, we find results that are broadly consistent with the stratified case [cite Alexis]. When the wavenumber becomes much smaller, however, we find [etc.]
 
 \section{Methods}
 \textbf{NB: We can cut this for space if needed.}
@@ -116,15 +174,9 @@ We solve the resistive MHD equations linearized about a background field $\Bzero
 \begin{equation}
 \nabla \cdot \mathbf{A} = 0.
 \end{equation}
-We solve the system using Dedalus \cite{2020PhRvR...2b3068B} and its companion package, eigentools \cite{2021JOSS....6.3079O}.
+\textbf{[AF: what if we show the B formulation since it's more familiar to readers, but we state that we actually implement the A formulation, and shove that to the supplemental material?]} We solve the system using Dedalus \cite{2020PhRvR...2b3068B} and its companion package, eigentools \cite{2021JOSS....6.3079O}.
 
 \section{Non-modal Growth}
-Figure~\ref{fig:pseudospec} shows contours of the pseudospectrum for run N.
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{pseudospec_020.pdf}
-\caption{This is from run N. \label{fig:pseudospec}}
-\end{figure}
 \section{Linear Optimals}
 Consider the linear system
 \begin{equation}
@@ -147,154 +199,11 @@ Then, the maximum amplification in terms of some norm $|| \cdot ||_\chi^2$ by ti
 \begin{equation}
 G_\chi(T) = \max_{U(0)} \frac{|| \mathcal{K}(T) U(0) ||_\chi^2}{||U(0)||_\chi^2}.
 \end{equation}
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{LOP_MA_scan_Nz256_k100_Pm1.0.pdf}
-\caption{Here are some fun gains.
-\label{fig:gains}}
-\end{figure}
-
-\subsection{3D scans}
-Here I'll drop various results from our 3D scans.
-
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{gains_kmax_MA1.0_Re50.0_Pm1.0_k300_lin.pdf}
-\caption{Gains for LOPs at $M_A = 1$, $\Re = 50$. Left panel shows $G(T)$ where, at each T, a max is taken over $k_x$ and $k_y$. The right panel shows how that max $k_x$ and $k_y$ varies over time.
-\label{fig:Gmax_MA1}}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{gains_kscan_tscan_MA1.0_Re50.0_Pm1.0_k300_lin.pdf}
-\caption{Gains for LOPs at $M_A = 1$, $\Re = 50$. Each panel shows $G$ as a function of $k_x$, $k_y$ for a different time.
-\label{fig:Gmax_kscan_MA1}}
-\end{figure}
-
-Figure \ref{fig:Gmax_MA1} shows the time-dependence of $G(T)$ maximized over $k_x$ and $k_y$, as well as the $k_x$ and $k_y$ where that max occurs, for $M_A = 1$ and $\Re = 50$, which is linearly stable (just barely). Very quickly the LOPs latch onto modes with the smallest possible $k_x$, which are 2D in the opposite sense of what one would expect from Squire's theorem (which doesn't formally hold in MHD but is still usually a good first guess). Figure \ref{fig:Gmax_kscan_MA1} shows the full $k_x$, $k_y$ data for a few different times just to illustrate how peaked the gains are at low $k_x$.
-
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{gains_kmax_MA50.0_Re50.0_Pm1.0_k300_log.pdf}
-\caption{Gains for LOPs at $M_A = 50$, $\Re = 50$. Left panel shows $G(T)$ where, at each T, a max is taken over $k_x$ and $k_y$. The right panel shows how that max $k_x$ and $k_y$ varies over time.
-\label{fig:Gmax_MA50}}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{gains_kscan_tscan_MA50.0_Re50.0_Pm1.0_k300_lin.pdf}
-\caption{Gains for LOPs at $M_A = 50$, $\Re = 50$. Each panel shows $G$ as a function of $k_x$, $k_y$ for a different time. Note that the range on the x and y axes are not the same as in Fig.~\ref{fig:Gmax_kscan_MA1}. 
-\label{fig:Gmax_kscan_MA50}}
-\end{figure}
-
-The same kinds of plots but for $M_A = 50$ (basically hydro) are shown in Fig.~\ref{fig:Gmax_MA50} and \ref{fig:Gmax_kscan_MA50}. Here things are very unstable so unsurprisingly the asymptotics very quickly latch onto what you expect from modal stability: exponential growth, with $k_y = 0$ modes growing the fastest (again, Squire's theorem doesn't hold, but is still a useful first guess).
-
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{gains_kmax_MA0.75_Re50.0_Pm1.0_k300_lin.pdf}
-\caption{Gains for LOPs at $M_A = 0.75$, $\Re = 50$. Left panel shows $G(T)$ where, at each T, a max is taken over $k_x$ and $k_y$. The right panel shows how that max $k_x$ and $k_y$ varies over time.
-\label{fig:Gmax_MA0.75}}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{gains_kmax_MA0.5_Re50.0_Pm1.0_k300_lin.pdf}
-\caption{Gains for LOPs at $M_A = 0.5$, $\Re = 50$. Left panel shows $G(T)$ where, at each T, a max is taken over $k_x$ and $k_y$. The right panel shows how that max $k_x$ and $k_y$ varies over time.
-\label{fig:Gmax_MA0.5}}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{gains_kmax_MA0.25_Re50.0_Pm1.0_k300_lin.pdf}
-\caption{Gains for LOPs at $M_A = 0.25$, $\Re = 50$. Left panel shows $G(T)$ where, at each T, a max is taken over $k_x$ and $k_y$. The right panel shows how that max $k_x$ and $k_y$ varies over time.
-\label{fig:Gmax_MA0.25}}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{gains_kmax_MA0.125_Re50.0_Pm1.0_k300_lin.pdf}
-\caption{Gains for LOPs at $M_A = 0.125$, $\Re = 50$. Left panel shows $G(T)$ where, at each T, a max is taken over $k_x$ and $k_y$. The right panel shows how that max $k_x$ and $k_y$ varies over time.
-\label{fig:Gmax_MA0.125}}
-\end{figure}
-
-I've made plots like Fig.~\ref{fig:Gmax_kscan_MA1} for $M_A = 0.75$, $0.5$, $0.25$, and $0.125$ and they're all basically the same qualitative features, except that the gains die down at late times for low $M_A$ and so the narrow peak at low $k_x$ starts to fade into the background. But the equivalent versions of Fig.~\ref{fig:Gmax_MA1} are actually quite interesting: see Figs.~\ref{fig:Gmax_MA0.75}-\ref{fig:Gmax_MA0.125}. Check out those oscillations! What's up with that? Is it mode hopping? To find out, I took the LOPs corresponding to the peaks and troughs in Fig.~\ref{fig:Gmax_MA0.75} and used them as the initial conditions in some IVPs. I didn't learn much.
-
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{energies_log_MA0.75_kx0.025_ky0.35_ti46.pdf}
-\caption{Energy vs time for a linear IVP where the initial condition and wavenumbers are taken as the LOP at $t = 46$ in Fig.~\ref{fig:Gmax_MA0.75}. The solid black curve shows the gain $G(t_0)$ for this $k_x$, $k_y$, the dashed black curve shows the asymptotic time-dependence according to the least stable eigenvalue, and the blue, orange, and green curves show total, kinetic, and magnetic energy, respectively, for the perturbation as it evolves in time in the IVP.
-\label{fig:LOP_IVP_Elog_MA0.75_ti46}}
-\end{figure}
-
-Figure \ref{fig:LOP_IVP_Elog_MA0.75_ti46} shows gains and energies vs time for a linear IVP where the initial condition is taken as the LOP at $t = 46$ in Fig.~\ref{fig:Gmax_MA0.75}, and the $k_x$, $k_y$ are the wavenumbers for which the gain peaks at this time (i.e.~I used the values shown at $t_0 = 46$ in the right panel of Fig.~\ref{fig:Gmax_MA0.75}). The solid black curve shows the gain $G(t_0)$ for these wavenumbers -- note this won't agree with the left panel of Fig.~\ref{fig:Gmax_MA0.75} because that scans over wavenumbers, whereas this is the gain at a fixed wavenumber. The dashed black curve shows the asymptotic time-dependence according to the least stable eigenvalue; the fact that the solid black curve isn't yet trending towards the dashed one by $t_0=200$ tells us that it hasn't reached the asymptotic behavior yet. Blue, orange, and green curves show total, kinetic, and magnetic energy, respectively, for the perturbation as it evolves in time in the IVP. Despite the low $M_A$, there's very little magnetic activity at early times as the system reaches its peak in energy. Much later on, there appear to be some maybe-Alfv\'{e}nic oscillations between KE and ME.
-
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{energies_breakdown_MA0.75_kx0.025_ky0.35_ti46.pdf}
-\caption{Different components of energy vs time for the same IVP as in fig.~\ref{fig:LOP_IVP_Elog_MA0.75_ti46}. The huge growth in $u$ fluctuations vs time is consistent with Alexis' predictions based on the linear lift-up mechanism.
-\label{fig:LOP_IVP_Ecomp_MA0.75_ti46}}
-\end{figure}
-
-The kinetic and magnetic energies are broken up into their contributions from individual cartesian components of the flow and field in Fig.~\ref{fig:LOP_IVP_Ecomp_MA0.75_ti46}. The main thing this figure demonstrates to me is that Alexis is onto something in her linear lift-up notes. And this explains why the $k_x \to 0$ perturbations appear to get plenty of nonmodal growth no matter how strong the magnetic field is!
-
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{energies_prods_MA0.75_kx0.025_ky0.35_ti46.pdf}
-\caption{Top row shows kinetic and magnetic energy vs time for the same IVP as in fig.~\ref{fig:LOP_IVP_Elog_MA0.75_ti46}. Middle row shows the two (inviscid) terms that contribute to $d(\mathrm{KE})/dt$ alongside $d(\mathrm{KE})/dt$, bottom row does the same but for ME. Note that the EM work term works against the KE shear production term to transfer energy to ME where it is put back into the background via the ME shear production term.
-\label{fig:LOP_IVP_Eprods_MA0.75_ti46}}
-\end{figure}
-
-Figure \ref{fig:LOP_IVP_Eprods_MA0.75_ti46} shows the energy production terms, as derived in \texttt{tex/equations.tex}. What I see is that the EM work term, which represents the conservative transfer of energy from fluctuation KE to fluctuation ME, basically works against the KE shear production term to move energy to ME, where the ME shear production term then dumps it back in the background. The two shear production terms are basically just integrals of the Reynolds and Maxwell stresses multiplied by $U'$, so this makes me suspect that the Reynolds and Maxwell stresses are working against each other here. If so, that would be interesting because it's completely different from what one sees in the modal case or in typical nonlinear simulations, as discussed in my 2021 PoP paper: the unstable eigenmodes gain energy from both the Reynolds and the Maxwell stresses (see fig.~3 of that paper), and in the nonlinear evolution, the low-$k_x$ fluctuations either gain energy from the Maxwell stress or contribute almost nothing depending on which $k_x$ and time you sample (see fig.~14 of that paper).
-
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{energies_log_MA0.75_kx0.025_ky0.225_ti144.pdf}
-\caption{Same as fig.~\ref{fig:LOP_IVP_Elog_MA0.75_ti46} but for the LOP at $t_0 = 144$. 
-\label{fig:LOP_IVP_Elog_MA0.75_ti144}}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{tex/manuscript/figures/energies_breakdown_MA0.75_kx0.025_ky0.225_ti144.pdf}
-\caption{Same as fig.~\ref{fig:LOP_IVP_Ecomp_MA0.75_ti46} but for the LOP at $t_0 = 144$. 
-\label{fig:LOP_IVP_Ecomp_MA0.75_ti144}}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{tex/manuscript/figures/energies_prods_MA0.75_kx0.025_ky0.225_ti144.pdf}
-\caption{Same as fig.~\ref{fig:LOP_IVP_Eprods_MA0.75_ti46} but for the LOP at $t_0 = 144$. 
-\label{fig:LOP_IVP_Eprods_MA0.75_ti144}}
-\end{figure}
-
-Figures \ref{fig:LOP_IVP_Elog_MA0.75_ti144}-\ref{fig:LOP_IVP_Eprods_MA0.75_ti144} are the same plots but for the LOP at $t_0=144$, the first trough in Fig.~\ref{fig:Gmax_MA0.75}. It's a little interesting that the global maximum in energy vs $t$ in Fig.~\ref{fig:LOP_IVP_Elog_MA0.75_ti144} happens before the target time. Also, the $y$ and $z$ fluctuations appear to be pretty Alfvénic. The KE and ME shear production terms are no longer perfectly out of sync, particularly not early on around $t \lesssim 50$, but are again somewhat out of sync around $100 \lesssim t \lesssim 200$.
-
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{energies_log_MA0.75_kx0.025_ky0.125_ti186.pdf}
-\caption{Same as fig.~\ref{fig:LOP_IVP_Elog_MA0.75_ti46} but for the LOP at $t_0 = 186$. 
-\label{fig:LOP_IVP_Elog_MA0.75_ti186}}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{tex/manuscript/figures/energies_breakdown_MA0.75_kx0.025_ky0.125_ti186.pdf}
-\caption{Same as fig.~\ref{fig:LOP_IVP_Ecomp_MA0.75_ti46} but for the LOP at $t_0 = 186$. 
-\label{fig:LOP_IVP_Ecomp_MA0.75_ti186}}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{tex/manuscript/figures/energies_prods_MA0.75_kx0.025_ky0.125_ti186.pdf}
-\caption{Same as fig.~\ref{fig:LOP_IVP_Eprods_MA0.75_ti46} but for the LOP at $t_0 = 186$. 
-\label{fig:LOP_IVP_Eprods_MA0.75_ti186}}
-\end{figure}
-
-Figures \ref{fig:LOP_IVP_Elog_MA0.75_ti186}-\ref{fig:LOP_IVP_Eprods_MA0.75_ti186} correspond to the LOP at $t_0 = 186$. Not much new to say here except that the shear production terms are again nicely opposing each other.
 
 \section{Discussion}
-Exploiting similarities between stratified shear flows and magnetized ones. Importing idea of linear optimal perturbations to MHD/plasmas. Note that this is beginning of a generalizable idea/method. Can incorporate more ``realistic'' plasma models to see additional physics. Understanding role of subcritical effects, particularly transient growth, on tokamak edge physics is the first step toward understanding optimal control of perturbations. The ability to control perturbations, and thus shear layer dynamics, could prove pivotal in constructing reliable, efficient fusion power. \textbf{Preceding sentence might be a bit much.}
+Exploiting similarities between stratified shear flows and magnetized ones. Importing idea of linear optimal perturbations to MHD/plasmas. Note that this is beginning of a generalizable idea/method. Can incorporate more ``realistic'' plasma models to see additional physics. Understanding role of subcritical effects, particularly transient growth, on tokamak edge physics is the first step toward understanding optimal control of perturbations [make sure to cite Landreman's work on transient/subcritical growth in tokamak core plasmas]. The ability to control perturbations, and thus shear layer dynamics, could prove pivotal in constructing reliable, efficient fusion power. \textbf{Preceding sentence might be a bit much.}
 
+Talk about how widely astrophysicists use the notion of $M_{A, \mathrm{crit}} \sim 1$ to decide if KH is present, and the importance of KH-induced field amplification in their systems.
 
 \begin{acknowledgments}
 We wish to acknowledge people and grants and clusters. Things/people to make sure we acknowledge: the Lux and Alpine clusters; Daniel, Keaton, Bindesh; Pascale's grants as well as Hale/HTMS
@@ -304,5 +213,3 @@ We wish to acknowledge people and grants and clusters. Things/people to make sur
 \bibliography{mhd_linopt}% Produces the bibliography via BibTeX.
 
 \end{document}
-%
-% ****** End of file apssamp.tex ******
