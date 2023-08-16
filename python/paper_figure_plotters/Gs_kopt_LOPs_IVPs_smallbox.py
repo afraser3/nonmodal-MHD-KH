@@ -12,15 +12,25 @@ import helper_functions
 
 # run_dict = helper_functions.run_dict_pleiades
 run_dict = helper_functions.run_dict
-runs_small = [run_dict[('small', MA)] for MA in [0.5, 1, 1.1, 40]]
-labels_small = [r'$M_A = 0.5$',
-                r'$M_A = 1$',
-                r'$M_A = 1.1$',
-                r'$M_A = 40$']
+runs = [run_dict[('small', MA)] for MA in [0.5, 1, 1.1, 40]]
+run_labels = [r'$M_A = 0.5$',
+              r'$M_A = 1$',
+              r'$M_A = 1.1$',
+              r'$M_A = 40$']
+# runs_big = [run_dict[('big', 0.1)], run_dict[('big', 0.5)], run_dict[('big', 1)], run_dict[('big', 1.1, 200)]]
+# runs = [run_dict[('big', 0.1)], run_dict[('big', 0.5)], run_dict[('big', 1)], run_dict[('big', 1.1, 200)]]
+# run_labels = [r'$M_A = 0.1$',
+#               r'$M_A = 0.5$',
+#               r'$M_A = 1$',
+#               r'$M_A = 1.1$']
 MAind1 = 0  # 1  # which index in the above list to highlight in a panel in the plot
 LOPt0ind1 = 1  # 4
 MAind2 = 0  # 1
 LOPt0ind2 = 10  # 43  # 9
+# MAind1 = 1
+# LOPt0ind1 = 1
+# MAind2 = 1
+# LOPt0ind2 = 11
 
 
 
@@ -86,9 +96,10 @@ def make_LOP_plot(ax, LOP2D, x, z):
     return ax.pcolormesh(x, z, LOP2D.T, rasterized=True)
 
 
-run_datas_small = [helper_functions.get_Gs_ks_from_run(run) for run in runs_small]
-t0ind1 = LOPt0ind1*run_datas_small[MAind1]['save_LOPs_istep']
-t0ind2 = LOPt0ind2*run_datas_small[MAind2]['save_LOPs_istep']
+# run_datas_small = [helper_functions.get_Gs_ks_from_run(run) for run in runs_small]
+run_datas = [helper_functions.get_Gs_ks_from_run(run) for run in runs]
+t0ind1 = LOPt0ind1*run_datas[MAind1]['save_LOPs_istep']
+t0ind2 = LOPt0ind2*run_datas[MAind2]['save_LOPs_istep']
 
 # fig = plt.figure(figsize=(18, 4.5), layout="constrained")
 fig = plt.figure(figsize=(18, 7.5))#, layout="constrained")
@@ -97,16 +108,16 @@ gs00 = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec=gs0[0])
 ax1 = fig.add_subplot(gs00[0, :])
 ax2 = fig.add_subplot(gs00[1, :])
 ax3 = fig.add_subplot(gs00[2, :])
-make_G_plot(ax1, runs_small, labels_small, log=True, ymax=1e4, tmax=100)
+make_G_plot(ax1, runs, run_labels, log=True, ymax=1e4, tmax=100)
 ax1.set_ylabel(r'$G(t_0)$')
 # ax1.set_title('Small boxes')
 # ax1.legend(ncols=2)
 ax1.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncols=2, mode="expand", borderaxespad=0.)
-ax1.plot(run_datas_small[MAind1]['times'][t0ind1], run_datas_small[MAind1]['Gs_opt'][t0ind1], 'D', c='C1')
-ax1.plot(run_datas_small[MAind2]['times'][t0ind2], run_datas_small[MAind2]['Gs_opt'][t0ind2], 'X', c='C1')
-make_kopt_plot(ax2, runs_small, labels_small, just_kx=True, tmax=100)
+ax1.plot(run_datas[MAind1]['times'][t0ind1], run_datas[MAind1]['Gs_opt'][t0ind1], 'D', c='C1')
+ax1.plot(run_datas[MAind2]['times'][t0ind2], run_datas[MAind2]['Gs_opt'][t0ind2], 'X', c='C1')
+make_kopt_plot(ax2, runs, run_labels, just_kx=True, tmax=100)
 ax2.set_ylabel(r'$k_{x, \mathrm{opt}}$')
-make_kopt_plot(ax3, runs_small, labels_small, just_ky=True, tmax=100)
+make_kopt_plot(ax3, runs, run_labels, just_ky=True, tmax=100)
 ax3.set_ylabel(r'$k_{y, \mathrm{opt}}$')
 ax3.set_xlabel(r'$t_0$')
 
@@ -120,8 +131,8 @@ ax4 = fig.add_subplot(gs010[0, 0])
 ax5 = fig.add_subplot(gs010[0, 1])
 ax6 = fig.add_subplot(gs010[1, 0])
 ax7 = fig.add_subplot(gs010[1, 1])
-LOP1, kx1, ky1, run_data1 = helper_functions.get_LOP_from_run(runs_small[MAind1], LOPt0ind1)
-z_basis = de.Chebyshev('z', run_datas_small[MAind1]['Nz'], interval=(-0.5 * run_datas_small[MAind1]['Lz'], 0.5 * run_datas_small[MAind1]['Lz']))
+LOP1, kx1, ky1, run_data1 = helper_functions.get_LOP_from_run(runs[MAind1], LOPt0ind1)
+z_basis = de.Chebyshev('z', run_datas[MAind1]['Nz'], interval=(-0.5 * run_datas[MAind1]['Lz'], 0.5 * run_datas[MAind1]['Lz']))
 x_basis = de.Fourier('x', 4, interval=(0.0, 2.0 * np.pi / kx1))
 if ky1 > 0:
     y_basis = de.Fourier('x', 4, interval=(0.0, 2.0 * np.pi / ky1))
@@ -154,8 +165,8 @@ ax8 = fig.add_subplot(gs011[0, 0])
 ax9 = fig.add_subplot(gs011[0, 1])
 ax10 = fig.add_subplot(gs011[1, 0])
 ax11 = fig.add_subplot(gs011[1, 1])
-LOP2, kx2, ky2, run_data2 = helper_functions.get_LOP_from_run(runs_small[MAind2], LOPt0ind2)
-z_basis2 = de.Chebyshev('z', run_datas_small[MAind2]['Nz'], interval=(-0.5 * run_datas_small[MAind2]['Lz'], 0.5 * run_datas_small[MAind2]['Lz']))
+LOP2, kx2, ky2, run_data2 = helper_functions.get_LOP_from_run(runs[MAind2], LOPt0ind2)
+z_basis2 = de.Chebyshev('z', run_datas[MAind2]['Nz'], interval=(-0.5 * run_datas[MAind2]['Lz'], 0.5 * run_datas[MAind2]['Lz']))
 x_basis2 = de.Fourier('x', 4, interval=(0.0, 2.0 * np.pi / kx2))
 if ky2 > 0:
     y_basis2 = de.Fourier('x', 4, interval=(0.0, 2.0 * np.pi / ky2))
@@ -185,9 +196,9 @@ cbar11 = fig.colorbar(cmesh11)
 
 gs02 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs0[2])
 gs020 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs02[0])
-IVP_data1 = helper_functions.get_IVP_scalar_data(runs_small[MAind1], LOPt0ind1)
+IVP_data1 = helper_functions.get_IVP_scalar_data(runs[MAind1], LOPt0ind1)
 KE1 = IVP_data1['urms']**2 + IVP_data1['vrms']**2 + IVP_data1['wrms']**2
-ME1 = (IVP_data1['bxrms']**2 + IVP_data1['byrms']**2 + IVP_data1['bzrms']**2) / run_datas_small[MAind1]['MA']**2
+ME1 = (IVP_data1['bxrms']**2 + IVP_data1['byrms']**2 + IVP_data1['bzrms']**2) / run_datas[MAind1]['MA']**2
 K_prod1 = IVP_data1['K_prod']
 M_prod1 = IVP_data1['M_prod']
 ts1 = IVP_data1['scalars_ts']
@@ -206,9 +217,9 @@ ax13.set_xlabel(r'$t$')
 ax13.set_xlim((0, 100))
 
 gs021 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs02[1])
-IVP_data2 = helper_functions.get_IVP_scalar_data(runs_small[MAind2], LOPt0ind2)
+IVP_data2 = helper_functions.get_IVP_scalar_data(runs[MAind2], LOPt0ind2)
 KE2 = IVP_data2['urms']**2 + IVP_data2['vrms']**2 + IVP_data2['wrms']**2
-ME2 = (IVP_data2['bxrms']**2 + IVP_data2['byrms']**2 + IVP_data2['bzrms']**2) / run_datas_small[MAind2]['MA']**2
+ME2 = (IVP_data2['bxrms']**2 + IVP_data2['byrms']**2 + IVP_data2['bzrms']**2) / run_datas[MAind2]['MA']**2
 K_prod2 = IVP_data2['K_prod']
 M_prod2 = IVP_data2['M_prod']
 ts2 = IVP_data2['scalars_ts']
@@ -247,17 +258,18 @@ for ax in [ax7, ax11]:
     ax.set_title(r'$b_z$')
 ax_topmid = fig.add_subplot(gs010[:])
 ax_topmid.axis('off')
-ax_topmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas_small[MAind1]['times'][t0ind1]))
+ax_topmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas[MAind1]['times'][t0ind1]))
 ax_botmid = fig.add_subplot(gs011[:])
 ax_botmid.axis('off')
-ax_botmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas_small[MAind2]['times'][t0ind2]))
+ax_botmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas[MAind2]['times'][t0ind2]))
 
 plt.suptitle('Small boxes', fontsize='xx-large')
 
 plt.tight_layout()
 # fname = '../../tex/manuscript/figures/smallbox_megaplot_kymin5'
-fname = '../../tex/manuscript/figures/smallbox_megaplot3'
-plt.savefig(fname+'.pdf')
-plt.savefig(fname+'.png')
-plt.savefig(fname+'.eps')
+# fname = '../../tex/manuscript/figures/smallbox_megaplot3'
+# fname = '../../tex/manuscript/figures/bigbox_megaplot'
+# plt.savefig(fname+'.pdf')
+# plt.savefig(fname+'.png')
+# plt.savefig(fname+'.eps')
 plt.show()
