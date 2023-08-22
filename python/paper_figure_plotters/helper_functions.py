@@ -124,7 +124,56 @@ def get_Gs_ks_from_run(run):
     return run_data
 
 
-def get_LOP_from_run(run, t0ind):
+def get_E_breakdown_from_run(run):
+    run_data = get_Gs_ks_from_run(run)
+    LOP_ts = run_data['LOP_ts']
+    LOP_istep = run_data['save_LOPs_istep']
+    kxky_dirs = run_data['kxky_dirs'][::LOP_istep]
+    Nz = run_data['Nz']
+    Lz = run_data['Lz']
+    MA = run_data['MA']
+    MA2 = MA**2
+    z_basis = de.Chebyshev('z', Nz, interval=(-0.5 * Lz, 0.5 * Lz))
+    domain = de.Domain([z_basis], grid_dtype=np.complex128)
+    z = domain.grid(0)
+    probvars = ['u', 'v', 'w', 'p', 'Ax', 'Ay', 'Az', 'Phi', 'omega_x', 'omega_y', 'Bx', 'By']
+    fields = [de.Field(domain, name=probvar) for probvar in probvars]
+    Bz = de.Field(domain, name='Bz')
+    generic_field = de.Field(domain, name='f')
+    int_of_field = z_basis.Integrate(generic_field)
+    LOP_energy_components = np.zeros((6, len(LOP_ts)), dtype=np.float64)
+    evolved_energy_components = np.zeros_like(LOP_energy_components)
+    for tind, kxky_dir in enumerate(kxky_dirs):
+        LOP, evolved_state, kx, ky = get_LOP_from_run(run, tind, return_evolved=True)[:4]
+        for i, var in enumerate(probvars):
+            fields[i]['c'] = LOP[int(i * len(LOP) / len(probvars)):int((i + 1) * len(LOP) / len(probvars))]
+        for out_i, field_i in enumerate(
+                [0, 1, 2, -2, -1]):  # indices in meansquares vs probvars corresponding to u_i and b_i
+            if out_i < 3:
+                generic_field['g'] = np.abs(fields[field_i]['g']) ** 2.0
+            else:  # for bx, by, bz, make sure to divide by MA^2
+                generic_field['g'] = np.abs(fields[field_i]['g']) ** 2.0 / MA2
+            LOP_energy_components[out_i, tind] = int_of_field.evaluate()['g'][0]
+        Bz['c'] = 1j * kx * fields[5]['c'] - 1j * ky * fields[4]['c']  # Bz = dx(Ay) - dy(Ax)
+        generic_field['g'] = np.abs(Bz['g']) ** 2.0 / MA2
+        LOP_energy_components[-1, tind] = int_of_field.evaluate()['g'][0]
+        for i, var in enumerate(probvars):
+            fields[i]['c'] = evolved_state[int(i * len(evolved_state) / len(probvars)):int(
+                (i + 1) * len(evolved_state) / len(probvars))]
+        for out_i, field_i in enumerate(
+                [0, 1, 2, -2, -1]):  # indices in meansquares vs probvars corresponding to u_i and b_i
+            if out_i < 3:
+                generic_field['g'] = np.abs(fields[field_i]['g']) ** 2.0
+            else:  # for bx, by, bz, make sure to divide by MA^2
+                generic_field['g'] = np.abs(fields[field_i]['g']) ** 2.0 / MA2
+            evolved_energy_components[out_i, tind] = int_of_field.evaluate()['g'][0]
+        Bz['c'] = 1j * kx * fields[5]['c'] - 1j * ky * fields[4]['c']  # Bz = dx(Ay) - dy(Ax)
+        generic_field['g'] = np.abs(Bz['g']) ** 2.0 / MA2
+        evolved_energy_components[-1, tind] = int_of_field.evaluate()['g'][0]
+    return LOP_energy_components, evolved_energy_components, LOP_ts
+
+
+def get_LOP_from_run(run, t0ind, return_evolved=False):
     # need to use the previous function to figure out which kx/ky subdirectory to open for the given t0ind
     # then open it up, figure out what field we actually want to plot, use dedalus to convert it from 1D to 2D, and return it
     run_data = get_Gs_ks_from_run(run)
@@ -133,7 +182,12 @@ def get_LOP_from_run(run, t0ind):
         kx = np.array(file['scales/kx'])
         ky = np.array(file['scales/ky'])
         LOP = np.array(file['gains/LOPs'])[:, t0ind]
-    return LOP, kx[()], ky[()], run_data
+        if return_evolved:
+            evolved_state = np.array(file['gains/evolved_states'])[:, t0ind]
+    if return_evolved:
+        return LOP, evolved_state, kx[()], ky[()], run_data
+    else:
+        return LOP, kx[()], ky[()], run_data
 
 
 def LOP_to_3D_array(domain, LOP, field_name, kx, ky, scale=1):
