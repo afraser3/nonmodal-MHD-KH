@@ -121,6 +121,15 @@ def get_Gs_ks_from_run(run):
     run_data['kyinds'] = kyind
     run_data['kx_opt'] = kxs[kxind]
     run_data['ky_opt'] = kys[kyind]
+
+    evalues = np.zeros((len(kxs), len(kys)), dtype=np.complex128)
+    for kxi, kx in enumerate(kxs):
+        for kyi, ky in enumerate(kys):
+            with h5py.File(str(basedir) + "/kxi_{:04d}/kyi_{:04d}/gains_mats.h5".format(kxi, kyi), mode='r') as file:
+                eigenvalues = np.array(file['setup_mats/eigenvalues'])
+                indx = np.argmax(np.real(eigenvalues))
+                evalues[kxi, kyi] = eigenvalues[indx]
+    run_data['evalues'] = evalues
     return run_data
 
 
