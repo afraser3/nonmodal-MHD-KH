@@ -115,6 +115,20 @@ ax1.set_ylabel(r'$G(t_0)$')
 ax1.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncols=2, mode="expand", borderaxespad=0.)
 ax1.plot(run_datas[MAind1]['times'][t0ind1], run_datas[MAind1]['Gs_opt'][t0ind1], 'D', c='C1')
 ax1.plot(run_datas[MAind2]['times'][t0ind2], run_datas[MAind2]['Gs_opt'][t0ind2], 'X', c='C1')
+evalue_kxind2 = run_datas[2]['kxinds'][-1]
+evalue_kxopt2 = run_datas[2]['kx_opt'][-1]
+evalue_kyind2 = run_datas[2]['kyinds'][-1]
+evalue_kyopt2 = run_datas[2]['ky_opt'][-1]
+evalue_kxind3 = run_datas[3]['kxinds'][-1]
+evalue_kxopt3 = run_datas[3]['kx_opt'][-1]
+evalue_kyind3 = run_datas[3]['kyinds'][-1]
+evalue_kyopt3 = run_datas[3]['ky_opt'][-1]
+evalue2 = np.real(run_datas[2]['evalues'][evalue_kxind2, evalue_kyind2])
+evalue3 = np.real(run_datas[3]['evalues'][evalue_kxind3, evalue_kyind3])
+times2 = run_datas[2]['times']
+times3 = run_datas[3]['times']
+ax1.plot(times2[int(len(times2)/4):], run_datas[2]['Gs_opt'][-1]*1.75*np.exp(2*evalue2*(times2[int(len(times2)/4):] - times2[-1])), ls='--', c='C2')
+ax1.plot(times3[int(len(times3)/10):], run_datas[3]['Gs_opt'][-1]*1.75*np.exp(2*evalue3*(times3[int(len(times3)/10):] - times3[-1])), ls='--', c='C3')
 make_kopt_plot(ax2, runs, run_labels, just_kx=True, tmax=100)
 ax2.set_ylabel(r'$k_{x, \mathrm{opt}}$')
 make_kopt_plot(ax3, runs, run_labels, just_ky=True, tmax=100)
@@ -267,9 +281,9 @@ plt.suptitle('Small boxes', fontsize='xx-large')
 
 plt.tight_layout()
 # fname = '../../tex/manuscript/figures/smallbox_megaplot_kymin5'
-# fname = '../../tex/manuscript/figures/smallbox_megaplot3'
+fname = '../../tex/manuscript/figures/smallbox_megaplot4'
 # fname = '../../tex/manuscript/figures/bigbox_megaplot'
-# plt.savefig(fname+'.pdf')
-# plt.savefig(fname+'.png')
-# plt.savefig(fname+'.eps')
-plt.show()
+plt.savefig(fname+'.pdf')
+plt.savefig(fname+'.png')
+plt.savefig(fname+'.eps')
+# plt.show()
