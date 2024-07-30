@@ -1,8 +1,10 @@
 import numpy as np
 from matplotlib import pyplot as plt
-plt.style.use('prl.mplstyle')
-# import matplotlib.colors as colors
 from matplotlib import gridspec as gridspec
+plt.style.use('prl.mplstyle')
+import matplotlib as mpl
+mpl.rcParams
+# import matplotlib.colors as colors
 import h5py
 from configparser import ConfigParser
 from pathlib import Path
@@ -92,8 +94,8 @@ def make_kopt_plot(ax, runs, labels, just_kx=False, just_ky=False, tmax=None, co
     ax.set_ylim(ymin=0)
 
 
-def make_LOP_plot(ax, LOP2D, x, z):
-    return ax.pcolormesh(x, z, LOP2D.T, rasterized=True)
+def make_LOP_plot(ax, LOP2D, x, z, cmap):
+    return ax.pcolormesh(x, z, LOP2D.T, rasterized=True, cmap=cmap)
 
 
 # run_datas_small = [helper_functions.get_Gs_ks_from_run(run) for run in runs_small]
@@ -102,9 +104,9 @@ t0ind1 = LOPt0ind1*run_datas[MAind1]['save_LOPs_istep']
 t0ind2 = LOPt0ind2*run_datas[MAind2]['save_LOPs_istep']
 
 # fig = plt.figure(figsize=(18, 4.5), layout="constrained")
-fig = plt.figure(figsize=(18, 7.5))#, layout="constrained")
-gs0 = gridspec.GridSpec(1, 3, figure=fig)
-gs00 = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec=gs0[0])
+fig = plt.figure(figsize=(16, 7.5))#, layout="constrained")
+gs0 = gridspec.GridSpec(1, 3, figure=fig)#, wspace=0.3)
+gs00 = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec=gs0[0], hspace=0.1)
 ax1 = fig.add_subplot(gs00[0, :])
 ax2 = fig.add_subplot(gs00[1, :])
 ax3 = fig.add_subplot(gs00[2, :])
@@ -112,9 +114,10 @@ make_G_plot(ax1, runs, run_labels, log=True, ymax=1e4, tmax=100)
 ax1.set_ylabel(r'$G(t_0)$')
 # ax1.set_title('Small boxes')
 # ax1.legend(ncols=2)
-ax1.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncols=2, mode="expand", borderaxespad=0.)
-ax1.plot(run_datas[MAind1]['times'][t0ind1], run_datas[MAind1]['Gs_opt'][t0ind1], 'D', c='C1')
-ax1.plot(run_datas[MAind2]['times'][t0ind2], run_datas[MAind2]['Gs_opt'][t0ind2], 'X', c='C1')
+# ax1.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncols=2, mode="expand", borderaxespad=0.)
+# ax1.legend(fontsize='large')
+ax1.plot(run_datas[MAind1]['times'][t0ind1], run_datas[MAind1]['Gs_opt'][t0ind1], 'D', c='C0')
+ax1.plot(run_datas[MAind2]['times'][t0ind2], run_datas[MAind2]['Gs_opt'][t0ind2], 'X', c='C0')
 evalue_kxind2 = run_datas[2]['kxinds'][-1]
 evalue_kxopt2 = run_datas[2]['kx_opt'][-1]
 evalue_kyind2 = run_datas[2]['kyinds'][-1]
@@ -134,11 +137,16 @@ ax2.set_ylabel(r'$k_{x, \mathrm{opt}}$')
 make_kopt_plot(ax3, runs, run_labels, just_ky=True, tmax=100)
 ax3.set_ylabel(r'$k_{y, \mathrm{opt}}$')
 ax3.set_xlabel(r'$t_0$')
+ax3.legend(fontsize='x-large')
+# ax1.get_xaxis().set_ticks([])
+# ax2.get_xaxis().set_ticks([])
+ax1.tick_params(labelbottom=False)
+ax2.tick_params(labelbottom=False)
 
 #########################################################################
 
-gs01 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs0[1])
-gs010 = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=gs01[0])
+gs01 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs0[1], hspace=0.275)
+gs010 = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=gs01[0], hspace=0.1)
 # gs010 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs01[0])
 ax4 = fig.add_subplot(gs010[0, 0])
 # ax5 = fig.add_subplot(gs010[1, 0])
@@ -163,16 +171,16 @@ u1 = helper_functions.LOP_to_3D_array(domain, LOP1, 'u', kx1, ky1, scale=16)
 w1 = helper_functions.LOP_to_3D_array(domain, LOP1, 'w', kx1, ky1, scale=16)
 Bx1 = helper_functions.LOP_to_3D_array(domain, LOP1, 'Bx', kx1, ky1, scale=16)
 Bz1 = helper_functions.LOP_to_3D_array(domain, LOP1, 'Bz', kx1, ky1, scale=16)
-cmesh4 = make_LOP_plot(ax4, u1[:, 0, :], x16, z16)
-cbar4 = fig.colorbar(cmesh4)
-cmesh5 = make_LOP_plot(ax5, w1[:, 0, :], x16, z16)
-cbar5 = fig.colorbar(cmesh5)
-cmesh6 = make_LOP_plot(ax6, Bx1[:, 0, :], x16, z16)
-cbar6 = fig.colorbar(cmesh6)
-cmesh7 = make_LOP_plot(ax7, Bz1[:, 0, :], x16, z16)
-cbar7 = fig.colorbar(cmesh7)
+cmesh4 = make_LOP_plot(ax4, u1[:, 0, :], x16, z16, cmap='RdBu')
+cbar4 = fig.colorbar(cmesh4, use_gridspec=True)
+cmesh5 = make_LOP_plot(ax5, w1[:, 0, :], x16, z16, cmap='RdBu')
+cbar5 = fig.colorbar(cmesh5, use_gridspec=True)
+cmesh6 = make_LOP_plot(ax6, Bx1[:, 0, :], x16, z16, cmap='PiYG')
+cbar6 = fig.colorbar(cmesh6, use_gridspec=True)
+cmesh7 = make_LOP_plot(ax7, Bz1[:, 0, :], x16, z16, cmap='PiYG')
+cbar7 = fig.colorbar(cmesh7, use_gridspec=True)
 
-gs011 = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=gs01[1])
+gs011 = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=gs01[1], hspace=0.1)
 # gs011 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs01[1])
 ax8 = fig.add_subplot(gs011[0, 0])
 # ax9 = fig.add_subplot(gs011[1, 0])
@@ -197,14 +205,14 @@ u2 = helper_functions.LOP_to_3D_array(domain2, LOP2, 'u', kx2, ky2, scale=16)
 w2 = helper_functions.LOP_to_3D_array(domain2, LOP2, 'w', kx2, ky2, scale=16)
 Bx2 = helper_functions.LOP_to_3D_array(domain2, LOP2, 'Bx', kx2, ky2, scale=16)
 Bz2 = helper_functions.LOP_to_3D_array(domain2, LOP2, 'Bz', kx2, ky2, scale=16)
-cmesh8 = make_LOP_plot(ax8, u2[:, 0, :], x16, z16)
-cbar8 = fig.colorbar(cmesh8)
-cmesh9 = make_LOP_plot(ax9, w2[:, 0, :], x16, z16)
-cbar9 = fig.colorbar(cmesh9)
-cmesh10 = make_LOP_plot(ax10, Bx2[:, 0, :], x16, z16)
-cbar10 = fig.colorbar(cmesh10)
-cmesh11 = make_LOP_plot(ax11, Bz2[:, 0, :], x16, z16)
-cbar11 = fig.colorbar(cmesh11)
+cmesh8 = make_LOP_plot(ax8, u2[:, 0, :], x16, z16, cmap='RdBu')
+cbar8 = fig.colorbar(cmesh8, use_gridspec=True)
+cmesh9 = make_LOP_plot(ax9, w2[:, 0, :], x16, z16, cmap='RdBu')
+cbar9 = fig.colorbar(cmesh9, use_gridspec=True)
+cmesh10 = make_LOP_plot(ax10, Bx2[:, 0, :], x16, z16, cmap='PiYG')
+cbar10 = fig.colorbar(cmesh10, use_gridspec=True)
+cmesh11 = make_LOP_plot(ax11, Bz2[:, 0, :], x16, z16, cmap='PiYG')
+cbar11 = fig.colorbar(cmesh11, use_gridspec=True)
 
 #########################################################################
 
@@ -220,15 +228,19 @@ ax12 = fig.add_subplot(gs020[0])
 ax12.plot(ts1, KE1, label=r'$K$')
 ax12.plot(ts1, ME1, label=r'$M$')
 ax12.set_ylabel(r'Energy')
-ax12.set_xlim((0, 100))
+# ax12.set_xlim((0, 100))
+ax12.set_xlim((0, 50))
 ax12.set_ylim(ymin=0)
 plt.legend()
 ax13 = fig.add_subplot(gs020[1])
 ax13.plot(ts1, K_prod1, label=r'$K$ production')
 ax13.plot(ts1, M_prod1, label=r'$M$ production')
 ax13.set_ylabel(r'Production')
-ax13.set_xlabel(r'$t$')
-ax13.set_xlim((0, 100))
+# ax13.set_xlabel(r'$t$')
+# ax13.set_xlim((0, 100))
+ax13.set_xlim((0, 50))
+ax12.tick_params(labelbottom=False)
+ax13.tick_params(labelbottom=False)
 
 gs021 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs02[1])
 IVP_data2 = helper_functions.get_IVP_scalar_data(runs[MAind2], LOPt0ind2)
@@ -241,7 +253,8 @@ ax14 = fig.add_subplot(gs021[0])
 ax14.plot(ts2, KE2, label=r'$K$')
 ax14.plot(ts2, ME2, label=r'$M$')
 ax14.set_ylabel(r'Energy')
-ax14.set_xlim((0, 100))
+# ax14.set_xlim((0, 100))
+ax14.set_xlim((0, 50))
 ax14.set_ylim(ymin=0)
 # plt.legend()
 ax15 = fig.add_subplot(gs021[1])
@@ -249,7 +262,9 @@ ax15.plot(ts2, K_prod2, label=r'$K$ production')
 ax15.plot(ts2, M_prod2, label=r'$M$ production')
 ax15.set_ylabel(r'Production')
 ax15.set_xlabel(r'$t$')
-ax15.set_xlim((0, 100))
+# ax15.set_xlim((0, 100))
+ax15.set_xlim((0, 50))
+ax14.tick_params(labelbottom=False)
 
 #########################################################################
 
@@ -262,28 +277,44 @@ for ax in [ax4, ax6, ax8, ax10]:
 # for ax in [ax6, ax7, ax10, ax11]:
 for ax in [ax10, ax11]:
     ax.set_xlabel(r'$x$')
+for ax in [ax4, ax5, ax6, ax7, ax8, ax9, ax10, ax11]:
+    ax.set_ylim((-7.5, 7.5))
+# ytext = 10
+ytext = 5
 for ax in [ax4, ax8]:
-    ax.set_title(r'$u$')
+    # ax.set_title(r'$u$')
+    ax.text(2.5, ytext, r'$u$', fontsize='xx-large')
 for ax in [ax5, ax9]:
-    ax.set_title(r'$w$')
+    # ax.set_title(r'$w$')
+    ax.text(2.5, ytext, r'$w$', fontsize='xx-large')
 for ax in [ax6, ax10]:
-    ax.set_title(r'$b_x$')
+    # ax.set_title(r'$b_x$')
+    ax.text(2.5, ytext, r'$b_x$', fontsize='xx-large')
 for ax in [ax7, ax11]:
-    ax.set_title(r'$b_z$')
+    # ax.set_title(r'$b_z$')
+    ax.text(2.5, ytext, r'$b_z$', fontsize='xx-large')
 ax_topmid = fig.add_subplot(gs010[:])
 ax_topmid.axis('off')
-ax_topmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas[MAind1]['times'][t0ind1]))
+ax_topmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas[MAind1]['times'][t0ind1]), pad=17.5)
 ax_botmid = fig.add_subplot(gs011[:])
 ax_botmid.axis('off')
-ax_botmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas[MAind2]['times'][t0ind2]))
+ax_botmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas[MAind2]['times'][t0ind2]), pad=17.5)
 
-plt.suptitle('Small boxes', fontsize='xx-large')
+# sublabels = [r'$\mathrm{(a)}$', r'$\mathrm{(b)}$', r'$\mathrm{(c)}$', r'$\mathrm{(d)}$']
+sublabels = [r'$\mathrm{{({})}}$'.format(i) for i in 'abcdefghijklmno']
+# for axi, ax in enumerate(fig.get_axes()):  # this doesn't play nicely with colorbars or my ax_topmid, ax_botmid thing
+for axi, ax in enumerate([ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10, ax11, ax12, ax13, ax14, ax15]):
+    ax.text(-0.2, 1.07, sublabels[axi], horizontalalignment='center', verticalalignment='center',
+                transform=ax.transAxes, fontsize='xx-large')
+    ax.tick_params(direction='in')
+
+# plt.suptitle('Small boxes', fontsize='xx-large')
 
 plt.tight_layout()
 # fname = '../../tex/manuscript/figures/smallbox_megaplot_kymin5'
-fname = '../../tex/manuscript/figures/smallbox_megaplot4'
+fname = '../../tex/manuscript/figures/smallbox_megaplot'
 # fname = '../../tex/manuscript/figures/bigbox_megaplot'
 plt.savefig(fname+'.pdf')
 plt.savefig(fname+'.png')
-plt.savefig(fname+'.eps')
+# plt.savefig(fname+'.eps')
 # plt.show()
