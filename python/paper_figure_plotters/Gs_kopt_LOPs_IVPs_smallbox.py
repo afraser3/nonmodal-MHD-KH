@@ -111,7 +111,7 @@ ax1 = fig.add_subplot(gs00[0, :])
 ax2 = fig.add_subplot(gs00[1, :])
 ax3 = fig.add_subplot(gs00[2, :])
 make_G_plot(ax1, runs, run_labels, log=True, ymax=1e4, tmax=100)
-ax1.set_ylabel(r'$G(t_0)$')
+ax1.set_ylabel(r'$G_\mathrm{opt}$')
 # ax1.set_title('Small boxes')
 # ax1.legend(ncols=2)
 # ax1.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncols=2, mode="expand", borderaxespad=0.)
@@ -136,8 +136,8 @@ make_kopt_plot(ax2, runs, run_labels, just_kx=True, tmax=100)
 ax2.set_ylabel(r'$k_{x, \mathrm{opt}}$')
 make_kopt_plot(ax3, runs, run_labels, just_ky=True, tmax=100)
 ax3.set_ylabel(r'$k_{y, \mathrm{opt}}$')
-ax3.set_xlabel(r'$t_0$')
-ax3.legend(fontsize='x-large')
+ax3.set_xlabel(r'$t_0$', labelpad=2)
+ax3.legend(fontsize='x-large', loc="center right")
 # ax1.get_xaxis().set_ticks([])
 # ax2.get_xaxis().set_ticks([])
 ax1.tick_params(labelbottom=False)
@@ -231,7 +231,7 @@ ax12.set_ylabel(r'Energy')
 # ax12.set_xlim((0, 100))
 ax12.set_xlim((0, 50))
 ax12.set_ylim(ymin=0)
-plt.legend()
+ax12.legend(fontsize='x-large', loc="center right")
 ax13 = fig.add_subplot(gs020[1])
 ax13.plot(ts1, K_prod1, label=r'$K$ production')
 ax13.plot(ts1, M_prod1, label=r'$M$ production')
@@ -261,7 +261,7 @@ ax15 = fig.add_subplot(gs021[1])
 ax15.plot(ts2, K_prod2, label=r'$K$ production')
 ax15.plot(ts2, M_prod2, label=r'$M$ production')
 ax15.set_ylabel(r'Production')
-ax15.set_xlabel(r'$t$')
+ax15.set_xlabel(r'$t$', labelpad=2)
 # ax15.set_xlim((0, 100))
 ax15.set_xlim((0, 50))
 ax14.tick_params(labelbottom=False)
@@ -273,10 +273,10 @@ for ax in [ax4, ax5, ax8, ax9]:
 for ax in [ax5, ax7, ax9, ax11]:
     ax.tick_params(labelleft=False)
 for ax in [ax4, ax6, ax8, ax10]:
-    ax.set_ylabel(r'$z$')
+    ax.set_ylabel(r'$z$', labelpad=2)
 # for ax in [ax6, ax7, ax10, ax11]:
 for ax in [ax10, ax11]:
-    ax.set_xlabel(r'$x$')
+    ax.set_xlabel(r'$x$', labelpad=2)
 for ax in [ax4, ax5, ax6, ax7, ax8, ax9, ax10, ax11]:
     ax.set_ylim((-7.5, 7.5))
 # ytext = 10
@@ -295,17 +295,19 @@ for ax in [ax7, ax11]:
     ax.text(2.5, ytext, r'$b_z$', fontsize='xx-large')
 ax_topmid = fig.add_subplot(gs010[:])
 ax_topmid.axis('off')
-ax_topmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas[MAind1]['times'][t0ind1]), pad=17.5)
+ax_topmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas[MAind1]['times'][t0ind1]), pad=10)
 ax_botmid = fig.add_subplot(gs011[:])
 ax_botmid.axis('off')
-ax_botmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas[MAind2]['times'][t0ind2]), pad=17.5)
+ax_botmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas[MAind2]['times'][t0ind2]), pad=10)
 
 # sublabels = [r'$\mathrm{(a)}$', r'$\mathrm{(b)}$', r'$\mathrm{(c)}$', r'$\mathrm{(d)}$']
 sublabels = [r'$\mathrm{{({})}}$'.format(i) for i in 'abcdefghijklmno']
 # for axi, ax in enumerate(fig.get_axes()):  # this doesn't play nicely with colorbars or my ax_topmid, ax_botmid thing
 for axi, ax in enumerate([ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10, ax11, ax12, ax13, ax14, ax15]):
-    ax.text(-0.2, 1.07, sublabels[axi], horizontalalignment='center', verticalalignment='center',
-                transform=ax.transAxes, fontsize='xx-large')
+    # ax.text(-0.2, 1.07, sublabels[axi], horizontalalignment='center', verticalalignment='center',
+    #             transform=ax.transAxes, fontsize='xx-large')
+    ax.text(1, 0.99, sublabels[axi], horizontalalignment='right', verticalalignment='top',
+            transform=ax.transAxes, fontsize='xx-large')#, bbox=dict(boxstyle="square,pad=0.", ec="none", fc="w"))
     ax.tick_params(direction='in')
 
 # plt.suptitle('Small boxes', fontsize='xx-large')
@@ -317,4 +319,4 @@ fname = '../../tex/manuscript/figures/smallbox_megaplot'
 plt.savefig(fname+'.pdf')
 plt.savefig(fname+'.png')
 # plt.savefig(fname+'.eps')
-# plt.show()
+plt.show()
