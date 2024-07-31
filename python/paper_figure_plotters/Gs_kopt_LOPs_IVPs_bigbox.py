@@ -135,7 +135,7 @@ ax2.set_ylabel(r'$k_{x, \mathrm{opt}}, k_{y, \mathrm{opt}}$')
 ax2.set_xlabel(r'$t_0$')
 # ax2.set_ylim((1e-3, 1))
 # ax2.set_yscale('log')
-ax2.legend()
+ax2.legend(loc="center right")
 # make_kopt_plot(ax3, runs, run_labels, just_ky=True, colors=colors, tmax=5000)#, tmax=100)
 # ax3.set_ylabel(r'$k_{y, \mathrm{opt}}$')
 # ax3.set_xlabel(r'$t_0$')
@@ -179,7 +179,7 @@ for i in range(6)[::-1]:
 ax4.set_xlim((0, LOP_ts1[-1]))
 ax4.set_ylim((0, 1))
 ax4.axvline(run_datas[MAind1]['times'][t0ind1], c='k')
-ax4.tick_params(labelleft=False)
+ax4.tick_params(labelbottom=False, labelleft=False)
 ax4.set_ylabel(r'Evolved state')
 
 # gs011 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs01[1])
@@ -219,7 +219,7 @@ for i in range(6)[::-1]:
 ax7.set_xlim((0, LOP_ts2[-1]))
 ax7.set_ylim((0, 1))
 ax7.axvline(run_datas[MAind2]['times'][t0ind2], c='k')
-ax7.tick_params(labelleft=False)
+ax7.tick_params(labelbottom=False, labelleft=False)
 ax7.set_ylabel(r'Evolved state')
 
 
@@ -239,10 +239,10 @@ ax5.axvline(run_datas[MAind1]['times'][t0ind1], c='k')
 ax5.plot(ts1, KE1, label=r'$KE$')
 ax5.plot(ts1, ME1, label=r'$ME$')
 ax5.set_yscale('log')
-# ax5.set_xlabel(r'$t, t_0$')
-# ax5.set_ylabel(r'$G, E$')
+ax5.set_xlabel(r'$t$, $t_0$')
+ax5.set_ylabel(r'$G$, $E$')
 # ax5.set_xlabel(r'$t$')
-ax5.set_ylabel(r'$E$')
+# ax5.set_ylabel(r'$E$')
 ax5.legend(ncols=2, fontsize='large')
 ax5.set_xlim((ts1[0], ts1[-1]))
 
@@ -259,61 +259,11 @@ ax8.axvline(run_datas[MAind2]['times'][t0ind2], c='k')
 ax8.plot(ts2, KE2, label=r'$KE$')
 ax8.plot(ts2, ME2, label=r'$ME$')
 ax8.set_yscale('log')
-# ax8.set_xlabel(r'$t, t_0$')
-# ax8.set_ylabel(r'$G, E$')
+ax8.set_xlabel(r'$t$, $t_0$')
+ax8.set_ylabel(r'$G$, $E$')
 # ax8.set_xlabel(r'$t$')
-ax8.set_ylabel(r'$E$')
+# ax8.set_ylabel(r'$E$')
 ax8.set_xlim((ts2[0], ts2[-1]))
-
-# ax5.semilogy(scalars_ts, Gs_local[0] * np.exp(scalars_ts * 2.0 * np.max(np.real(eigenvalues[indx]))) * Gs_local[
-#     -1] / np.exp(scalars_ts[-1] * 2.0 * np.max(np.real(eigenvalues[indx]))), '--', c='grey',
-#              label=r'eigenvalue')
-# ax5.legend(ncols=3)
-
-# gs02 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs0[2])
-# gs020 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs02[0])
-# IVP_data1 = helper_functions.get_IVP_scalar_data(runs[MAind1], LOPt0ind1)
-# KE1 = IVP_data1['urms']**2 + IVP_data1['vrms']**2 + IVP_data1['wrms']**2
-# ME1 = (IVP_data1['bxrms']**2 + IVP_data1['byrms']**2 + IVP_data1['bzrms']**2) / run_datas[MAind1]['MA']**2
-# K_prod1 = IVP_data1['K_prod']
-# M_prod1 = IVP_data1['M_prod']
-# ts1 = IVP_data1['scalars_ts']
-# ax12 = fig.add_subplot(gs020[0])
-# ax12.plot(ts1, KE1, label=r'$K$')
-# ax12.plot(ts1, ME1, label=r'$M$')
-# ax12.set_ylabel(r'Energy')
-# # ax12.set_xlim((0, 100))
-# # ax12.set_ylim(ymin=0)
-# ax12.set_yscale('log')
-# plt.legend()
-# ax13 = fig.add_subplot(gs020[1])
-# ax13.plot(ts1, K_prod1, label=r'$K$ production')
-# ax13.plot(ts1, M_prod1, label=r'$M$ production')
-# ax13.set_ylabel(r'Production')
-# ax13.set_xlabel(r'$t$')
-# # ax13.set_xlim((0, 100))
-#
-# gs021 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs02[1])
-# IVP_data2 = helper_functions.get_IVP_scalar_data(runs[MAind2], LOPt0ind2)
-# KE2 = IVP_data2['urms']**2 + IVP_data2['vrms']**2 + IVP_data2['wrms']**2
-# ME2 = (IVP_data2['bxrms']**2 + IVP_data2['byrms']**2 + IVP_data2['bzrms']**2) / run_datas[MAind2]['MA']**2
-# K_prod2 = IVP_data2['K_prod']
-# M_prod2 = IVP_data2['M_prod']
-# ts2 = IVP_data2['scalars_ts']
-# ax14 = fig.add_subplot(gs021[0])
-# ax14.plot(ts2, KE2, label=r'$K$')
-# ax14.plot(ts2, ME2, label=r'$M$')
-# ax14.set_ylabel(r'Energy')
-# # ax14.set_xlim((0, 100))
-# # ax14.set_ylim(ymin=0)
-# ax14.set_yscale('log')
-# # plt.legend()
-# ax15 = fig.add_subplot(gs021[1])
-# ax15.plot(ts2, K_prod2, label=r'$K$ production')
-# ax15.plot(ts2, M_prod2, label=r'$M$ production')
-# ax15.set_ylabel(r'Production')
-# ax15.set_xlabel(r'$t$')
-# # ax15.set_xlim((0, 100))
 
 #########################################################################
 
@@ -341,6 +291,13 @@ ax8.set_xlim((ts2[0], ts2[-1]))
 # ax_botmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas[MAind2]['times'][t0ind2]))
 #
 # plt.suptitle('Small boxes', fontsize='xx-large')
+
+sublabels = [r'$\mathrm{{({})}}$'.format(i) for i in 'abcdefgh']
+# for axi, ax in enumerate(fig.get_axes()):  # this doesn't play nicely with colorbars or my ax_topmid, ax_botmid thing
+for axi, ax in enumerate([ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8]):
+    ax.text(1, 0.99, sublabels[axi], horizontalalignment='right', verticalalignment='top',
+                transform=ax.transAxes, fontsize='xx-large', bbox=dict(boxstyle="square,pad=0.", ec="none", fc="w"))
+    ax.tick_params(direction='in')
 
 plt.tight_layout()
 # fname = '../../tex/manuscript/figures/smallbox_megaplot_kymin5'
