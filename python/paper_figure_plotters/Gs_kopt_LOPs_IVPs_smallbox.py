@@ -105,7 +105,7 @@ t0ind2 = LOPt0ind2*run_datas[MAind2]['save_LOPs_istep']
 
 # fig = plt.figure(figsize=(18, 4.5), layout="constrained")
 fig = plt.figure(figsize=(16, 7.5))#, layout="constrained")
-gs0 = gridspec.GridSpec(1, 3, figure=fig)#, wspace=0.3)
+gs0 = gridspec.GridSpec(1, 2, figure=fig, width_ratios=[1/3, 2/3])#, wspace=0.3)
 gs00 = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec=gs0[0], hspace=0.1)
 ax1 = fig.add_subplot(gs00[0, :])
 ax2 = fig.add_subplot(gs00[1, :])
@@ -145,14 +145,15 @@ ax2.tick_params(labelbottom=False)
 
 #########################################################################
 
-gs01 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs0[1], hspace=0.275)
-gs010 = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=gs01[0], hspace=0.1)
+gs01 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs0[1], wspace=0.3)
+gs010 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs01[0], hspace=0.275)
+gs0100 = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=gs010[0], hspace=0.1, wspace=0.3)
 # gs010 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs01[0])
-ax4 = fig.add_subplot(gs010[0, 0])
+ax4 = fig.add_subplot(gs0100[0, 0])
 # ax5 = fig.add_subplot(gs010[1, 0])
-ax5 = fig.add_subplot(gs010[0, 1])
-ax6 = fig.add_subplot(gs010[1, 0])
-ax7 = fig.add_subplot(gs010[1, 1])
+ax5 = fig.add_subplot(gs0100[0, 1])
+ax6 = fig.add_subplot(gs0100[1, 0])
+ax7 = fig.add_subplot(gs0100[1, 1])
 LOP1, kx1, ky1, run_data1 = helper_functions.get_LOP_from_run(runs[MAind1], LOPt0ind1)
 z_basis = de.Chebyshev('z', run_datas[MAind1]['Nz'], interval=(-0.5 * run_datas[MAind1]['Lz'], 0.5 * run_datas[MAind1]['Lz']))
 x_basis = de.Fourier('x', 4, interval=(0.0, 2.0 * np.pi / kx1))
@@ -180,13 +181,13 @@ cbar6 = fig.colorbar(cmesh6, use_gridspec=True)
 cmesh7 = make_LOP_plot(ax7, Bz1[:, 0, :], x16, z16, cmap='PiYG')
 cbar7 = fig.colorbar(cmesh7, use_gridspec=True)
 
-gs011 = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=gs01[1], hspace=0.1)
+gs0101 = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=gs010[1], hspace=0.1, wspace=0.3)
 # gs011 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs01[1])
-ax8 = fig.add_subplot(gs011[0, 0])
+ax8 = fig.add_subplot(gs0101[0, 0])
 # ax9 = fig.add_subplot(gs011[1, 0])
-ax9 = fig.add_subplot(gs011[0, 1])
-ax10 = fig.add_subplot(gs011[1, 0])
-ax11 = fig.add_subplot(gs011[1, 1])
+ax9 = fig.add_subplot(gs0101[0, 1])
+ax10 = fig.add_subplot(gs0101[1, 0])
+ax11 = fig.add_subplot(gs0101[1, 1])
 LOP2, kx2, ky2, run_data2 = helper_functions.get_LOP_from_run(runs[MAind2], LOPt0ind2)
 z_basis2 = de.Chebyshev('z', run_datas[MAind2]['Nz'], interval=(-0.5 * run_datas[MAind2]['Lz'], 0.5 * run_datas[MAind2]['Lz']))
 x_basis2 = de.Fourier('x', 4, interval=(0.0, 2.0 * np.pi / kx2))
@@ -216,15 +217,15 @@ cbar11 = fig.colorbar(cmesh11, use_gridspec=True)
 
 #########################################################################
 
-gs02 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs0[2])
-gs020 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs02[0])
+gs011 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs01[1])
+gs0110 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs011[0])
 IVP_data1 = helper_functions.get_IVP_scalar_data(runs[MAind1], LOPt0ind1)
 KE1 = IVP_data1['urms']**2 + IVP_data1['vrms']**2 + IVP_data1['wrms']**2
 ME1 = (IVP_data1['bxrms']**2 + IVP_data1['byrms']**2 + IVP_data1['bzrms']**2) / run_datas[MAind1]['MA']**2
 K_prod1 = IVP_data1['K_prod']
 M_prod1 = IVP_data1['M_prod']
 ts1 = IVP_data1['scalars_ts']
-ax12 = fig.add_subplot(gs020[0])
+ax12 = fig.add_subplot(gs0110[0])
 ax12.plot(ts1, KE1, label=r'$K$')
 ax12.plot(ts1, ME1, label=r'$M$')
 ax12.set_ylabel(r'Energy')
@@ -232,7 +233,7 @@ ax12.set_ylabel(r'Energy')
 ax12.set_xlim((0, 50))
 ax12.set_ylim(ymin=0)
 ax12.legend(fontsize='x-large', loc="center right")
-ax13 = fig.add_subplot(gs020[1])
+ax13 = fig.add_subplot(gs0110[1])
 ax13.plot(ts1, K_prod1, label=r'$K$ production')
 ax13.plot(ts1, M_prod1, label=r'$M$ production')
 ax13.set_ylabel(r'Production')
@@ -242,14 +243,14 @@ ax13.set_xlim((0, 50))
 ax12.tick_params(labelbottom=False)
 ax13.tick_params(labelbottom=False)
 
-gs021 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs02[1])
+gs0111 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs011[1])
 IVP_data2 = helper_functions.get_IVP_scalar_data(runs[MAind2], LOPt0ind2)
 KE2 = IVP_data2['urms']**2 + IVP_data2['vrms']**2 + IVP_data2['wrms']**2
 ME2 = (IVP_data2['bxrms']**2 + IVP_data2['byrms']**2 + IVP_data2['bzrms']**2) / run_datas[MAind2]['MA']**2
 K_prod2 = IVP_data2['K_prod']
 M_prod2 = IVP_data2['M_prod']
 ts2 = IVP_data2['scalars_ts']
-ax14 = fig.add_subplot(gs021[0])
+ax14 = fig.add_subplot(gs0111[0])
 ax14.plot(ts2, KE2, label=r'$K$')
 ax14.plot(ts2, ME2, label=r'$M$')
 ax14.set_ylabel(r'Energy')
@@ -257,7 +258,7 @@ ax14.set_ylabel(r'Energy')
 ax14.set_xlim((0, 50))
 ax14.set_ylim(ymin=0)
 # plt.legend()
-ax15 = fig.add_subplot(gs021[1])
+ax15 = fig.add_subplot(gs0111[1])
 ax15.plot(ts2, K_prod2, label=r'$K$ production')
 ax15.plot(ts2, M_prod2, label=r'$M$ production')
 ax15.set_ylabel(r'Production')
@@ -293,10 +294,10 @@ for ax in [ax6, ax10]:
 for ax in [ax7, ax11]:
     # ax.set_title(r'$b_z$')
     ax.text(2.5, ytext, r'$b_z$', fontsize='xx-large')
-ax_topmid = fig.add_subplot(gs010[:])
+ax_topmid = fig.add_subplot(gs0100[:])
 ax_topmid.axis('off')
 ax_topmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas[MAind1]['times'][t0ind1]), pad=10)
-ax_botmid = fig.add_subplot(gs011[:])
+ax_botmid = fig.add_subplot(gs0101[:])
 ax_botmid.axis('off')
 ax_botmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas[MAind2]['times'][t0ind2]), pad=10)
 
