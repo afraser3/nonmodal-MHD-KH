@@ -15,10 +15,12 @@ import helper_functions
 # run_dict = helper_functions.run_dict_pleiades
 run_dict = helper_functions.run_dict
 runs = [run_dict[('small', MA)] for MA in [0.5, 1, 1.1, 40]]
-run_labels = [r'$M_A = 0.5$',
-              r'$M_A = 1$',
-              r'$M_A = 1.1$',
-              r'$M_A = 40$']
+run_labels = [r'$\mathrm{M_A} = 0.5$',
+              r'$\mathrm{M_A} = 1$',
+              r'$\mathrm{M_A} = 1.1$',
+              r'$\mathrm{M_A} = 40$']
+# run_colors = ['blue', 'navy', 'lightcoral', 'firebrick']
+run_colors = ['#08519c', '#3182bd', 'lightcoral', 'firebrick']
 # runs_big = [run_dict[('big', 0.1)], run_dict[('big', 0.5)], run_dict[('big', 1)], run_dict[('big', 1.1, 200)]]
 # runs = [run_dict[('big', 0.1)], run_dict[('big', 0.5)], run_dict[('big', 1)], run_dict[('big', 1.1, 200)]]
 # run_labels = [r'$M_A = 0.1$',
@@ -100,24 +102,26 @@ def make_LOP_plot(ax, LOP2D, x, z, cmap):
 
 # run_datas_small = [helper_functions.get_Gs_ks_from_run(run) for run in runs_small]
 run_datas = [helper_functions.get_Gs_ks_from_run(run) for run in runs]
+for run in run_datas:
+    print(run['MA'], np.max(run['Gs_opt']))
 t0ind1 = LOPt0ind1*run_datas[MAind1]['save_LOPs_istep']
 t0ind2 = LOPt0ind2*run_datas[MAind2]['save_LOPs_istep']
 
 # fig = plt.figure(figsize=(18, 4.5), layout="constrained")
-fig = plt.figure(figsize=(16, 7.5))#, layout="constrained")
+fig = plt.figure(figsize=(16, 6.5))#, layout="constrained")
 gs0 = gridspec.GridSpec(1, 2, figure=fig, width_ratios=[1/3, 2/3])#, wspace=0.3)
-gs00 = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec=gs0[0], hspace=0.1)
+gs00 = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec=gs0[0], hspace=0.065)
 ax1 = fig.add_subplot(gs00[0, :])
 ax2 = fig.add_subplot(gs00[1, :])
 ax3 = fig.add_subplot(gs00[2, :])
-make_G_plot(ax1, runs, run_labels, log=True, ymax=1e4, tmax=100)
+make_G_plot(ax1, runs, run_labels, log=True, ymax=1e4, tmax=100, colors=run_colors)
 ax1.set_ylabel(r'$G_\mathrm{opt}$')
 # ax1.set_title('Small boxes')
 # ax1.legend(ncols=2)
 # ax1.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncols=2, mode="expand", borderaxespad=0.)
 # ax1.legend(fontsize='large')
-ax1.plot(run_datas[MAind1]['times'][t0ind1], run_datas[MAind1]['Gs_opt'][t0ind1], 'D', c='C0')
-ax1.plot(run_datas[MAind2]['times'][t0ind2], run_datas[MAind2]['Gs_opt'][t0ind2], 'X', c='C0')
+ax1.plot(run_datas[MAind1]['times'][t0ind1], run_datas[MAind1]['Gs_opt'][t0ind1], 'D', c=run_colors[0])
+ax1.plot(run_datas[MAind2]['times'][t0ind2], run_datas[MAind2]['Gs_opt'][t0ind2], 'X', c=run_colors[0])
 evalue_kxind2 = run_datas[2]['kxinds'][-1]
 evalue_kxopt2 = run_datas[2]['kx_opt'][-1]
 evalue_kyind2 = run_datas[2]['kyinds'][-1]
@@ -130,13 +134,13 @@ evalue2 = np.real(run_datas[2]['evalues'][evalue_kxind2, evalue_kyind2])
 evalue3 = np.real(run_datas[3]['evalues'][evalue_kxind3, evalue_kyind3])
 times2 = run_datas[2]['times']
 times3 = run_datas[3]['times']
-ax1.plot(times2[int(len(times2)/4):], run_datas[2]['Gs_opt'][-1]*1.75*np.exp(2*evalue2*(times2[int(len(times2)/4):] - times2[-1])), ls='--', c='C2')
-ax1.plot(times3[int(len(times3)/10):], run_datas[3]['Gs_opt'][-1]*1.75*np.exp(2*evalue3*(times3[int(len(times3)/10):] - times3[-1])), ls='--', c='C3')
-make_kopt_plot(ax2, runs, run_labels, just_kx=True, tmax=100)
+ax1.plot(times2[int(len(times2)/4):], run_datas[2]['Gs_opt'][-1]*1.75*np.exp(2*evalue2*(times2[int(len(times2)/4):] - times2[-1])), ls='--', c=run_colors[2])
+ax1.plot(times3[int(len(times3)/10):], run_datas[3]['Gs_opt'][-1]*1.75*np.exp(2*evalue3*(times3[int(len(times3)/10):] - times3[-1])), ls='--', c=run_colors[3])
+make_kopt_plot(ax2, runs, run_labels, just_kx=True, tmax=100, colors=run_colors)
 ax2.set_ylabel(r'$k_{x, \mathrm{opt}}$')
-make_kopt_plot(ax3, runs, run_labels, just_ky=True, tmax=100)
+make_kopt_plot(ax3, runs, run_labels, just_ky=True, tmax=100, colors=run_colors)
 ax3.set_ylabel(r'$k_{y, \mathrm{opt}}$')
-ax3.set_xlabel(r'$t_0$', labelpad=2)
+ax3.set_xlabel(r'Target time $t_0$', labelpad=2)
 ax3.legend(fontsize='x-large', loc="center right")
 # ax1.get_xaxis().set_ticks([])
 # ax2.get_xaxis().set_ticks([])
@@ -226,16 +230,16 @@ K_prod1 = IVP_data1['K_prod']
 M_prod1 = IVP_data1['M_prod']
 ts1 = IVP_data1['scalars_ts']
 ax12 = fig.add_subplot(gs0110[0])
-ax12.plot(ts1, KE1, label=r'$K$')
-ax12.plot(ts1, ME1, label=r'$M$')
+ax12.plot(ts1, KE1, label=r'$K$', c='#fd8d3c')
+ax12.plot(ts1, ME1, label=r'$M$', c='#6a51a3')
 ax12.set_ylabel(r'Energy')
 # ax12.set_xlim((0, 100))
 ax12.set_xlim((0, 50))
 ax12.set_ylim(ymin=0)
 ax12.legend(fontsize='x-large', loc="center right")
 ax13 = fig.add_subplot(gs0110[1])
-ax13.plot(ts1, K_prod1, label=r'$K$ production')
-ax13.plot(ts1, M_prod1, label=r'$M$ production')
+ax13.plot(ts1, K_prod1, label=r'$K$ production', c='#fd8d3c')
+ax13.plot(ts1, M_prod1, label=r'$M$ production', c='#6a51a3')
 ax13.set_ylabel(r'Production')
 # ax13.set_xlabel(r'$t$')
 # ax13.set_xlim((0, 100))
@@ -251,16 +255,16 @@ K_prod2 = IVP_data2['K_prod']
 M_prod2 = IVP_data2['M_prod']
 ts2 = IVP_data2['scalars_ts']
 ax14 = fig.add_subplot(gs0111[0])
-ax14.plot(ts2, KE2, label=r'$K$')
-ax14.plot(ts2, ME2, label=r'$M$')
+ax14.plot(ts2, KE2, label=r'$K$', c='#fd8d3c')
+ax14.plot(ts2, ME2, label=r'$M$', c='#6a51a3')
 ax14.set_ylabel(r'Energy')
 # ax14.set_xlim((0, 100))
 ax14.set_xlim((0, 50))
 ax14.set_ylim(ymin=0)
 # plt.legend()
 ax15 = fig.add_subplot(gs0111[1])
-ax15.plot(ts2, K_prod2, label=r'$K$ production')
-ax15.plot(ts2, M_prod2, label=r'$M$ production')
+ax15.plot(ts2, K_prod2, label=r'$K$ production', c='#fd8d3c')
+ax15.plot(ts2, M_prod2, label=r'$M$ production', c='#6a51a3')
 ax15.set_ylabel(r'Production')
 ax15.set_xlabel(r'$t$', labelpad=2)
 # ax15.set_xlim((0, 100))
@@ -296,10 +300,10 @@ for ax in [ax7, ax11]:
     ax.text(2.5, ytext, r'$b_z$', fontsize='xx-large')
 ax_topmid = fig.add_subplot(gs0100[:])
 ax_topmid.axis('off')
-ax_topmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas[MAind1]['times'][t0ind1]), pad=10)
+ax_topmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas[MAind1]['times'][t0ind1]), pad=7.5)
 ax_botmid = fig.add_subplot(gs0101[:])
 ax_botmid.axis('off')
-ax_botmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas[MAind2]['times'][t0ind2]), pad=10)
+ax_botmid.set_title(r'$t_0 = {:2.0f}$ LOP'.format(run_datas[MAind2]['times'][t0ind2]), pad=7.5)
 
 # sublabels = [r'$\mathrm{(a)}$', r'$\mathrm{(b)}$', r'$\mathrm{(c)}$', r'$\mathrm{(d)}$']
 sublabels = [r'$\mathrm{{({})}}$'.format(i) for i in 'abcdefghijklmno']
