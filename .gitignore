@@ -3,6 +3,9 @@
 *.tar
 *.h5
 
+tex/
+internal_notes_logs/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

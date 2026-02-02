@@ -1,9 +1,0 @@
-Title: Nonmodal growth in magnetohydrodynamic shear flows with stabilizing magnetic fields
-
-Shear flows are common and important in astrophysical and fusion plasmas, where they often drive fluctuations and turbulence. 
-In turn, these motions enhance momentum, energy, and particle transport, crucially affecting the evolution of the system. 
-The parameter boundaries delineating shear-driven fluctuations are often assumed to be adequately provided by normal-mode linear stability analyses. 
-However, such analyses are known to be misleading in many canonical fluid systems, including pipe flow and stratified shear flows. 
-Perturbations can undergo significant nonmodal or non-normal growth, in some cases driving turbulence and mixing even at parameters where linear stability analyses predict no growth. 
-Here, we explore the degree of nonmodal growth when equilibrium magnetic fields aligned with the flow nearly or entirely stabilize shear flows, and show epsilon-pseudospectra that indicate significant amplification in linearly stable regimes for 2D systems. 
-We also present the linear optimal perturbations that maximize fluctuation growth over finite times, and discuss how the growth and optimal perturbation structure varies with Reynolds number and magnetic field strength.
