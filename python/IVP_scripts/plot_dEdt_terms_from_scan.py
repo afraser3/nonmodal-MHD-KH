@@ -4,8 +4,9 @@ import h5py
 from configparser import ConfigParser
 from pathlib import Path
 
-run = "run_kx-lin-ky-lin_MA1_Re250_kmin0.1_Nz512-k600-saveLOPs"
-LOP_t0_ind = 20
+run = "run_kx-lin-ky-lin_MA0.5_Re250_kxmin0.1_T100_Nz512-k600-saveLOPsAndEvolved"
+# run = "run_kx-log-ky-lin_MA1.01_Re250_kxmin1e-3_T1e4_Nz512-k600-saveLOPsAndEvolved"
+LOP_t0_ind = 10
 kxi = None
 kyi = None
 
@@ -86,6 +87,8 @@ ME = (np.real(bxrms[:, 0])**2.0 + np.real(byrms[:, 0])**2.0 + np.real(bzrms[:, 0
 delta_KE = np.diff(KE)/ts[1]
 delta_ME = np.diff(ME)/ts[1]
 plt.subplot(3, 1, 1)
+plt.axvline(LOP_ts[LOP_t0_ind], c='k')
+plt.axhline(0, c='k')
 plt.plot(ts, KE, label='KE')
 # plt.plot(ts[:-1], delta_KE, label='d(KE)/dt')
 plt.plot(ts, ME, label='ME')
@@ -96,20 +99,30 @@ plt.plot(ts, ME, label='ME')
 plt.legend()
 plt.xlim((ts[0], ts[-1]))
 plt.ylim(ymin=0)
+
 plt.subplot(3, 1, 2)
+plt.axvline(LOP_ts[LOP_t0_ind], c='k')
+plt.axhline(0, c='k')
 # plt.plot(ts, KE, label='KE')
 plt.plot(ts[:-1], delta_KE, label='d(KE)/dt')
 plt.plot(ts, np.real(K_prod[:, 0]), label='KE shear prod')
 plt.plot(ts, np.real(EM_work[:, 0]), label='EM work')
 plt.legend(loc='upper right')
 plt.xlim((ts[0], ts[-1]))
+ymax = np.max(np.abs(np.append(delta_KE, [np.real(K_prod[:, 0]), np.real(EM_work[:, 0])])))
+plt.ylim((-ymax, ymax))
+
 plt.subplot(3, 1, 3)
+plt.axvline(LOP_ts[LOP_t0_ind], c='k')
+plt.axhline(0, c='k')
 # plt.plot(ts, ME, label='ME')
 plt.plot(ts[:-1], delta_ME, label='d(ME)/dt')
 plt.plot(ts, np.real(M_prod[:, 0]), label='ME shear prod')
 plt.plot(ts, np.real(-EM_work[:, 0]), label='-(EM work)')
 plt.legend(loc='upper right')
 plt.xlim((ts[0], ts[-1]))
-plt.savefig(str(out_dir) + '/energies_prods.png')
-plt.savefig(str(out_dir) + '/energies_prods.pdf')
+ymax = np.max(np.abs(np.append(delta_ME, [np.real(M_prod[:, 0]), np.real(-EM_work[:, 0])])))
+plt.ylim((-ymax, ymax))
+plt.savefig(str(out_dir) + '/energies_prods_{}_t0{:.2e}.png'.format(run, LOP_ts[LOP_t0_ind]))
+plt.savefig(str(out_dir) + '/energies_prods_{}_t0{:.2e}.pdf'.format(run, LOP_ts[LOP_t0_ind]))
 plt.show()

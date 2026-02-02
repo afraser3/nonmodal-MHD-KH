@@ -8,13 +8,13 @@ from dedalus import public as de
 import logging
 logger = logging.getLogger(__name__)
 
-run = "run_kx-lin-ky-lin_MA1_Re50_kxmin0.2_Nz256-k300-saveLOPsAndEvolved"
-LOP_t0_ind = 10
+run = "run_kx-lin-ky-lin_MA1_Re250_kxmin0.1_Nz512-k600-saveLOPsAndEvolved"
+LOP_t0_ind = 15
 kxi = None
 kyi = None
 fix_cbar = True
 
-istep = 3
+istep = 1
 field_names = ['u', 'v', 'w', 'Bx', 'By', 'Bz']
 
 if kxi is None and kyi is None:
@@ -46,7 +46,7 @@ times = np.linspace(t_start, t_stop, t_num, endpoint=t_endpoint)
 save_LOPs_istep = params.getint('save_LOPs_istep')
 LOP_ts = times[::save_LOPs_istep]
 t0 = LOP_ts[LOP_t0_ind]
-istop = np.argmin(np.abs(times-t0))
+# istop = np.argmin(np.abs(times-t0))
 
 
 k = params.getint('k')
@@ -90,7 +90,9 @@ if not plot_dir.exists():
     plot_dir.mkdir(parents=False)
 
 with h5py.File(str(out_dir) + '/profiles_c/profiles_c_s1/profiles_c_s1_p0.h5', mode='r') as file:
-    ts = np.array(file['scales/sim_time'])[:istop:istep]
+    full_ts = np.array(file['scales/sim_time'])
+    istop = np.argmin(np.abs(full_ts - t0))
+    ts = full_ts[:istop:istep]
     field_data = dict([(field_names[i], np.array(file['tasks/{}'.format(field_names[i])])[:istop:istep]) for i in range(len(field_names))])
 
 z_basis = de.Chebyshev('z', Nz, interval=(-0.5 * Lz, 0.5 * Lz))
@@ -117,7 +119,9 @@ else:
 field = domain.new_field(name='field')
 
 field_data_g = {}
+print(ts.shape)
 for fi, fname in enumerate(field_names):
+    print(fi)
     for tind, t in enumerate(ts):
         field.set_scales(1, keep_data=False)
         if ky > 0:

@@ -7,8 +7,8 @@ from dedalus import public as de
 import logging
 logger = logging.getLogger(__name__)
 
-# run = "run_kx-log-ky-lin_MA0.1_Re50_kxmin1e-3_T3tA_Nz256-k300-saveLOPsAndEvolved"
-run = "run_kx-lin-ky-lin_MA1_Re50_kxmin0.1_Nz256-k300-saveLOPsAndEvolved"
+# run = "run_kx-lin-ky-lin_MA1.1_Re250_kxmin0.1_T200_Nz512-k600-saveLOPsAndEvolved"
+run = "run_kx-lin-ky-lin_MA0.5_Re50_kxmin0.1_T100_Nz256-k300-saveLOPsAndEvolved"
 kxi = None
 kyi = None
 
@@ -146,7 +146,7 @@ if save_evolved_state:
     plt.xlim((0, LOP_ts[-1]))
     plt.ylim((0, 1))
     plt.ylabel(r'Evolved state')
-    plt.xlabel(r'$t=t_0$')
+    plt.xlabel(r'$t_0$')
     plt.subplot(2, 1, 1)
 for i in range(6)[::-1]:
     plt.plot(LOP_ts[1:], energy_cumsum[i, 1:], ls='--', c=colors[i], label=names[i])

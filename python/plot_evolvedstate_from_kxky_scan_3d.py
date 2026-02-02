@@ -25,7 +25,7 @@ def natural_sort(iterable, reverse=False):
 
 
 # run = 'run_kx-log-scan-saveLOPs-saveEvecs-saveBetas'
-run = "run_kx-lin-ky-lin_MA1_Re50_kxmin0.1_Nz256-k300-saveLOPsAndEvolved"
+run = "run_kx-lin-ky-lin_MA1_Re250_kxmin0.1_Nz512-k600-saveLOPsAndEvolved"
 # run = "run_kx-log-ky-lin_MA0.5_Re50_kxmin1e-3_T3tA_Nz256-k300-saveLOPs"
 
 sparse = False

@@ -4,8 +4,8 @@ import h5py
 from configparser import ConfigParser
 from pathlib import Path
 
-run = "run_kx-log-ky-lin_MA1_Re50_kxmin1e-3_Nz256-k300-saveLOPs"
-LOP_t0_ind = 8
+run = "run_kx-log-ky-lin_MA0.5_Re250_kxmin1e-3_T3tA_Nz512-k600-saveLOPsAndEvolved"
+LOP_t0_ind = 11
 kxi = None
 kyi = None
 
@@ -67,7 +67,10 @@ else:
     kxky_dir = basedir / 'kxi_{:04d}/kyi_{:04d}/'.format(kxi, kyi)
     kx = kxs[kxi]
     ky = kys[kyi]
-out_dir = basedir / 'IVP_kxi{:04d}_kyi{:04d}_t0i{:03d}'.format(kxi, kyi, LOP_t0_ind)
+if get_max_ks:
+    out_dir = basedir / 'IVP_kxi{:04d}_kyi{:04d}_t0i{:03d}'.format(kxi, kyi, LOP_t0_ind)
+else:
+    out_dir = basedir / 'IVP_specific_kxi{:04d}_kyi{:04d}_t0i{:03d}'.format(kxi, kyi, LOP_t0_ind)
 
 with h5py.File(str(out_dir / 'scalars/scalars_s1/scalars_s1_p0.h5'), mode='r') as file:
     urms = np.array(file['tasks/u_rms'])
@@ -81,10 +84,11 @@ with h5py.File(str(out_dir / 'scalars/scalars_s1/scalars_s1_p0.h5'), mode='r') a
 KE = np.real(urms[:, 0])**2.0 + np.real(vrms[:, 0])**2.0 + np.real(wrms[:, 0])**2.0
 ME = (np.real(bxrms[:, 0])**2.0 + np.real(byrms[:, 0])**2.0 + np.real(bzrms[:, 0])**2.0)/MA2
 
-plt.subplot(2, 2, 1)
+plt.subplot(2, 3, 1)
 plt.plot(ts, np.real(urms[:, 0]), label='u_rms')
 plt.plot(ts, np.real(vrms[:, 0]), label='v_rms')
 plt.plot(ts, np.real(wrms[:, 0]), label='w_rms')
+plt.axvline(LOP_ts[LOP_t0_ind], c='k')
 plt.legend()
 plt.xlim((ts[0], ts[-1]))
 # plt.xlim((0, 20))
@@ -92,10 +96,11 @@ plt.ylim(ymin=0)
 plt.title('lin-lin')
 plt.ylabel(r'$\mathbf{u}$ components')
 
-plt.subplot(2, 2, 3)
+plt.subplot(2, 3, 4)
 plt.plot(ts, np.real(bxrms[:, 0]), label='bx_rms')
 plt.plot(ts, np.real(byrms[:, 0]), label='by_rms')
 plt.plot(ts, np.real(bzrms[:, 0]), label='bz_rms')
+plt.axvline(LOP_ts[LOP_t0_ind], c='k')
 plt.legend()
 plt.xlim((ts[0], ts[-1]))
 # plt.xlim((0, 20))
@@ -103,27 +108,50 @@ plt.ylim(ymin=0)
 plt.ylabel(r'$\mathbf{b}$ components')
 plt.xlabel(r'$t$')
 
-plt.subplot(2, 2, 2)
+plt.subplot(2, 3, 2)
 plt.loglog(ts, np.real(urms[:, 0]), label='u_rms')
 plt.loglog(ts, np.real(vrms[:, 0]), label='v_rms')
 plt.loglog(ts, np.real(wrms[:, 0]), label='w_rms')
 # plt.xlim(xmax=20)
 plt.loglog([ts[10], ts[-1]], [ts[10]*urms[10, 0], ts[-1]*urms[10, 0]], '--', c='k')
-plt.legend()
+# plt.legend()
 plt.title(r'log-log')
 
-plt.subplot(2, 2, 4)
+plt.subplot(2, 3, 3)
+plt.plot(ts, np.real(urms[:, 0])/ts, label='u_rms/t')
+# plt.loglog(ts, np.real(vrms[:, 0]), label='v_rms')
+# plt.loglog(ts, np.real(wrms[:, 0]), label='w_rms')
+# plt.xlim(xmax=20)
+# plt.loglog([ts[10], ts[-1]], [ts[10]*urms[10, 0], ts[-1]*urms[10, 0]], '--', c='k')
+plt.xlim((0, 2 * LOP_ts[LOP_t0_ind]))
+plt.legend()
+plt.title(r'compensated')
+
+plt.subplot(2, 3, 5)
 plt.loglog(ts, np.real(bxrms[:, 0]), label='bx_rms')
 plt.loglog(ts, np.real(byrms[:, 0]), label='by_rms')
 plt.loglog(ts, np.real(bzrms[:, 0]), label='bz_rms')
 # plt.xlim(xmax=20)
 plt.loglog([ts[10], ts[-1]], [ts[10]*bxrms[10, 0], ts[-1]*bxrms[10, 0]], '--', c='k')
 # plt.legend(loc='upper right')
+# plt.legend()
+plt.xlabel(r'$t$')
+
+plt.subplot(2, 3, 6)
+plt.plot(ts, np.real(bxrms[:, 0])/ts, label='bx_rms/t')
+# plt.loglog(ts, np.real(byrms[:, 0]), label='by_rms')
+# plt.loglog(ts, np.real(bzrms[:, 0]), label='bz_rms')
+# plt.xlim(xmax=20)
+# plt.loglog([ts[10], ts[-1]], [ts[10]*bxrms[10, 0], ts[-1]*bxrms[10, 0]], '--', c='k')
+# plt.legend(loc='upper right')
+plt.xlim((0, 2 * LOP_ts[LOP_t0_ind]))
 plt.legend()
 plt.xlabel(r'$t$')
 
+plt.tight_layout()
+
 # plt.savefig(str(out_dir) + '/energies_breakdown_zoom.png')
 # plt.savefig(str(out_dir) + '/energies_breakdown_zoom.pdf')
-plt.savefig(str(out_dir) + '/energies_breakdown.png')
-plt.savefig(str(out_dir) + '/energies_breakdown.pdf')
+plt.savefig(str(out_dir) + '/energies_breakdown_{}_t0{:.2e}.png'.format(run, LOP_ts[LOP_t0_ind]))
+plt.savefig(str(out_dir) + '/energies_breakdown_{}_t0{:.2e}.pdf'.format(run, LOP_ts[LOP_t0_ind]))
 plt.show()

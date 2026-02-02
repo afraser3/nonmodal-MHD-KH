@@ -7,14 +7,24 @@ from pathlib import Path
 # import glob
 
 logscale = False
-run1 = "run_kx-log-ky-lin_MA1_Re50_kxmin1e-3_T1e4_Nz256-k300-saveLOPs"
-run2 = "run_kx-log-ky-lin_MA1_Re50_kxmin1e-4_T1e4_Nz256-k300-saveLOPs"
+# run1 = "run_kx-lin-ky-lin_MA1.1_Re250_kxmin0.1_kymax5_T200_Nz512-k600-saveLOPsAndEvolved"
+# run2 = "run_kx-lin-ky-lin_MA1.1_Re250_kxmin0.1_T200_Nz512-k600-saveLOPsAndEvolved"
+run1 = "run_kx-lin-ky-lin_MA0.5_Re250_kxmin0.1_kymax5_T100_Nz512-k600-saveLOPsAndEvolved"
+run2 = "run_kx-lin-ky-lin_MA0.5_Re250_kxmin0.1_T100_Nz512-k600-saveLOPsAndEvolved"
 basedir1 = Path("LOPs_3D") / run1
 
-label1 = r'$k_{x, min} = 10^{-3}$'
-label2 = r'$k_{x, min} = 10^{-4}$'
-tmax = 500
-ymax = 3000
+label1 = r'$k_{y, max} = 5$'
+label2 = r'$k_{y, max} = 1$'
+# label1 = r'$\mathrm{Re}=50$'
+# label2 = r'$\mathrm{Re}=250$'
+# label1 = r'$Nz=256$'
+# label2 = r'$Nz=512$'
+# label1 = r'$k=300$'
+# label2 = r'$k=600$'
+# tmax = 500
+# ymax = 3000
+tmax = 25
+ymax = 1e2
 
 def get_Gs_ks_from_run(run):
     run_data = {}  # take everything we think we might want and throw it into a dict
@@ -98,7 +108,7 @@ run_out2 = get_Gs_ks_from_run(run2)
 plt.subplot(2, 2, 1)
 plt.plot(run_out1['times'], run_out1['Gs_opt'], label=label1, ls='-', c='C0')
 plt.plot(run_out2['times'], run_out2['Gs_opt'], label=label2, ls='--', c='C1')
-plt.xlabel(r'$t_0$')
+# plt.xlabel(r'$t_0$')
 plt.title(r'$G$ maximized over $k_x$ and $k_y$')
 plt.ylabel(r'$G(t_0)$')
 if ymax is None:
@@ -111,12 +121,12 @@ else:
     plt.xlim((0, tmax))
 plt.legend()
 
-plt.subplot(2, 2, 3)
+plt.subplot(2, 2, 2)
 plt.semilogy(run_out1['times'], run_out1['Gs_opt'], label=label1, ls='-', c='C0')
 plt.semilogy(run_out2['times'], run_out2['Gs_opt'], label=label2, ls='--', c='C1')
-plt.xlabel(r'$t_0$')
+# plt.xlabel(r'$t_0$')
 # plt.title(r'$G$ maximized over $k_x$ and $k_y$')
-plt.ylabel(r'$G(t_0)$')
+# plt.ylabel(r'$G(t_0)$')
 if tmax is None:
     plt.xlim((0, max(run_out1['times'][-1], run_out2['times'][-1])))
 else:
@@ -126,24 +136,36 @@ if ymax is None:
 else:
     plt.ylim((1, ymax))
 
-plt.subplot(2, 2, 2)
-plt.plot(run_out1['times'], run_out1['Gs_opt'], label=label1, ls='-', c='C0')
-plt.plot(run_out2['times'], run_out2['Gs_opt'], label=label2, ls='--', c='C1')
+plt.subplot(2, 2, 3)
+plt.axhline(run_out1['kxs'][0], c='k')
+plt.axhline(run_out1['kxs'][-1], c='k')
+plt.semilogy(run_out1['times'], run_out1['kx_opt'], label=label1, ls='-', c='C0')
+plt.semilogy(run_out2['times'], run_out2['kx_opt'], label=label2, ls='--', c='C1')
 plt.xlabel(r'$t_0$')
-plt.title(r'$G$ maximized over $k_x$ and $k_y$')
-plt.ylabel(r'$G(t_0)$')
+# plt.title(r'$k_{x, \mathrm{opt}}$')
+plt.ylabel(r'$k_{x, \mathrm{opt}}$')
 plt.ylim(ymin=0)
-plt.xlim((0, max(run_out1['times'][-1], run_out2['times'][-1])))
-plt.legend()
+# plt.xlim((0, max(run_out1['times'][-1], run_out2['times'][-1])))
+if tmax is None:
+    plt.xlim((0, max(run_out1['times'][-1], run_out2['times'][-1])))
+else:
+    plt.xlim((0, tmax))
+# plt.legend()
 
 plt.subplot(2, 2, 4)
-plt.semilogy(run_out1['times'], run_out1['Gs_opt'], label=label1, ls='-', c='C0')
-plt.semilogy(run_out2['times'], run_out2['Gs_opt'], label=label2, ls='--', c='C1')
+plt.axhline(run_out1['kys'][0], c='k')
+plt.axhline(run_out1['kys'][-1], c='k')
+plt.plot(run_out1['times'], run_out1['ky_opt'], label=label1, ls='-', c='C0')
+plt.plot(run_out2['times'], run_out2['ky_opt'], label=label2, ls='--', c='C1')
 plt.xlabel(r'$t_0$')
-# plt.title(r'$G$ maximized over $k_x$ and $k_y$')
-plt.ylabel(r'$G(t_0)$')
-plt.ylim(ymin=1)
-plt.xlim((0, max(run_out1['times'][-1], run_out2['times'][-1])))
+# plt.title(r'$k_{x, \mathrm{opt}}$')
+plt.ylabel(r'$k_{y, \mathrm{opt}}$')
+plt.ylim(ymin=0)
+# plt.xlim((0, max(run_out1['times'][-1], run_out2['times'][-1])))
+if tmax is None:
+    plt.xlim((0, max(run_out1['times'][-1], run_out2['times'][-1])))
+else:
+    plt.xlim((0, tmax))
 
 # plt.subplot(2, 2, 3)
 # Gs_flat = Gs.reshape((-1, Gs.shape[-1]))  # flatten into a 2D array of shape (Gs.shape[0]*Gs.shape[1], Gs.shape[2])
@@ -188,6 +210,7 @@ plt.xlim((0, max(run_out1['times'][-1], run_out2['times'][-1])))
 # else:
 #     plotname += 'k{}'.format(k)
 plt.tight_layout()
-plt.savefig(plotname+'.png')
-plt.savefig(plotname+'.pdf')
+# plt.savefig(plotname+'.png')
+# plt.savefig(plotname+'.pdf')
 print("done")
+plt.show()

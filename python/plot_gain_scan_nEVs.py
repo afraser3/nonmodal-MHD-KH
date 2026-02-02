@@ -8,7 +8,7 @@ from pathlib import Path
 
 logscale = False
 hydro = False
-run = "run_F3"
+run = "run_Q-k0test"
 
 # Parse the .cfg filename passed to script
 if hydro:

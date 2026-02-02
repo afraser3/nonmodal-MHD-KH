@@ -9,9 +9,9 @@ from dedalus import public as de
 import logging
 logger = logging.getLogger(__name__)
 
-# run = "testrun_kx-log-ky-lin_MA1_Re50_kxmin1e-3_T3tA_Nz256-k300-saveLOPsAndEvolved"
-run = "run_kx-lin-ky-lin_MA1_Re50_kxmin0.1_Nz256-k300-saveLOPsAndEvolved"
-LOP_t0_ind = 1
+# run = "run_kx-lin-ky-lin_MA0.5_Re250_kxmin0.1_T100_Nz512-k600-saveLOPsAndEvolved"
+run = "run_kx-log-ky-lin_MA0.25_Re250_kxmin1e-3_T3tA_Nz512-k600-saveLOPsAndEvolved"
+LOP_t0_ind = 11
 kxi = None
 kyi = None
 
@@ -344,18 +344,20 @@ with PdfPages(str(out_dir) + '/' + plotname) as pdf:
         plt.loglog(scalars_ts, np.real(wrms[:, 0]), label='w_rms')
         # plt.xlim(xmax=20)
         plt.loglog([scalars_ts[10], scalars_ts[-1]], [scalars_ts[10] * urms[10, 0], scalars_ts[-1] * urms[10, 0]], '--', c='k')
+        # plt.loglog([scalars_ts[1], scalars_ts[-1]], [scalars_ts[1] * urms[1, 0], scalars_ts[-1] * urms[1, 0]], '--', c='k')
         # plt.legend()
         plt.title(r'log-log')
 
         plt.subplot(2, 3, 3)
-        plt.plot(scalars_ts, np.real(urms[:, 0]) / scalars_ts, label='u_rms/t')
+        plt.plot(scalars_ts, np.real(urms[:, 0] - urms[0, 0]) / scalars_ts, label='(u_rms - u_rms(0))/t')
         # plt.loglog(ts, np.real(vrms[:, 0]), label='v_rms')
         # plt.loglog(ts, np.real(wrms[:, 0]), label='w_rms')
         # plt.xlim(xmax=20)
         # plt.loglog([ts[10], ts[-1]], [ts[10]*urms[10, 0], ts[-1]*urms[10, 0]], '--', c='k')
         plt.xlim((0, 2 * LOP_ts[LOP_t0_ind]))
+        plt.ylim(ymin=0)
         plt.legend()
-        plt.title(r'compensated log-log')
+        plt.title(r'compensated')
 
         plt.subplot(2, 3, 5)
         plt.loglog(scalars_ts, np.real(bxrms[:, 0]), label='bx_rms')
@@ -363,12 +365,13 @@ with PdfPages(str(out_dir) + '/' + plotname) as pdf:
         plt.loglog(scalars_ts, np.real(bzrms[:, 0]), label='bz_rms')
         # plt.xlim(xmax=20)
         plt.loglog([scalars_ts[10], scalars_ts[-1]], [scalars_ts[10] * bxrms[10, 0], scalars_ts[-1] * bxrms[10, 0]], '--', c='k')
+        # plt.loglog([scalars_ts[1], scalars_ts[-1]], [scalars_ts[1] * bxrms[1, 0], scalars_ts[-1] * bxrms[1, 0]], '--', c='k')
         # plt.legend(loc='upper right')
         # plt.legend()
         plt.xlabel(r'$t$')
 
         plt.subplot(2, 3, 6)
-        plt.plot(scalars_ts, np.real(bxrms[:, 0]) / scalars_ts, label='bx_rms/t')
+        plt.plot(scalars_ts, np.real(bxrms[:, 0] - bxrms[0, 0]) / scalars_ts, label='(bx_rms - bx_rms(0))/t')
         # plt.loglog(ts, np.real(byrms[:, 0]), label='by_rms')
         # plt.loglog(ts, np.real(bzrms[:, 0]), label='bz_rms')
         # plt.xlim(xmax=20)
@@ -376,6 +379,7 @@ with PdfPages(str(out_dir) + '/' + plotname) as pdf:
         # plt.legend(loc='upper right')
         plt.legend()
         plt.xlim((0, 2 * LOP_ts[LOP_t0_ind]))
+        plt.ylim(ymin=0)
         plt.xlabel(r'$t$')
         plt.tight_layout()
         pdf.savefig()
@@ -384,26 +388,37 @@ with PdfPages(str(out_dir) + '/' + plotname) as pdf:
     # stuff from plot_dEdt_terms_from_scan.py
     if True:
         plt.subplot(3, 1, 1)
+        plt.axvline(LOP_ts[LOP_t0_ind], c='k')
         plt.plot(scalars_ts, KEs, label='KE')
         # plt.plot(scalars_ts[:-1], delta_KE, label='d(KE)/dt')
         plt.plot(scalars_ts, MEs, label='ME')
         plt.legend()
         plt.xlim((scalars_ts[0], scalars_ts[-1]))
         plt.ylim(ymin=0)
+
         plt.subplot(3, 1, 2)
+        plt.axvline(LOP_ts[LOP_t0_ind], c='k')
+        plt.axhline(0, c='k')
         # plt.plot(scalars_ts, KE, label='KE')
         plt.plot(scalars_ts[:-1], delta_KE, label='d(KE)/dt')
         plt.plot(scalars_ts, np.real(K_prod[:, 0]), label='KE shear prod')
         plt.plot(scalars_ts, np.real(EM_work[:, 0]), label='EM work')
         plt.legend(loc='upper right')
         plt.xlim((scalars_ts[0], scalars_ts[-1]))
+        ymax = np.max(np.abs(np.append(delta_KE, [np.real(K_prod[:, 0]), np.real(EM_work[:, 0])])))
+        plt.ylim((-ymax, ymax))
+
         plt.subplot(3, 1, 3)
+        plt.axvline(LOP_ts[LOP_t0_ind], c='k')
+        plt.axhline(0, c='k')
         # plt.plot(scalars_ts, ME, label='ME')
         plt.plot(scalars_ts[:-1], delta_ME, label='d(ME)/dt')
         plt.plot(scalars_ts, np.real(M_prod[:, 0]), label='ME shear prod')
         plt.plot(scalars_ts, np.real(-EM_work[:, 0]), label='-(EM work)')
         plt.legend(loc='upper right')
         plt.xlim((scalars_ts[0], scalars_ts[-1]))
+        ymax = np.max(np.abs(np.append(delta_ME, [np.real(M_prod[:, 0]), np.real(-EM_work[:, 0])])))
+        plt.ylim((-ymax, ymax))
         plt.tight_layout()
         pdf.savefig()
         plt.close()

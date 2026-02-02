@@ -14,9 +14,13 @@ Reynolds = 50.0
 Pm = 1.0
 mReynolds = Pm * Reynolds
 Lz = 10.0*np.pi
-kx = 0.2
-ky = 0.025
-# MA = 10.0  # Alfven Mach number. For this value, the system is unstable.
+
+# tinds from plot_gain_scan_vs_t0.py for run_Q:
+# 31, 95, 158, 222, 287
+# kys:
+# 0.6, 0.6, 0.6, 0.5, 0.375
+kx = 0.0
+ky = 0.425
 MA = 1.0
 MA2 = MA**2.0
 k = 300
@@ -33,7 +37,8 @@ else:
 if not savedir.exists():
     savedir.mkdir(parents=True)
 # ts = np.linspace(0.0, 50.0, 51)
-ts = np.linspace(0.0, 200.0, 201)
+# ts = np.linspace(0.0, 200.0, 201)
+ts = np.linspace(0.0, 400.0, 801)
 # ts = np.linspace(0.0, 1000.0, 501)
 
 

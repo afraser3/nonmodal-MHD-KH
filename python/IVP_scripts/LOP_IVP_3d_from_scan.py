@@ -13,7 +13,8 @@ from dedalus import public as de
 import logging
 logger = logging.getLogger(__name__)
 
-run = "run_kx-log-ky-lin_MA0.5_Re50_kxmin1e-3_T3tA_Nz256-k300-saveLOPs"
+# run = "run_kx-lin-ky-lin_MA0.5_Re250_kxmin0.1_T100_Nz512-k600-saveLOPsAndEvolved"
+run = "run_kx-log-ky-lin_MA0.25_Re250_kxmin1e-3_T3tA_Nz512-k600-saveLOPsAndEvolved"
 LOP_t0_ind = 11
 kxi = None
 kyi = None

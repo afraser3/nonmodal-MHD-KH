@@ -9,7 +9,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import h5py
 from dedalus import public as de
 
-basedir = 'LOPs_3D/run_kx-log-scan-saveLOPs-saveEvecs/kxi_0015/kyi_0000/'
+basedir = 'LOPs_3D/run_kx-log-scan-saveLOPs-saveEvecs-saveBetas/kxi_0004/kyi_0000/'
 Legendre = False  # should fix this to be read from the config file or something
 gainsfile = basedir+'gains_mats.h5'
 with h5py.File(gainsfile, mode='r') as file:

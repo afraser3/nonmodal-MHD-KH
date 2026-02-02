@@ -24,12 +24,14 @@ def natural_sort(iterable, reverse=False):
     return sorted(iterable, key=key, reverse=reverse)
 
 
-# run_name = 'run_kx-log-scan-saveLOPs-saveEvecs-saveBetas'
-run_name = "run_kx-log-ky-lin_MA1.1_Re50_kxmin1e-3_Nz256-k300-saveLOPs"
-# run_name = "run_kx-lin-ky-lin_MA1_Re250_kmin0.1_Nz512-k600-saveLOPs"
+# run = 'run_kx-log-scan-saveLOPs-saveEvecs-saveBetas'
+# run = "run_kx-lin-ky-lin_MA1_Re250_kxmin0.1_Nz512-k600-saveLOPsAndEvolved"
+# run = "run_kx-lin-ky-lin_MA1.1_Re250_kxmin0.1_T200_Nz512-k600-saveLOPsAndEvolved"
+run = "run_kx-lin-ky-lin_MA0.5_Re250_kxmin0.1_T100_Nz512-k600-saveLOPsAndEvolved"
+
 sparse = False
-basedir = Path("LOPs_3D") / run_name
-config_file = Path("LOPs_3D/config_files/"+run_name+'.cfg')
+basedir = Path("LOPs_3D") / run
+config_file = Path("LOPs_3D/config_files/"+run+'.cfg')
 # gains_files = glob.glob(str(basedir)+'/kxi*/kyi*/gains_mats.h5')
 # kydirs = glob.glob(str(basedir)+'/kxi*/kyi*/')
 
@@ -61,7 +63,7 @@ if kx_log:
 else:
     kxs = np.linspace(kx_start, kx_stop, kx_num, endpoint=kx_endpoint)  # the full set of kxs to scan over
 # kxdirs = [basedir / 'kxi_{:04d}/'.format(kx_i) for kx_i, kx in enumerate(kxs)]
-# kydirs = [Path(kydir) for kydir in natural_sort(glob.glob('LOPs_3D/{}/kxi_*/kyi_0000'.format(run_name)))]
+# kydirs = [Path(kydir) for kydir in natural_sort(glob.glob('LOPs_3D/{}/kxi_*/kyi_0000'.format(run)))]
 
 t_start = params.getfloat('t_start')
 t_stop = params.getfloat('t_stop')
@@ -81,7 +83,7 @@ save_LOPs = params.getboolean('save_LOPs')
 save_LOPs_istep = params.getint('save_LOPs_istep')
 LOP_ts = ts[::save_LOPs_istep]
 
-global_gains_file = "LOPs_3D/{}/gains.h5".format(run_name)
+global_gains_file = "LOPs_3D/{}/gains.h5".format(run)
 with h5py.File(global_gains_file, mode='r') as file:
     # kxs = np.array(file['ks/kx'])
     # kys = np.array(file['ks/ky'])
@@ -101,7 +103,12 @@ if params.getboolean('Legendre'):
     basis = 'Legendre'
 else:
     basis = 'Chebyshev'
-plotname = 'LOPs-vs-t0_MA{}_Nz{}_{}_{}.pdf'.format(params['MA'], params['Nz'], solver, basis)
+# plotname = 'LOPs-vs-t0_MA{}_Nz{}_{}_{}.pdf'.format(params['MA'], params['Nz'], solver, basis)
+plotname = 'LOPs-vs-t0__{}.pdf'.format(run)
+LOP_dir = basedir/'LOPs'
+if not LOP_dir.exists():
+    LOP_dir.mkdir(parents=False)
+
 with PdfPages(str(basedir) + '/' + plotname) as pdf:
     # for kydir in kydirs[-2::-1]:  # for this one case, skip this one ky because it's not behaving well
     # for kydir in kydirs[::-1]:
@@ -213,11 +220,13 @@ with PdfPages(str(basedir) + '/' + plotname) as pdf:
                 plt.scatter(np.real(evals_low[beta_order]), -np.imag(evals_low[beta_order]), marker='.', c=np.abs(betas[beta_order]))
             plt.colorbar()
 
-        plt.suptitle(r'$k_x={:1.2e}$, $k_y={:1.2e}$, $t={}$'.format(kx, ky, LOP_ts[ti]))
+        plt.suptitle(r'$k_x={:1.2e}$, $k_y={:1.2e}$, $t_0={}$'.format(kx, ky, LOP_ts[ti]))
 
         plt.tight_layout()
         # plt.show()
         # plt.savefig(str(kydir / 'LOP_tind{}.png'.format(tind)))
         # plt.savefig(str(kydir / 'LOP_tind{}.pdf'.format(tind)))
         pdf.savefig()
+        plt.savefig(str(LOP_dir) + '/LOP_ti{}__{}.pdf'.format(ti, run))
+        plt.savefig(str(LOP_dir) + '/LOP_ti{}__{}.png'.format(ti, run))
         plt.close()
